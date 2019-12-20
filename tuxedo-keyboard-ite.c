@@ -12,6 +12,9 @@
 #include <linux/delay.h>
 #include <linux/keyboard.h>
 
+MODULE_DESCRIPTION("TUXEDO Computers, ITE backlight driver");
+MODULE_AUTHOR("TUXEDO Computers <tux@tuxedocomputers.com>");
+MODULE_VERSION("1.0.0");
 MODULE_LICENSE("GPL");
 
 #define KEYBOARD_ROWS       6
