@@ -1,7 +1,11 @@
-obj-m += tuxedo-keyboard-ite.o
+obj-m += ./src/tuxedo_keyboard_ite.o
 
+PWD := $(shell pwd)
+KDIR := /lib/modules/$(shell uname -r)/build
+
+# Module build targets
 all:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+	make -C $(KDIR) M=$(PWD) modules
 
 clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+	make -C $(KDIR) M=$(PWD) clean
