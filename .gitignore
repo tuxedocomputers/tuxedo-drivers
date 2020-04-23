@@ -1,3 +1,4 @@
+.vscode
 *.cache.mk
 .tmp_versions
 *.cmd
@@ -7,3 +8,7 @@
 *.o
 *.symvers
 *.order
+*.deb
+*.rpm
+rpm
+deb/tuxedo-keyboard-ite-*

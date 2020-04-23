@@ -1,0 +1,10 @@
+Package: module-name
+Version: x.x.x
+Section: admin
+Priority: optional
+Depends: dkms (>= 1.95)
+Maintainer: TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+Homepage: https://www.tuxedocomputers.com
+Architecture: all
+Description: Per-key keyboard backlight driver for ITE devices
+ This module provides control of per-key backlight for ITE Device(829x).
