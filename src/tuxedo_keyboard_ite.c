@@ -58,13 +58,13 @@ static struct mutex input_lock;
 #define DEFAULT_MODE        0
 
 static struct tuxedo_keyboard_ite_data {
-    int brightness;
-    int on;
-    int mode;
+	int brightness;
+	int on;
+	int mode;
 } ti_data = {
-    .brightness = DEFAULT_BRIGHTNESS,
-    .on = TRUE,
-    .mode = DEFAULT_MODE
+	.brightness = DEFAULT_BRIGHTNESS,
+	.on = TRUE,
+	.mode = DEFAULT_MODE
 };
 
 // Color mode definition
@@ -81,304 +81,314 @@ int p_set_color = 0;
 
 static void sweep_delay(void)
 {
-    if (p_sweep_delay != 0) {
-        udelay(200 * clamp(p_sweep_delay, 0, 10));
-    }
+	if (p_sweep_delay != 0) {
+		udelay(200 * clamp(p_sweep_delay, 0, 10));
+	}
 }
 
 static int keyb_send_data(struct hid_device *dev, u8 cmd, u8 d0, u8 d1, u8 d2, u8 d3)
 {
-    int result = 0;
-    u8 *buf;
-    if (dev == NULL) return -ENODEV;
+	int result = 0;
+	u8 *buf;
+	if (dev == NULL) return -ENODEV;
 
-    mutex_lock(&dev_lock);
+	mutex_lock(&dev_lock);
 
-    buf = kzalloc(HID_DATA_SIZE, GFP_KERNEL);
-    buf[0] = 0xcc;
-    buf[1] = cmd;
-    buf[2] = d0;
-    buf[3] = d1;
-    buf[4] = d2;
-    buf[5] = d3;
+	buf = kzalloc(HID_DATA_SIZE, GFP_KERNEL);
+	buf[0] = 0xcc;
+	buf[1] = cmd;
+	buf[2] = d0;
+	buf[3] = d1;
+	buf[4] = d2;
+	buf[5] = d3;
 
-    result = hid_hw_raw_request(dev, buf[0], buf, HID_DATA_SIZE, HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
-    kfree(buf);
+	result = hid_hw_raw_request(dev, buf[0], buf, HID_DATA_SIZE, HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
+	kfree(buf);
 
-    mutex_unlock(&dev_lock);
+	mutex_unlock(&dev_lock);
 
-    return result;
+	return result;
 }
 
 /*static int keyb_get_data(struct hid_device *dev, u8 *data)
 {
-    int result = 0;
+	int result = 0;
 
-    result = hid_hw_raw_request(dev, 0xcc, data, HID_DATA_SIZE, HID_FEATURE_REPORT, HID_REQ_GET_REPORT);
+	result = hid_hw_raw_request(dev, 0xcc, data, HID_DATA_SIZE, HID_FEATURE_REPORT, HID_REQ_GET_REPORT);
 
-    return result;
+	return result;
 }
 
 static void print_buf(u8 *buf, size_t len)
 {
-    size_t i;
-    for (i = 0; i < len; ++i) {
-        pr_info("byte: %d\n", buf[i]);
-    }
+	size_t i;
+	for (i = 0; i < len; ++i) {
+		pr_info("byte: %d\n", buf[i]);
+	}
 }
 
 static void keyb_get_led_data(struct hid_device *dev, u8 cmd, u8 type)
 {
-    u8 *data;
-    data = kzalloc(HID_DATA_SIZE, GFP_KERNEL);
-    memset(data, 0x00, HID_DATA_SIZE);
-    // data[0] = 0xcc;
-    // data[1] = cmd;
-    // data[2] = type;
+	u8 *data;
+	data = kzalloc(HID_DATA_SIZE, GFP_KERNEL);
+	memset(data, 0x00, HID_DATA_SIZE);
+	// data[0] = 0xcc;
+	// data[1] = cmd;
+	// data[2] = type;
 
-    mutex_lock(&tuxedo_ite_829x_lock);
-    pr_info("cmd: %d, type: %d\n", cmd, type);
-    keyb_send_data(dev, cmd, type, 0x00, 0x00, 0x00);
-    keyb_get_data(dev, data);
-    print_buf(data, HID_DATA_SIZE);
-    // pr_info("??: %d, blink: %d, color: %d, brightness: %d, area %d\n", data[1], data[2], data[3], data[4], data[5]);
-    kfree(data);
-    mutex_unlock(&tuxedo_ite_829x_lock);
+	mutex_lock(&tuxedo_ite_829x_lock);
+	pr_info("cmd: %d, type: %d\n", cmd, type);
+	keyb_send_data(dev, cmd, type, 0x00, 0x00, 0x00);
+	keyb_get_data(dev, data);
+	print_buf(data, HID_DATA_SIZE);
+	// pr_info("??: %d, blink: %d, color: %d, brightness: %d, area %d\n", data[1], data[2], data[3], data[4], data[5]);
+	kfree(data);
+	mutex_unlock(&tuxedo_ite_829x_lock);
 }*/
 
 void keyb_set_all(struct hid_device *dev, u8 color_red, u8 color_green, u8 color_blue)
 {
-    int row, col;
-    for (col = 0; col < KEYBOARD_COLUMNS; ++col) {
-        for (row = 0; row < KEYBOARD_ROWS; ++row) {
-            keyb_send_data(dev, 0x01, get_led_id(row, col), color_red, color_green, color_blue);
-            sweep_delay();
-        }
-    }
+	int row, col;
+	for (col = 0; col < KEYBOARD_COLUMNS; ++col) {
+		for (row = 0; row < KEYBOARD_ROWS; ++row) {
+			keyb_send_data(dev, 0x01, get_led_id(row, col), color_red, color_green, color_blue);
+			sweep_delay();
+		}
+	}
 }
 
 static void send_mode(struct hid_device *dev, int mode)
 {
-    int row, col;
-    u8 color_red, color_green, color_blue;
-    
-    if (dev == NULL) return;
+	int row, col;
+	u8 color_red, color_green, color_blue;
+	
+	if (dev == NULL) return;
 
-    p_set_color = 0;
+	p_set_color = 0;
 
-    if (mode < MODE_MAP_LENGTH) {
-        // Color modes, mode is index to mode_to_color array map
-        color_red = (mode_to_color[mode] >> 0x10) & 0xff;
-        color_green = (mode_to_color[mode] >> 0x08) & 0xff;
-        color_blue = (mode_to_color[mode] >> 0x00) & 0xff;
-        keyb_set_all(dev, color_red, color_green, color_blue);
-    } else if (mode == MODE_MAP_LENGTH) {
-        // White background, TUXEDO letters in red
-        for (col = 0; col < KEYBOARD_COLUMNS; ++col) {
-            for (row = 0; row < KEYBOARD_ROWS; ++row) {
-                if (
-                    (row == 2 && col == 6) ||   // T
-                    (row == 2 && col == 8) ||   // U
-                    (row == 4 && col == 4) ||   // X
-                    (row == 2 && col == 4) ||   // E
-                    (row == 3 && col == 4) ||   // D
-                    (row == 2 && col == 10)     // O
-                ) {
-                    keyb_send_data(dev, 0x01, get_led_id(row, col), 0xff, 0x00, 0x00);
-                } else {
-                    keyb_send_data(dev, 0x01, get_led_id(row, col), 0xff, 0xff, 0xff);
-                }
-            }
-        }
-    } else if (mode == MODE_MAP_LENGTH + 1) {
-        // Random color animating effect, special mode
-        keyb_send_data(dev, 0x00, 0x09, 0x00, 0x00, 0x00);
-    }
+	if (mode < MODE_MAP_LENGTH) {
+		// Color modes, mode is index to mode_to_color array map
+		color_red = (mode_to_color[mode] >> 0x10) & 0xff;
+		color_green = (mode_to_color[mode] >> 0x08) & 0xff;
+		color_blue = (mode_to_color[mode] >> 0x00) & 0xff;
+		keyb_set_all(dev, color_red, color_green, color_blue);
+	} else if (mode == MODE_MAP_LENGTH) {
+		// White background, TUXEDO letters in red
+		for (col = 0; col < KEYBOARD_COLUMNS; ++col) {
+			for (row = 0; row < KEYBOARD_ROWS; ++row) {
+				if (
+					(row == 2 && col == 6) ||   // T
+					(row == 2 && col == 8) ||   // U
+					(row == 4 && col == 4) ||   // X
+					(row == 2 && col == 4) ||   // E
+					(row == 3 && col == 4) ||   // D
+					(row == 2 && col == 10)     // O
+				) {
+					keyb_send_data(dev, 0x01, get_led_id(row, col), 0xff, 0x00, 0x00);
+				} else {
+					keyb_send_data(dev, 0x01, get_led_id(row, col), 0xff, 0xff, 0xff);
+				}
+			}
+		}
+	} else if (mode == MODE_MAP_LENGTH + 1) {
+		// Random color animating effect, special mode
+		keyb_send_data(dev, 0x00, 0x09, 0x00, 0x00, 0x00);
+	}
 }
 
 static void stop_hw(struct hid_device *dev)
 {
-    hid_hw_power(dev, PM_HINT_NORMAL);
-    kbdev = NULL;
-    hid_hw_close(dev);
-    hid_hw_stop(dev);
+	hid_hw_power(dev, PM_HINT_NORMAL);
+	kbdev = NULL;
+	hid_hw_close(dev);
+	hid_hw_stop(dev);
 }
 
 static int start_hw(struct hid_device *dev)
 {
-    int result;
-    result = hid_hw_start(dev, HID_CONNECT_DEFAULT);
-    if (result) {
-        pr_err("hid_hw_start failed\n");
-        goto err_stop_hw;
-    }
+	int result;
+	result = hid_hw_start(dev, HID_CONNECT_DEFAULT);
+	if (result) {
+		pr_err("hid_hw_start failed\n");
+		goto err_stop_hw;
+	}
 
-    hid_hw_power(dev, PM_HINT_FULLON);
+	hid_hw_power(dev, PM_HINT_FULLON);
 
-    result = hid_hw_open(dev);
-    if (result) {
-        pr_err("hid_hw_open failed\n");
-        goto err_stop_hw;
-    }
+	result = hid_hw_open(dev);
+	if (result) {
+		pr_err("hid_hw_open failed\n");
+		goto err_stop_hw;
+	}
 
-    kbdev = dev;
-    return 0;
+	kbdev = dev;
+	return 0;
 
 err_stop_hw:
-    stop_hw(dev);
-    return result;
+	stop_hw(dev);
+	return result;
 }
 
 static void init_from_params(struct hid_device *dev)
 {
-    if (ti_data.on)
-        keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
-    else
-        keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00, 0x00);
+	if (ti_data.on)
+		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
+	else
+		keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00, 0x00);
 
-    if (p_set_color == 1) {
-        keyb_set_all(dev, p_color_red, p_color_green, p_color_blue);
-    } else {
-        send_mode(dev, ti_data.mode);
-    }
+	if (p_set_color == 1) {
+		keyb_set_all(dev, p_color_red, p_color_green, p_color_blue);
+	} else {
+		send_mode(dev, ti_data.mode);
+	}
 }
 
 static int keyboard_notifier_callb(struct notifier_block *nb, unsigned long code, void *_param)
 {
-    // TODO: Remove work from callback
-    struct keyboard_notifier_param *param = _param;
-    int ret = NOTIFY_OK;
+	// TODO: Remove work from callback
+	struct keyboard_notifier_param *param = _param;
+	int ret = NOTIFY_OK;
 
-    if (!param->down) return ret;
+	if (!param->down) return ret;
 
-    if (mutex_is_locked(&input_lock)) {
-        return ret;
-    }
+	if (mutex_is_locked(&input_lock)) {
+		return ret;
+	}
 
-    mutex_lock(&input_lock);
+	mutex_lock(&input_lock);
 
-    if (code == KBD_KEYCODE) {
-        switch (param->value) {
-            case INT_KEY_B_UP:
-                // Brightness one step up
-                ti_data.on = TRUE;
-                ti_data.brightness += 1;
-                if (ti_data.brightness > 10) ti_data.brightness = 10;
-                keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
-                break;
-            case INT_KEY_B_DOWN:
-                // Brightness one step down
-                ti_data.on = TRUE;
-                ti_data.brightness -= 1;
-                if (ti_data.brightness < 0) ti_data.brightness = 0;
-                keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
-                break;
-            case INT_KEY_B_TOGGLE:
-                // Toggle on/off
-                if (ti_data.on) ti_data.on = FALSE;
-                else ti_data.on = TRUE;
-                if (ti_data.on)
-                    keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
-                else
-                    keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00, 0x00);
-                break;
-            case INT_KEY_B_NEXT:
-                // Next mode
-                ti_data.on = TRUE;
-                ti_data.mode += 1;
-                if (ti_data.mode >= MODE_MAP_LENGTH + MODE_EXTRAS_LENGTH) ti_data.mode = 0;
-                send_mode(kbdev, ti_data.mode);
-                break;
-        }
-    }
+	if (code == KBD_KEYCODE) {
+		switch (param->value) {
+		case INT_KEY_B_UP:
+			// Brightness one step up
+			ti_data.on = TRUE;
+			ti_data.brightness += 1;
+			if (ti_data.brightness > 10)
+				ti_data.brightness = 10;
+			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02,
+				       0x00, 0x00);
+			break;
+		case INT_KEY_B_DOWN:
+			// Brightness one step down
+			ti_data.on = TRUE;
+			ti_data.brightness -= 1;
+			if (ti_data.brightness < 0)
+				ti_data.brightness = 0;
+			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02,
+				       0x00, 0x00);
+			break;
+		case INT_KEY_B_TOGGLE:
+			// Toggle on/off
+			if (ti_data.on)
+				ti_data.on = FALSE;
+			else
+				ti_data.on = TRUE;
+			if (ti_data.on)
+				keyb_send_data(kbdev, 0x09, ti_data.brightness,
+					       0x02, 0x00, 0x00);
+			else
+				keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00,
+					       0x00);
+			break;
+		case INT_KEY_B_NEXT:
+			// Next mode
+			ti_data.on = TRUE;
+			ti_data.mode += 1;
+			if (ti_data.mode >=
+			    MODE_MAP_LENGTH + MODE_EXTRAS_LENGTH)
+				ti_data.mode = 0;
+			send_mode(kbdev, ti_data.mode);
+			break;
+		}
+	}
 
-    mutex_unlock(&input_lock);
+	mutex_unlock(&input_lock);
 
-    return NOTIFY_OK;
+	return NOTIFY_OK;
 }
 
 static struct notifier_block keyboard_notifier_block = {
-    .notifier_call = keyboard_notifier_callb
+	.notifier_call = keyboard_notifier_callb
 };
 
 static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 {
-    int result;
+	int result;
 
-    result = hid_parse(dev);
-    if (result) {
-        pr_err("hid_parse failed\n");
-        stop_hw(dev);
-        return result;
-    }
+	result = hid_parse(dev);
+	if (result) {
+		pr_err("hid_parse failed\n");
+		stop_hw(dev);
+		return result;
+	}
 
-    mutex_init(&dev_lock);
+	mutex_init(&dev_lock);
 
-    result = start_hw(dev);
-    if (result != 0) {
-        return result;
-    }
+	result = start_hw(dev);
+	if (result != 0) {
+		return result;
+	}
 
-    register_keyboard_notifier(&keyboard_notifier_block);
+	register_keyboard_notifier(&keyboard_notifier_block);
 
-    init_from_params(dev);
+	init_from_params(dev);
 
-    return 0;
+	return 0;
 }
 
 static void remove_callb(struct hid_device *dev)
 {
-    unregister_keyboard_notifier(&keyboard_notifier_block);
-    stop_hw(dev);
-    pr_debug("removed\n");
+	unregister_keyboard_notifier(&keyboard_notifier_block);
+	stop_hw(dev);
+	pr_debug("removed\n");
 }
 
 #ifdef CONFIG_PM_SLEEP
 static int driver_suspend_callb(struct device *dev)
 {
-    pr_debug("suspend\n");
-    return 0;
+	pr_debug("suspend\n");
+	return 0;
 }
 
 static int driver_resume_callb(struct device *dev)
 {
-    pr_debug("resume\n");
-    init_from_params(kbdev);
-    return 0;
+	pr_debug("resume\n");
+	init_from_params(kbdev);
+	return 0;
 }
 #endif
 
 static const struct hid_device_id hd_table[] = {
-    { HID_USB_DEVICE(0x048d, 0x8910) },
-    { }
+	{ HID_USB_DEVICE(0x048d, 0x8910) },
+	{ }
 };
 MODULE_DEVICE_TABLE(hid, hd_table);
 
 static struct hid_driver hd = {
-    .name = "tuxedo-keyboard-ite",
-    .probe = probe_callb,
-    .remove = remove_callb,
-    .id_table = hd_table,
+	.name = "tuxedo-keyboard-ite",
+	.probe = probe_callb,
+	.remove = remove_callb,
+	.id_table = hd_table,
 };
 
 static const struct dev_pm_ops tuxedo_keyboard_ite_pm = {
-    SET_SYSTEM_SLEEP_PM_OPS(driver_suspend_callb, driver_resume_callb)
+	SET_SYSTEM_SLEEP_PM_OPS(driver_suspend_callb, driver_resume_callb)
 };
 
 static int __init tuxedo_keyboard_ite_init(void)
 {
-    pr_debug("module init\n");
-    mutex_init(&input_lock);
-    
-    hd.driver.pm = &tuxedo_keyboard_ite_pm;
+	pr_debug("module init\n");
+	mutex_init(&input_lock);
+	
+	hd.driver.pm = &tuxedo_keyboard_ite_pm;
 
-    return hid_register_driver(&hd);
+	return hid_register_driver(&hd);
 }
 
 static void __exit tuxedo_keyboard_ite_exit(void)
 {
-    hid_unregister_driver(&hd);
-    pr_debug("module exit\n");
+	hid_unregister_driver(&hd);
+	pr_debug("module exit\n");
 }
 
 // ---
@@ -386,19 +396,19 @@ static void __exit tuxedo_keyboard_ite_exit(void)
 // ---
 /*static int param_set_sweep_delay(const char *val, const struct kernel_param *kp)
 {
-    int result, value;
-    result = kstrtoint(val, 10, &value);
-    if (result != 0 || value < 0 || value > 10) {
-        return -EINVAL;
-    }
+	int result, value;
+	result = kstrtoint(val, 10, &value);
+	if (result != 0 || value < 0 || value > 10) {
+		return -EINVAL;
+	}
 
-    value = clamp(value, 0, 10);
-    return param_set_int(val, kp);
+	value = clamp(value, 0, 10);
+	return param_set_int(val, kp);
 }
 
 static const struct kernel_param_ops p_ops_sweep_delay = {
-    .set = param_set_sweep_delay,
-    .get = param_get_int
+	.set = param_set_sweep_delay,
+	.get = param_get_int
 };
  
 module_param_cb(sweep_delay, &p_ops_sweep_delay, &p_sweep_delay, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
@@ -413,20 +423,20 @@ MODULE_PARM_DESC(color_blue, "Blue color (0-255)");
 
 static int param_set_mode(const char *val, const struct kernel_param *kp)
 {
-    int result, value;
-    result = kstrtoint(val, 10, &value);
-    if (result != 0 || value < 0 || value >= MODE_MAP_LENGTH + MODE_EXTRAS_LENGTH) {
-        return -EINVAL;
-    }
+	int result, value;
+	result = kstrtoint(val, 10, &value);
+	if (result != 0 || value < 0 || value >= MODE_MAP_LENGTH + MODE_EXTRAS_LENGTH) {
+		return -EINVAL;
+	}
 
-    ti_data.on = TRUE;
-    send_mode(kbdev, value);
-    return param_set_int(val, kp);
+	ti_data.on = TRUE;
+	send_mode(kbdev, value);
+	return param_set_int(val, kp);
 }
 
 static const struct kernel_param_ops p_ops_mode = {
-    .set = param_set_mode,
-    .get = param_get_int
+	.set = param_set_mode,
+	.get = param_get_int
 };
 module_param_cb(mode, &p_ops_mode, &(ti_data.mode), S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 MODULE_PARM_DESC(mode, "Mode");
@@ -434,22 +444,22 @@ MODULE_PARM_DESC(mode, "Mode");
 
 static int param_set_color(const char *val, const struct kernel_param *kp)
 {
-    int result, value;
-    result = kstrtoint(val, 10, &value);
-    if (result != 0 || value <= 0 || value > 1) {
-        return -EINVAL;
-    }
-    
-    if (value == 1) {
-        ti_data.on = TRUE;
-        keyb_set_all(kbdev, p_color_red, p_color_green, p_color_blue);
-    }
-    return param_set_int(val, kp);
+	int result, value;
+	result = kstrtoint(val, 10, &value);
+	if (result != 0 || value <= 0 || value > 1) {
+		return -EINVAL;
+	}
+	
+	if (value == 1) {
+		ti_data.on = TRUE;
+		keyb_set_all(kbdev, p_color_red, p_color_green, p_color_blue);
+	}
+	return param_set_int(val, kp);
 }
 
 static const struct kernel_param_ops p_ops_set_color = {
-    .set = param_set_color,
-    .get = param_get_int
+	.set = param_set_color,
+	.get = param_get_int
 };
 
 module_param_cb(set_color, &p_ops_set_color, &p_set_color, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
