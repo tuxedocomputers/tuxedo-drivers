@@ -92,7 +92,9 @@ static int keyb_send_data(struct hid_device *dev, u8 cmd, u8 d0, u8 d1, u8 d2, u
 {
 	int result = 0;
 	u8 *buf;
-	if (dev == NULL) return -ENODEV;
+	if (dev == NULL) {
+		return -ENODEV;
+	}
 
 	mutex_lock(&dev_lock);
 
@@ -128,7 +130,9 @@ static void send_mode(struct hid_device *dev, int mode)
 	int row, col;
 	u8 color_red, color_green, color_blue;
 	
-	if (dev == NULL) return;
+	if (dev == NULL) {
+		return;
+	}
 
 	p_set_color = 0;
 
@@ -217,7 +221,9 @@ static int keyboard_notifier_callb(struct notifier_block *nb, unsigned long code
 	struct keyboard_notifier_param *param = _param;
 	int ret = NOTIFY_OK;
 
-	if (!param->down) return ret;
+	if (!param->down) {
+		return ret;
+	}
 
 	if (mutex_is_locked(&input_lock)) {
 		return ret;
