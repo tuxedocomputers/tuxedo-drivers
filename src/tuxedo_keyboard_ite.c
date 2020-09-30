@@ -110,42 +110,6 @@ static int keyb_send_data(struct hid_device *dev, u8 cmd, u8 d0, u8 d1, u8 d2, u
 	return result;
 }
 
-/*static int keyb_get_data(struct hid_device *dev, u8 *data)
-{
-	int result = 0;
-
-	result = hid_hw_raw_request(dev, 0xcc, data, HID_DATA_SIZE, HID_FEATURE_REPORT, HID_REQ_GET_REPORT);
-
-	return result;
-}
-
-static void print_buf(u8 *buf, size_t len)
-{
-	size_t i;
-	for (i = 0; i < len; ++i) {
-		pr_info("byte: %d\n", buf[i]);
-	}
-}
-
-static void keyb_get_led_data(struct hid_device *dev, u8 cmd, u8 type)
-{
-	u8 *data;
-	data = kzalloc(HID_DATA_SIZE, GFP_KERNEL);
-	memset(data, 0x00, HID_DATA_SIZE);
-	// data[0] = 0xcc;
-	// data[1] = cmd;
-	// data[2] = type;
-
-	mutex_lock(&tuxedo_ite_829x_lock);
-	pr_info("cmd: %d, type: %d\n", cmd, type);
-	keyb_send_data(dev, cmd, type, 0x00, 0x00, 0x00);
-	keyb_get_data(dev, data);
-	print_buf(data, HID_DATA_SIZE);
-	// pr_info("??: %d, blink: %d, color: %d, brightness: %d, area %d\n", data[1], data[2], data[3], data[4], data[5]);
-	kfree(data);
-	mutex_unlock(&tuxedo_ite_829x_lock);
-}*/
-
 void keyb_set_all(struct hid_device *dev, u8 color_red, u8 color_green, u8 color_blue)
 {
 	int row, col;
@@ -231,10 +195,12 @@ err_stop_hw:
 
 static void init_from_params(struct hid_device *dev)
 {
-	if (ti_data.on)
+	if (ti_data.on) {
 		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
-	else
+	}
+	else {
 		keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00, 0x00);
+	}
 
 	if (p_set_color == 1) {
 		keyb_set_all(dev, p_color_red, p_color_green, p_color_blue);
@@ -263,40 +229,53 @@ static int keyboard_notifier_callb(struct notifier_block *nb, unsigned long code
 			// Brightness one step up
 			ti_data.on = TRUE;
 			ti_data.brightness += 1;
-			if (ti_data.brightness > 10)
+
+			if (ti_data.brightness > 10) {
 				ti_data.brightness = 10;
+			}
+
 			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02,
 				       0x00, 0x00);
+
 			break;
 		case INT_KEY_B_DOWN:
 			// Brightness one step down
 			ti_data.on = TRUE;
 			ti_data.brightness -= 1;
-			if (ti_data.brightness < 0)
+
+			if (ti_data.brightness < 0) {
 				ti_data.brightness = 0;
-			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02,
-				       0x00, 0x00);
+			}
+
+			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
+
 			break;
 		case INT_KEY_B_TOGGLE:
 			// Toggle on/off
-			if (ti_data.on)
+			if (ti_data.on) {
 				ti_data.on = FALSE;
-			else
+			}
+			else {
 				ti_data.on = TRUE;
-			if (ti_data.on)
-				keyb_send_data(kbdev, 0x09, ti_data.brightness,
-					       0x02, 0x00, 0x00);
-			else
-				keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00,
-					       0x00);
+			}
+
+			if (ti_data.on) {
+				keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
+			}
+			else {
+				keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00, 0x00);
+			}
+
 			break;
 		case INT_KEY_B_NEXT:
 			// Next mode
 			ti_data.on = TRUE;
 			ti_data.mode += 1;
-			if (ti_data.mode >=
-			    MODE_MAP_LENGTH + MODE_EXTRAS_LENGTH)
+
+			if (ti_data.mode >= MODE_MAP_LENGTH + MODE_EXTRAS_LENGTH) {
 				ti_data.mode = 0;
+			}
+
 			send_mode(kbdev, ti_data.mode);
 			break;
 		}
@@ -343,20 +322,18 @@ static void remove_callb(struct hid_device *dev)
 	pr_debug("removed\n");
 }
 
-#ifdef CONFIG_PM_SLEEP
 static int driver_suspend_callb(struct device *dev)
 {
-	pr_debug("suspend\n");
+	pr_debug("suspend tuxedo-keyboard-ite\n");
 	return 0;
 }
 
 static int driver_resume_callb(struct device *dev)
 {
-	pr_debug("resume\n");
+	pr_debug("resume tuxedo-keyboard-ite\n");
 	init_from_params(kbdev);
 	return 0;
 }
-#endif
 
 static const struct hid_device_id hd_table[] = {
 	{ HID_USB_DEVICE(0x048d, 0x8910) },
@@ -377,7 +354,7 @@ static const struct dev_pm_ops tuxedo_keyboard_ite_pm = {
 
 static int __init tuxedo_keyboard_ite_init(void)
 {
-	pr_debug("module init\n");
+	pr_debug("module tuxedo-keyboard-ite init\n");
 	mutex_init(&input_lock);
 	
 	hd.driver.pm = &tuxedo_keyboard_ite_pm;
@@ -388,7 +365,7 @@ static int __init tuxedo_keyboard_ite_init(void)
 static void __exit tuxedo_keyboard_ite_exit(void)
 {
 	hid_unregister_driver(&hd);
-	pr_debug("module exit\n");
+	pr_debug("module tuxedo-keyboard-ite exit\n");
 }
 
 // ---
