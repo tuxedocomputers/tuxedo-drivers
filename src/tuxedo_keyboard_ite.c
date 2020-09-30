@@ -76,7 +76,9 @@ static const int MODE_EXTRAS_LENGTH = 2;
 
 // Other parameters
 int p_sweep_delay = 0;
-u8 p_color_red = 0, p_color_green = 0, p_color_blue = 0;
+u8 p_color_red = 0;
+u8 p_color_green = 0;
+u8 p_color_blue = 0;
 int p_set_color = 0;
 
 static void sweep_delay(void)
