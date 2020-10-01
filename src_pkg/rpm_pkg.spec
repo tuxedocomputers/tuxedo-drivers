@@ -18,7 +18,7 @@
 #
 
 
-Summary:        An interface to WMI methods/control on TUXEDO Laptops
+Summary:        Per-key keyboard backlight driver for TUXEDO ITE Keyboards devices.
 Name:           %{module}
 Version:        x.x.x
 Release:        x
@@ -29,10 +29,11 @@ Url:            https://www.tuxedocomputers.com
 Source:         %{module}-%{version}.tar.bz2
 Requires:       dkms >= 1.95
 BuildRoot:      %{_tmppath}
-Packager:       Tomte <tux@tuxedocomputers.com>
+Packager:       TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 
 %description
-Per-key keyboard backlight driver for ITE devices.
+Per-key keyboard backlight driver for ITE devices
+This module provides control of per-key backlight for ITE Device(829x).
 
 %prep
 %setup -n %{module}-%{version} -q
