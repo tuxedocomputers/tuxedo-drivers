@@ -90,6 +90,8 @@ exit 0
 
 
 %changelog
+* Tue Sep 29 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.2-1
+- Initial experimental release
 * Thu Apr 23 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.1-1
 - First version of the ITE keyboard backlight driver
 - Has support for ITE Device(829x) ->  0x048d:0x8910
