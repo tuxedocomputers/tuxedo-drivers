@@ -5,6 +5,7 @@
 *.ko
 *.mod.c
 *.mod.o
+*.mod
 *.o
 *.symvers
 *.order
