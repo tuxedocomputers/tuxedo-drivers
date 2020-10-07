@@ -45,8 +45,8 @@ MODULE_LICENSE("GPL");
 // Keyboard events
 #define INT_KEY_B_UP		KEY_KBDILLUMUP
 #define INT_KEY_B_DOWN		KEY_KBDILLUMDOWN
-#define INT_KEY_B_TOGGLE	KEY_LIGHTS_TOGGLE
-#define INT_KEY_B_NEXT		KEY_KBDILLUMTOGGLE
+#define INT_KEY_B_TOGGLE	KEY_KBDILLUMTOGGLE
+#define INT_KEY_B_NEXT		KEY_LIGHTS_TOGGLE
 
 static struct hid_device *kbdev = NULL;
 static struct mutex dev_lock;
