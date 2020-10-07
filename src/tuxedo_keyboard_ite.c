@@ -53,9 +53,9 @@ static struct mutex dev_lock;
 static struct mutex input_lock;
 
 // Default brightness (0-10)
-#define DEFAULT_BRIGHTNESS  7
+#define DEFAULT_BRIGHTNESS  3
 // Default mode (index to mode_to_color array) or extra modes
-#define DEFAULT_MODE        0
+#define DEFAULT_MODE        6
 
 static struct tuxedo_keyboard_ite_data {
 	int brightness;
