@@ -327,18 +327,18 @@ static void remove_callb(struct hid_device *dev)
 {
 	unregister_keyboard_notifier(&keyboard_notifier_block);
 	stop_hw(dev);
-	pr_debug("removed\n");
+	pr_debug("driver remove\n");
 }
 
 static int driver_suspend_callb(struct device *dev)
 {
-	pr_debug("suspend tuxedo-keyboard-ite\n");
+	pr_debug("driver suspend\n");
 	return 0;
 }
 
 static int driver_resume_callb(struct device *dev)
 {
-	pr_debug("resume tuxedo-keyboard-ite\n");
+	pr_debug("driver resume\n");
 	init_from_params(kbdev);
 	return 0;
 }
@@ -362,7 +362,7 @@ static const struct dev_pm_ops tuxedo_keyboard_ite_pm = {
 
 static int __init tuxedo_keyboard_ite_init(void)
 {
-	pr_debug("module tuxedo-keyboard-ite init\n");
+	pr_debug("module init\n");
 	mutex_init(&input_lock);
 	
 	hd.driver.pm = &tuxedo_keyboard_ite_pm;
@@ -373,7 +373,7 @@ static int __init tuxedo_keyboard_ite_init(void)
 static void __exit tuxedo_keyboard_ite_exit(void)
 {
 	hid_unregister_driver(&hd);
-	pr_debug("module tuxedo-keyboard-ite exit\n");
+	pr_debug("module exit\n");
 }
 
 // ---
