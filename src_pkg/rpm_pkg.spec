@@ -18,7 +18,7 @@
 #
 
 
-Summary:        Per-key keyboard backlight driver for TUXEDO ITE Keyboards devices.
+Summary:        Keyboard back-light driver for ITE devices.
 Name:           %{module}
 Version:        x.x.x
 Release:        x
@@ -32,8 +32,8 @@ BuildRoot:      %{_tmppath}
 Packager:       TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 
 %description
-Per-key keyboard backlight driver for ITE devices
-This module provides control of per-key backlight for ITE Device(829x).
+USB HID driver for ITE devices on TUXEDO laptops.
+This module provides back-light control for ITE Device(829x).
 
 %prep
 %setup -n %{module}-%{version} -q
