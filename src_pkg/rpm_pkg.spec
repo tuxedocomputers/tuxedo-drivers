@@ -18,7 +18,7 @@
 #
 
 
-Summary:        Keyboard back-light driver for ITE devices.
+Summary:        Keyboard back-light driver for ITE devices
 Name:           %{module}
 Version:        x.x.x
 Release:        x
@@ -90,6 +90,9 @@ exit 0
 
 
 %changelog
+* Mon Oct 12 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.3-1
+- Fixed key mapping toggle <=> switch mode
+- Default color to white
 * Tue Sep 29 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.2-1
 - Initial experimental release
 * Thu Apr 23 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.1-1
