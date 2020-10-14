@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this software.  If not, see <https://www.gnu.org/licenses/>.
 #
-obj-m := ./src/tuxedo_keyboard_ite.o
-
+obj-m := ./src/tuxedo_keyboard_ite.o ./src/ite_8297.o
+EXTRA_CFLAGS := -DDEBUG
 PWD := $(shell pwd)
 KDIR := /lib/modules/$(shell uname -r)/build
 
