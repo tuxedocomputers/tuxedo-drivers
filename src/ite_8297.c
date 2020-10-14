@@ -78,61 +78,43 @@ static int ite8297_write_state(struct ite8297_driver_data_t *ite8297_driver_data
 
 static int lightbar_set_blocking(struct led_classdev *led_cdev, enum led_brightness brightness)
 {
-	// u8 red = 0xff, green = 0xff, blue = 0xff;
 	bool led_red = strstr(led_cdev->name, LED_NAME_RGB_RED) != NULL;
 	bool led_green = strstr(led_cdev->name, LED_NAME_RGB_GREEN) != NULL;
 	bool led_blue = strstr(led_cdev->name, LED_NAME_RGB_BLUE) != NULL;
-	// bool led_animation = strstr(led_cdev->name, UNIWILL_LIGHTBAR_LED_NAME_ANIMATION) != NULL;
-
 	struct ite8297_driver_data_t *ite8297_driver_data;
 
-	if (led_red || led_green || led_blue) {
-		if (led_red) {
-			ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_red);
-			ite8297_driver_data->current_color.red = brightness;
-		} else if (led_green) {
-			ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_green);
-			ite8297_driver_data->current_color.green = brightness;
-		} else if (led_blue) {
-			ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_blue);
-			ite8297_driver_data->current_color.blue = brightness;
-		}
-		ite8297_write_state(ite8297_driver_data);
-	}/* else if (led_animation) {
-		if (brightness == 1) {
-			uniwill_write_lightbar_animation(true);
-		} else {
-			uniwill_write_lightbar_animation(false);
-		}
-	}*/
+	if (led_red) {
+		ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_red);
+		ite8297_driver_data->current_color.red = brightness;
+	} else if (led_green) {
+		ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_green);
+		ite8297_driver_data->current_color.green = brightness;
+	} else if (led_blue) {
+		ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_blue);
+		ite8297_driver_data->current_color.blue = brightness;
+	}
+	ite8297_write_state(ite8297_driver_data);
+
 	return 0;
 }
 
 static enum led_brightness lightbar_get(struct led_classdev *led_cdev)
 {
-	// bool animation_status;
 	bool led_red = strstr(led_cdev->name, LED_NAME_RGB_RED) != NULL;
 	bool led_green = strstr(led_cdev->name, LED_NAME_RGB_GREEN) != NULL;
 	bool led_blue = strstr(led_cdev->name, LED_NAME_RGB_BLUE) != NULL;
-	// bool led_animation = strstr(led_cdev->name, UNIWILL_LIGHTBAR_LED_NAME_ANIMATION) != NULL;
 	struct ite8297_driver_data_t *ite8297_driver_data;
 
-	if (led_red || led_green || led_blue) {
-		// uniwill_read_lightbar_rgb(&red, &green, &blue);
-		if (led_red) {
-			ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_red);
-			return ite8297_driver_data->current_color.red;
-		} else if (led_green) {
-			ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_green);
-			return ite8297_driver_data->current_color.green;
-		} else if (led_blue) {
-			ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_blue);
-			return ite8297_driver_data->current_color.blue;
-		}
-	}/* else if (led_animation) {
-		uniwill_read_lightbar_animation(&animation_status);
-		return animation_status ? 1 : 0;
-	}*/
+	if (led_red) {
+		ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_red);
+		return ite8297_driver_data->current_color.red;
+	} else if (led_green) {
+		ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_green);
+		return ite8297_driver_data->current_color.green;
+	} else if (led_blue) {
+		ite8297_driver_data = container_of(led_cdev, struct ite8297_driver_data_t, cdev_blue);
+		return ite8297_driver_data->current_color.blue;
+	}
 
 	return 0;
 }
@@ -168,7 +150,7 @@ err_stop_hw:
 	return result;
 }
 
-static int probe_callb(struct hid_device *hdev, const struct hid_device_id *id)
+static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_id *id)
 {
 	int result;
 	struct ite8297_driver_data_t *ite8297_driver_data;
@@ -181,9 +163,8 @@ static int probe_callb(struct hid_device *hdev, const struct hid_device_id *id)
 	}
 
 	result = start_hw(hdev);
-	if (result != 0) {
+	if (result != 0)
 		return result;
-	}
 
 	ite8297_driver_data = devm_kzalloc(&hdev->dev, sizeof(*ite8297_driver_data), GFP_KERNEL);
 	if (!ite8297_driver_data)
@@ -215,12 +196,14 @@ static int probe_callb(struct hid_device *hdev, const struct hid_device_id *id)
 
 	hid_set_drvdata(hdev, ite8297_driver_data);
 
-	ite8297_write_state(ite8297_driver_data);
+	result = ite8297_write_state(ite8297_driver_data);
+	if (result < 0)
+		return result;
 
 	return 0;
 }
 
-static void remove_callb(struct hid_device *hdev)
+static void driver_remove_callb(struct hid_device *hdev)
 {
 	struct ite8297_driver_data_t *ite8297_driver_data = hid_get_drvdata(hdev);
 	if (!IS_ERR_OR_NULL(ite8297_driver_data)) {
@@ -247,6 +230,13 @@ static int driver_resume_callb(struct hid_device *hdev)
 	pr_debug("driver resume\n");
 	return ite8297_write_state(ite8297_driver_data);
 }
+
+static int driver_reset_resume_callb(struct hid_device *hdev)
+{
+	struct ite8297_driver_data_t *ite8297_driver_data = hid_get_drvdata(hdev);
+	pr_debug("driver reset resume\n");
+	return ite8297_write_state(ite8297_driver_data);
+}
 #endif
 
 static const struct hid_device_id ite8297_device_table[] = {
@@ -257,13 +247,13 @@ MODULE_DEVICE_TABLE(hid, ite8297_device_table);
 
 static struct hid_driver ite8297_driver = {
 	.name = KBUILD_MODNAME,
-	.probe = probe_callb,
-	.remove = remove_callb,
+	.probe = driver_probe_callb,
+	.remove = driver_remove_callb,
 	.id_table = ite8297_device_table,
 #ifdef CONFIG_PM
 	.suspend = driver_suspend_callb,
 	.resume = driver_resume_callb,
-	.reset_resume = driver_resume_callb
+	.reset_resume = driver_reset_resume_callb
 #endif
 };
 module_hid_driver(ite8297_driver);
