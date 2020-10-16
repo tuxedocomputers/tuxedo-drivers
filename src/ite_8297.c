@@ -175,30 +175,31 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	ite8297_driver_data->cdev_red.max_brightness = LED_MAX_BRIGHTNESS;
 	ite8297_driver_data->cdev_red.brightness_set_blocking = &lightbar_set_blocking;
 	ite8297_driver_data->cdev_red.brightness_get = &lightbar_get;
-	ite8297_driver_data->cdev_red.brightness = ITE_8297_DEFAULT_BRIGHTNESS;
 
 	ite8297_driver_data->cdev_green.name = LED_NAME_RGB_GREEN;
 	ite8297_driver_data->cdev_green.max_brightness = LED_MAX_BRIGHTNESS;
 	ite8297_driver_data->cdev_green.brightness_set_blocking = &lightbar_set_blocking;
 	ite8297_driver_data->cdev_green.brightness_get = &lightbar_get;
-	ite8297_driver_data->cdev_green.brightness = ITE_8297_DEFAULT_BRIGHTNESS;
 
 	ite8297_driver_data->cdev_blue.name = LED_NAME_RGB_BLUE;
 	ite8297_driver_data->cdev_blue.max_brightness = LED_MAX_BRIGHTNESS;
 	ite8297_driver_data->cdev_blue.brightness_set_blocking = &lightbar_set_blocking;
 	ite8297_driver_data->cdev_blue.brightness_get = &lightbar_get;
-	ite8297_driver_data->cdev_blue.brightness = ITE_8297_DEFAULT_BRIGHTNESS;
 
 	ite8297_driver_data->hid_dev = hdev;
-	ite8297_driver_data->current_color.red = 0x00;
-	ite8297_driver_data->current_color.green = 0x00;
-	ite8297_driver_data->current_color.blue = 0x00;
+	ite8297_driver_data->current_color.red = ITE_8297_DEFAULT_BRIGHTNESS;
+	ite8297_driver_data->current_color.green = ITE_8297_DEFAULT_BRIGHTNESS;
+	ite8297_driver_data->current_color.blue = ITE_8297_DEFAULT_BRIGHTNESS;
 
 	led_classdev_register(&hdev->dev, &ite8297_driver_data->cdev_red);
 	led_classdev_register(&hdev->dev, &ite8297_driver_data->cdev_green);
 	led_classdev_register(&hdev->dev, &ite8297_driver_data->cdev_blue);
 
 	hid_set_drvdata(hdev, ite8297_driver_data);
+
+	result = ite8297_write_state(ite8297_driver_data);
+	if (result < 0)
+		return result;
 
 	return 0;
 }
