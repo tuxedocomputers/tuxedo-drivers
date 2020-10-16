@@ -25,11 +25,12 @@
 // USB HID feature data write size
 #define HID_DATA_SIZE 64
 
-// led_classdev names and max brightness
-#define LED_MAX_BRIGHTNESS	0xff
-#define LED_NAME_RGB_RED	"lightbar_rgb:1:status"
-#define LED_NAME_RGB_GREEN	"lightbar_rgb:2:status"
-#define LED_NAME_RGB_BLUE	"lightbar_rgb:3:status"
+// led_classdev names, default and max brightness
+#define LED_MAX_BRIGHTNESS		0xff
+#define ITE_8297_DEFAULT_BRIGHTNESS	0x00
+#define LED_NAME_RGB_RED		KBUILD_MODNAME ":1"
+#define LED_NAME_RGB_GREEN		KBUILD_MODNAME ":2"
+#define LED_NAME_RGB_BLUE		KBUILD_MODNAME ":3"
 
 struct color_t {
 	u8 red;
@@ -174,16 +175,19 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	ite8297_driver_data->cdev_red.max_brightness = LED_MAX_BRIGHTNESS;
 	ite8297_driver_data->cdev_red.brightness_set_blocking = &lightbar_set_blocking;
 	ite8297_driver_data->cdev_red.brightness_get = &lightbar_get;
+	ite8297_driver_data->cdev_red.brightness = ITE_8297_DEFAULT_BRIGHTNESS;
 
 	ite8297_driver_data->cdev_green.name = LED_NAME_RGB_GREEN;
 	ite8297_driver_data->cdev_green.max_brightness = LED_MAX_BRIGHTNESS;
 	ite8297_driver_data->cdev_green.brightness_set_blocking = &lightbar_set_blocking;
 	ite8297_driver_data->cdev_green.brightness_get = &lightbar_get;
+	ite8297_driver_data->cdev_green.brightness = ITE_8297_DEFAULT_BRIGHTNESS;
 
 	ite8297_driver_data->cdev_blue.name = LED_NAME_RGB_BLUE;
 	ite8297_driver_data->cdev_blue.max_brightness = LED_MAX_BRIGHTNESS;
 	ite8297_driver_data->cdev_blue.brightness_set_blocking = &lightbar_set_blocking;
 	ite8297_driver_data->cdev_blue.brightness_get = &lightbar_get;
+	ite8297_driver_data->cdev_blue.brightness = ITE_8297_DEFAULT_BRIGHTNESS;
 
 	ite8297_driver_data->hid_dev = hdev;
 	ite8297_driver_data->current_color.red = 0x00;
@@ -195,10 +199,6 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	led_classdev_register(&hdev->dev, &ite8297_driver_data->cdev_blue);
 
 	hid_set_drvdata(hdev, ite8297_driver_data);
-
-	result = ite8297_write_state(ite8297_driver_data);
-	if (result < 0)
-		return result;
 
 	return 0;
 }
