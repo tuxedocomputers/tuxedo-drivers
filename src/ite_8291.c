@@ -86,6 +86,34 @@ struct ite8291_driver_data_t {
 	struct hid_device *hid_dev;
 };
 
+/**
+ * Set brightness only
+ * 09 02 [brightness] 00 00 00 00 00
+ */
+static int ite8291_write_brightness(struct hid_device *hdev, u8 brightness)
+{
+	int result = 0;
+	u8 *buf;
+	if (hdev == NULL)
+		return -ENODEV;
+
+	buf = kzalloc(HID_DATA_SIZE, GFP_KERNEL);
+	buf[0] = 0x09;
+	buf[1] = 0x02;
+	buf[2] = brightness;
+	buf[3] = 0x00;
+	buf[4] = 0x00;
+	buf[5] = 0x00;
+	buf[6] = 0x00;
+	buf[7] = 0x00;
+
+	result = hid_hw_raw_request(hdev, buf[0], buf, HID_DATA_SIZE,
+				    HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
+	kfree(buf);
+
+	return result;
+}
+
 static int ite8291_write_state(struct ite8291_driver_data_t *ite8291_driver_data)
 {
 	return 0;
@@ -93,9 +121,13 @@ static int ite8291_write_state(struct ite8291_driver_data_t *ite8291_driver_data
 
 static int ledcdev_set_blocking(struct led_classdev *led_cdev, enum led_brightness brightness)
 {
-	// TODO: Write kbd brightness
-	led_cdev->brightness = brightness;
-	return 0;
+	int status;
+	struct ite8291_driver_data_t *ite8291_driver_data = container_of(led_cdev, struct ite8291_driver_data_t, cdev_brightness);
+	status = ite8291_write_brightness(ite8291_driver_data->hid_dev, brightness);
+	if (status == 0) {
+		led_cdev->brightness = brightness;
+	}
+	return status;
 }
 
 static enum led_brightness ledcdev_get(struct led_classdev *led_cdev)
@@ -159,6 +191,9 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	ite8291_driver_data->cdev_brightness.brightness_set_blocking = &ledcdev_set_blocking;
 	ite8291_driver_data->cdev_brightness.brightness_get = &ledcdev_get;
 	ite8291_driver_data->cdev_brightness.brightness = ITE_8291_DEFAULT_BRIGHTNESS;
+	led_classdev_register(&hdev->dev, &ite8291_driver_data->cdev_brightness);
+
+	ite8291_driver_data->hid_dev = hdev;
 
 	hid_set_drvdata(hdev, ite8291_driver_data);
 
