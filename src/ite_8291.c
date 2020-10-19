@@ -78,17 +78,29 @@
 // USB HID control data write size
 #define HID_DATA_SIZE 8
 
-// led_classdev names, default and max brightness
-#define LED_MAX_BRIGHTNESS		0x32
+#define ITE_8291_MAX_BRIGHTNESS		0x32
 #define ITE_8291_DEFAULT_BRIGHTNESS	0x00
 
 struct ite8291_driver_data_t {
+	struct led_classdev cdev_brightness;
 	struct hid_device *hid_dev;
 };
 
 static int ite8291_write_state(struct ite8291_driver_data_t *ite8291_driver_data)
 {
 	return 0;
+}
+
+static int ledcdev_set_blocking(struct led_classdev *led_cdev, enum led_brightness brightness)
+{
+	// TODO: Write kbd brightness
+	led_cdev->brightness = brightness;
+	return 0;
+}
+
+static enum led_brightness ledcdev_get(struct led_classdev *led_cdev)
+{
+	return led_cdev->brightness;
 }
 
 static void stop_hw(struct hid_device *hdev)
@@ -142,7 +154,11 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	if (!ite8291_driver_data)
 		return -ENOMEM;
 	
-	// TODO: Init driver data
+	ite8291_driver_data->cdev_brightness.name = KBUILD_MODNAME "::kbd_backlight";
+	ite8291_driver_data->cdev_brightness.max_brightness = ITE_8291_MAX_BRIGHTNESS;
+	ite8291_driver_data->cdev_brightness.brightness_set_blocking = &ledcdev_set_blocking;
+	ite8291_driver_data->cdev_brightness.brightness_get = &ledcdev_get;
+	ite8291_driver_data->cdev_brightness.brightness = ITE_8291_DEFAULT_BRIGHTNESS;
 
 	hid_set_drvdata(hdev, ite8291_driver_data);
 
