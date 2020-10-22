@@ -114,6 +114,70 @@ static int ite8291_write_brightness(struct hid_device *hdev, u8 brightness)
 	return result;
 }
 
+/**
+ * Write control data
+ */
+static int ite8291_write_control(struct hid_device *hdev, u8 *ctrl_data)
+{
+	int result = 0;
+	u8 *buf;
+	if (hdev == NULL)
+		return -ENODEV;
+
+	buf = kzalloc(HID_DATA_SIZE, GFP_KERNEL);
+
+	memcpy(buf, ctrl_data, (size_t) 8);
+
+	result = hid_hw_raw_request(hdev, buf[0], buf, HID_DATA_SIZE,
+				    HID_FEATURE_REPORT, HID_REQ_SET_REPORT);
+	kfree(buf);
+
+	return result;
+}
+
+/**
+ * Write color (and brightness) to the whole keyboard
+ */
+static int ite8291_write_color_full(struct hid_device *hdev, u8 red, u8 green, u8 blue, u8 brightness)
+{
+	int result = 0, i, j;
+	int nr_data_packets = 0x08;
+	u8 keyb_mode = 0x33;
+	u8 ctrl_params[] = {0x08, 0x02, keyb_mode, 0x00, brightness % (ITE_8291_MAX_BRIGHTNESS + 1), 0x00, 0x00, 0x00};
+	u8 ctrl_announce_data[] = {0x12, 0x00, 0x00, (u8)nr_data_packets, 0x00, 0x00, 0x00, 0x00};
+	int data_packet_length = 65;
+	u8 *data_buf;
+	if (hdev == NULL)
+		return -ENODEV;
+
+	ite8291_write_control(hdev, ctrl_params);
+	ite8291_write_control(hdev, ctrl_announce_data);
+
+	data_buf = kzalloc(array_size(nr_data_packets, data_packet_length), GFP_KERNEL);
+	if (!data_buf)
+		return -ENOMEM;
+
+	for (j = 0; j < nr_data_packets; ++j) {
+		for (i = 1; i < data_packet_length; ++i) {
+			if (((i+2) % 4) == 0)
+				data_buf[(j*data_packet_length)+i] = red;
+			if (((i+1) % 4) == 0)
+				data_buf[(j*data_packet_length)+i] = green;
+			if (((i) % 4) == 0)
+				data_buf[(j*data_packet_length)+i] = blue;
+		}
+	}
+
+	for (j = 0; j < nr_data_packets; ++j) {
+		result = hdev->ll_driver->output_report(hdev, &data_buf[j*data_packet_length], data_packet_length);
+		if (result < 0)
+			return result;
+	}
+
+	kfree(data_buf);
+	return result;
+}
+
 static int ite8291_write_state(struct ite8291_driver_data_t *ite8291_driver_data)
 {
 	return 0;
@@ -198,6 +262,7 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	hid_set_drvdata(hdev, ite8291_driver_data);
 
 	result = ite8291_write_state(ite8291_driver_data);
+
 	if (result < 0)
 		return result;
 
@@ -208,6 +273,7 @@ static void driver_remove_callb(struct hid_device *hdev)
 {
 	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
 	if (!IS_ERR_OR_NULL(ite8291_driver_data)) {
+		led_classdev_unregister(&ite8291_driver_data->cdev_brightness);
 	} else {
 		pr_debug("driver data not found\n");
 	}
