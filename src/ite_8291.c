@@ -18,23 +18,41 @@
  */
 
 /*
- * Turn backlight off
- * 08 01 00 00 00 00 00 00
+ * All numbers in hex format
+ * 
+ * Turn off (same as "set params" described below). This is called with all other bytes set to zero when turned-off.
+ * Control: 08 01 00 00 00 00 00 00
  * 
  * Set brightness only
- * 09 02 [brightness] 00 00 00 00 00
+ * Control: 09 02 [brightness] 00 00 00 00 00
+ * 
+ * Announce 64 byte data chunks (for "user mode" 0x33). To be followed by specified number on chunks on interrupt endpoint.
+ * Control: 12 00 00 [nr of chunks] 00 00 00 00
+ * 
+ * [nr of chunks]
+ * 	1 -> 8
+ * 
+ * Announce row data chunk (for "user mode" 0x33). To be followed by 64 bytes of row data on interrupt endpoint.
+ * Control: 16 00 [row number] 00 00 00 00 00
+ * 
+ * [row number]
+ * 	0 -> 5
  * 
  * 
  * Most "special modes" uses seven colors that can be defined individually
  * Set color define
- * 14 00 [color define number] [red] [green] [blue] 00 00
+ * Control: 14 00 [color define number] [red] [green] [blue] 00 00
  * 
  * [color define number]
  * 	1 -> 7
  * 
  * 
  * Set params
- * 08 02 [anim mode] [speed] [brightness] 08 [behaviour] 00
+ * Control: 08 [power state] [anim mode] [speed] [brightness] 08 [behaviour] 00
+ * 
+ * [power state]
+ * 	01 off
+ * 	02 on
  * 
  * [anim mode]
  * 	02 breath
@@ -47,7 +65,7 @@
  * 	0e aurora ([behaviour]: key mode)
  * 	11 spark ([behaviour]: key mode)
  * 
- * 	33 per key control, data in interrupt request
+ * 	33 per key control, data on interrupt endpoint
  * 
  * [speed]
  * 	0a -> 01
