@@ -65,7 +65,7 @@
  * 	0e aurora ([behaviour]: key mode)
  * 	11 spark ([behaviour]: key mode)
  * 
- * 	33 per key control, data on interrupt endpoint
+ * 	33 per key control, needs additional "data announcing", then data on interrupt endpoint
  * 
  * [speed]
  * 	0a -> 01
@@ -99,10 +99,55 @@
 #define ITE_8291_MAX_BRIGHTNESS		0x32
 #define ITE_8291_DEFAULT_BRIGHTNESS	0x00
 
+#define ITE8291_LEDS_PER_ROW_MAX	21
+// Data length needs one byte (0x00) initial padding for the sending function
+// and one byte (also seemingly 0x00) before the color data starts
+#define ITE8291_ROW_DATA_PADDING	(1 + 1)
+#define ITE8291_ROW_DATA_LENGTH		(ITE8291_ROW_DATA_PADDING + (ITE8291_LEDS_PER_ROW_MAX * 3))
+#define ITE8291_NR_ROWS			6
+
+#define ITE8291_PARAM_MODE_USER		0x33
+
 struct ite8291_driver_data_t {
 	struct led_classdev cdev_brightness;
 	struct hid_device *hid_dev;
+	u8 row_data[ITE8291_NR_ROWS][ITE8291_ROW_DATA_LENGTH];
 };
+
+/**
+ * Set color for specified [row, column] in row based data structure
+ * 
+ * @param row_data Data structure to fill
+ * @param row Row number 1 - 6
+ * @param column Column number 1 - 21
+ * @param red Red brightness 0x00 - 0xff
+ * @param green Green brightness 0x00 - 0xff
+ * @param blue Blue brightness 0x00 - 0xff
+ * 
+ * @returns 0 on success, otherwise error
+ */
+static int row_data_set(u8 **row_data, int row, int column, u8 red, u8 green, u8 blue)
+{
+	int row_index, column_index_red, column_index_green, column_index_blue;
+
+	if (row < 1 || row > ITE8291_NR_ROWS)
+		return -EINVAL;
+	
+	if (column < 1 || column > ITE8291_LEDS_PER_ROW_MAX)
+		return -EINVAL;
+
+	row_index = row - 1;
+
+	column_index_red = ITE8291_ROW_DATA_PADDING + ((column - 1) * 2);
+	column_index_green = ITE8291_ROW_DATA_PADDING + ((column - 1) * 1);
+	column_index_blue = ITE8291_ROW_DATA_PADDING + ((column - 1) * 0);
+	
+	row_data[row_index][column_index_red] = red;
+	row_data[row_index][column_index_green] = green;
+	row_data[row_index][column_index_blue] = blue;
+
+	return 0;
+}
 
 /**
  * Set brightness only
@@ -154,15 +199,24 @@ static int ite8291_write_control(struct hid_device *hdev, u8 *ctrl_data)
 }
 
 /**
- * Write color (and brightness) to the whole keyboard
+ * *experimental*
+ * 
+ * Write color (and brightness) to the whole keyboard (chunk-wise)
  */
 static int ite8291_write_color_full(struct hid_device *hdev, u8 red, u8 green, u8 blue, u8 brightness)
 {
 	int result = 0, i, j;
 	int nr_data_packets = 0x08;
-	u8 keyb_mode = 0x33;
-	u8 ctrl_params[] = {0x08, 0x02, keyb_mode, 0x00, brightness % (ITE_8291_MAX_BRIGHTNESS + 1), 0x00, 0x00, 0x00};
-	u8 ctrl_announce_data[] = {0x12, 0x00, 0x00, (u8)nr_data_packets, 0x00, 0x00, 0x00, 0x00};
+	u8 ctrl_params[] = { 0x08,
+			     0x02,
+			     ITE8291_PARAM_MODE_USER,
+			     0x00,
+			     brightness % (ITE_8291_MAX_BRIGHTNESS + 1),
+			     0x00,
+			     0x00,
+			     0x00 };
+	u8 ctrl_announce_data[] = { 0x12, 0x00, 0x00, (u8)nr_data_packets,
+				    0x00, 0x00, 0x00, 0x00 };
 	int data_packet_length = 65;
 	u8 *data_buf;
 	if (hdev == NULL)
@@ -171,28 +225,63 @@ static int ite8291_write_color_full(struct hid_device *hdev, u8 red, u8 green, u
 	ite8291_write_control(hdev, ctrl_params);
 	ite8291_write_control(hdev, ctrl_announce_data);
 
-	data_buf = kzalloc(array_size(nr_data_packets, data_packet_length), GFP_KERNEL);
+	data_buf = kzalloc(nr_data_packets * data_packet_length, GFP_KERNEL);
 	if (!data_buf)
 		return -ENOMEM;
 
 	for (j = 0; j < nr_data_packets; ++j) {
 		for (i = 1; i < data_packet_length; ++i) {
-			if (((i+2) % 4) == 0)
-				data_buf[(j*data_packet_length)+i] = red;
-			if (((i+1) % 4) == 0)
-				data_buf[(j*data_packet_length)+i] = green;
+			if (((i + 2) % 4) == 0)
+				data_buf[(j * data_packet_length) + i] = red;
+			if (((i + 1) % 4) == 0)
+				data_buf[(j * data_packet_length) + i] = green;
 			if (((i) % 4) == 0)
-				data_buf[(j*data_packet_length)+i] = blue;
+				data_buf[(j * data_packet_length) + i] = blue;
 		}
 	}
 
 	for (j = 0; j < nr_data_packets; ++j) {
-		result = hdev->ll_driver->output_report(hdev, &data_buf[j*data_packet_length], data_packet_length);
+		result = hdev->ll_driver->output_report(
+			hdev, &data_buf[j * data_packet_length],
+			data_packet_length);
 		if (result < 0)
 			return result;
 	}
 
 	kfree(data_buf);
+	return result;
+}
+
+/**
+ * Write color (and brightness) to the whole keyboard from row data
+ */
+static int ite8291_write_rows(struct hid_device *hdev, u8 **row_data, u8 brightness)
+{
+	int result = 0, row_index;
+	u8 ctrl_params[] = { 0x08,
+			     0x02,
+			     ITE8291_PARAM_MODE_USER,
+			     0x00,
+			     brightness % (ITE_8291_MAX_BRIGHTNESS + 1),
+			     0x00,
+			     0x00,
+			     0x00 };
+	u8 ctrl_announce_row_data[] = { 0x16, 0x00, 0x00, 0x00,
+					0x00, 0x00, 0x00, 0x00 };
+	if (hdev == NULL)
+		return -ENODEV;
+
+	ite8291_write_control(hdev, ctrl_params);
+
+	for (row_index = 0; row_index < ITE8291_NR_ROWS; ++row_index) {
+		ctrl_announce_row_data[1] = row_index;
+		ite8291_write_control(hdev, ctrl_announce_row_data);
+		result = hdev->ll_driver->output_report(
+			hdev, row_data[row_index], ITE8291_ROW_DATA_LENGTH);
+		if (result < 0)
+			return result;
+	}
+
 	return result;
 }
 
@@ -279,7 +368,7 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 
 	hid_set_drvdata(hdev, ite8291_driver_data);
 
-	result = ite8291_write_state(ite8291_driver_data);
+	//result = ite8291_write_state(ite8291_driver_data);
 
 	if (result < 0)
 		return result;
