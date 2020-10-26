@@ -116,6 +116,7 @@ struct ite8291_driver_data_t {
 	row_data_t row_data;
 };
 
+#if 0
 /**
  * Set color for specified [row, column] in row based data structure
  * 
@@ -150,6 +151,7 @@ static int row_data_set(row_data_t row_data, int row, int column, u8 red, u8 gre
 
 	return 0;
 }
+#endif
 
 /**
  * Set brightness only
@@ -198,6 +200,12 @@ static int ite8291_write_control(struct hid_device *hdev, u8 *ctrl_data)
 	kfree(buf);
 
 	return result;
+}
+
+static int ite8291_write_off(struct hid_device *hdev)
+{
+	u8 ctrl_params_off[] = {0x08, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	return ite8291_write_control(hdev, ctrl_params_off);
 }
 
 /**
@@ -254,6 +262,7 @@ static int ite8291_write_color_full(struct hid_device *hdev, u8 red, u8 green, u
 	return result;
 }
 
+#if 0
 /**
  * Write color (and brightness) to the whole keyboard from row data
  */
@@ -269,7 +278,7 @@ static int ite8291_write_rows(struct hid_device *hdev, row_data_t row_data, u8 b
 			     0x00,
 			     0x00 };
 	u8 ctrl_announce_row_data[] = { 0x16, 0x00, 0x00, 0x00,
-					0x00, 0x00, 0x00, 0x00 };
+									0x00, 0x00, 0x00, 0x00 };
 	if (hdev == NULL)
 		return -ENODEV;
 
@@ -286,9 +295,11 @@ static int ite8291_write_rows(struct hid_device *hdev, row_data_t row_data, u8 b
 
 	return result;
 }
+#endif
 
 static int ite8291_write_state(struct ite8291_driver_data_t *ite8291_driver_data)
 {
+	ite8291_write_color_full(ite8291_driver_data->hid_dev, 0xff, 0x7e, 0x78, ite8291_driver_data->cdev_brightness.brightness);
 	return 0;
 }
 
@@ -370,7 +381,7 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 
 	hid_set_drvdata(hdev, ite8291_driver_data);
 
-	//result = ite8291_write_state(ite8291_driver_data);
+	result = ite8291_write_state(ite8291_driver_data);
 
 	if (result < 0)
 		return result;
@@ -393,6 +404,7 @@ static void driver_remove_callb(struct hid_device *hdev)
 #ifdef CONFIG_PM
 static int driver_suspend_callb(struct hid_device *hdev, pm_message_t message)
 {
+	ite8291_write_off(hdev);
 	pr_debug("driver suspend\n");
 	return 0;
 }
