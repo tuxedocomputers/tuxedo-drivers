@@ -96,6 +96,8 @@ exit 0
 
 
 %changelog
+* Fri Nov 13 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.0-1
+- Added initial support for ITE Device(8291) ->  048d:ce00
 * Fri Oct 16 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.0-1
 - Added initial (very basic) support for 048d:8297 LED controller
 * Mon Oct 12 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.3-1
