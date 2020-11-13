@@ -10,8 +10,10 @@ case "$1" in
         if [  "`dkms status -m $module`" ]
        	then
             dkms remove -m $module -v $version --all
-            # Attempt to remove module, fail silently if module is already unloaded
+            # Attempt to remove modules, fail silently if module is already unloaded
             rmmod -s $module > /dev/null 2>&1 || true
+            rmmod -s ite_8297 > /dev/null 2>&1 || true
+            rmmod -s ite_8291 > /dev/null 2>&1 || true
         fi
     ;;
 
