@@ -96,6 +96,8 @@ exit 0
 
 
 %changelog
+* Mon Dec 21 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.1-1
+- Added device 048d:6004 to ite_8291
 * Fri Nov 13 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.0-1
 - Added initial support for ITE Device(8291) ->  048d:ce00
 * Fri Oct 16 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.0-1
