@@ -215,9 +215,77 @@ static void init_from_params(struct hid_device *dev)
 	}
 }
 
+static void key_actions(unsigned long key_code)
+{
+	mutex_lock(&input_lock);
+
+	switch (key_code) {
+	case INT_KEY_B_UP:
+		// Brightness one step up
+		ti_data.on = TRUE;
+		ti_data.brightness += 1;
+
+		if (ti_data.brightness > 10) {
+			ti_data.brightness = 10;
+		}
+
+		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02,
+				0x00, 0x00);
+		// Brightness one step down
+		ti_data.on = TRUE;
+		ti_data.brightness -= 1;
+
+		if (ti_data.brightness < 0) {
+			ti_data.brightness = 0;
+		}
+
+		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
+
+		break;
+	case INT_KEY_B_TOGGLE:
+		// Toggle on/off
+		if (ti_data.on) {
+			ti_data.on = FALSE;
+		}
+		else {
+			ti_data.on = TRUE;
+		}
+
+		if (ti_data.on) {
+			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
+		}
+		else {
+			keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00, 0x00);
+		}
+
+		break;
+	case INT_KEY_B_NEXT:
+		// Next mode
+		ti_data.on = TRUE;
+		ti_data.mode += 1;
+
+		if (ti_data.mode >= MODE_MAP_LENGTH + MODE_EXTRAS_LENGTH) {
+			ti_data.mode = 0;
+		}
+
+		send_mode(kbdev, ti_data.mode);
+		break;
+	}
+
+	mutex_unlock(&input_lock);
+}
+
+static volatile unsigned long last_key = 0;
+
+void ite_829x_key_work_handler(struct work_struct *work)
+{
+	key_actions(last_key);
+}
+
+static DECLARE_WORK(ite_829x_key_work, ite_829x_key_work_handler);
+
 static int keyboard_notifier_callb(struct notifier_block *nb, unsigned long code, void *_param)
 {
-	// TODO: Remove work from callback
 	struct keyboard_notifier_param *param = _param;
 	int ret = NOTIFY_OK;
 
@@ -229,67 +297,10 @@ static int keyboard_notifier_callb(struct notifier_block *nb, unsigned long code
 		return ret;
 	}
 
-	mutex_lock(&input_lock);
-
 	if (code == KBD_KEYCODE) {
-		switch (param->value) {
-		case INT_KEY_B_UP:
-			// Brightness one step up
-			ti_data.on = TRUE;
-			ti_data.brightness += 1;
-
-			if (ti_data.brightness > 10) {
-				ti_data.brightness = 10;
-			}
-
-			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02,
-				       0x00, 0x00);
-
-			break;
-		case INT_KEY_B_DOWN:
-			// Brightness one step down
-			ti_data.on = TRUE;
-			ti_data.brightness -= 1;
-
-			if (ti_data.brightness < 0) {
-				ti_data.brightness = 0;
-			}
-
-			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
-
-			break;
-		case INT_KEY_B_TOGGLE:
-			// Toggle on/off
-			if (ti_data.on) {
-				ti_data.on = FALSE;
-			}
-			else {
-				ti_data.on = TRUE;
-			}
-
-			if (ti_data.on) {
-				keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
-			}
-			else {
-				keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00, 0x00);
-			}
-
-			break;
-		case INT_KEY_B_NEXT:
-			// Next mode
-			ti_data.on = TRUE;
-			ti_data.mode += 1;
-
-			if (ti_data.mode >= MODE_MAP_LENGTH + MODE_EXTRAS_LENGTH) {
-				ti_data.mode = 0;
-			}
-
-			send_mode(kbdev, ti_data.mode);
-			break;
-		}
+		last_key = param->value;
+		schedule_work(&ite_829x_key_work);
 	}
-
-	mutex_unlock(&input_lock);
 
 	return NOTIFY_OK;
 }
