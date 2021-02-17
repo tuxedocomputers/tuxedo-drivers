@@ -96,6 +96,8 @@ exit 0
 
 
 %changelog
+* Tue Feb 16 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.2-1
+- Attempt to fix ite_829x instability sometimes locking up kernel on keypress
 * Mon Dec 21 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.1-1
 - Added device 048d:6004 to ite_8291
 * Fri Nov 13 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.0-1
