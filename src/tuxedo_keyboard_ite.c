@@ -229,8 +229,10 @@ static void key_actions(unsigned long key_code)
 			ti_data.brightness = 10;
 		}
 
-		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02,
-				0x00, 0x00);
+		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00,
+			       0x00);
+		break;
+	case INT_KEY_B_DOWN:
 		// Brightness one step down
 		ti_data.on = TRUE;
 		ti_data.brightness -= 1;
@@ -239,22 +241,22 @@ static void key_actions(unsigned long key_code)
 			ti_data.brightness = 0;
 		}
 
-		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
+		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00,
+			       0x00);
 
 		break;
 	case INT_KEY_B_TOGGLE:
 		// Toggle on/off
 		if (ti_data.on) {
 			ti_data.on = FALSE;
-		}
-		else {
+		} else {
 			ti_data.on = TRUE;
 		}
 
 		if (ti_data.on) {
-			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
-		}
-		else {
+			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02,
+				       0x00, 0x00);
+		} else {
 			keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00, 0x00);
 		}
 
