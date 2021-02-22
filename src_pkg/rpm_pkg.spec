@@ -96,6 +96,8 @@ exit 0
 
 
 %changelog
+* Mon Feb 22 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.3-1
+- Fix broken brightness key reaction for ite_829x
 * Tue Feb 16 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.2-1
 - Attempt to fix ite_829x instability sometimes locking up kernel on keypress
 * Mon Dec 21 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.1-1
