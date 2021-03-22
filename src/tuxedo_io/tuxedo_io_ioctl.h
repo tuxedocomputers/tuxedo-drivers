@@ -27,6 +27,7 @@
 #define MAGIC_READ_UW	IOCTL_MAGIC + 3
 #define MAGIC_WRITE_UW	IOCTL_MAGIC + 4
 
+#define MOD_API_MIN_VERSION "0.2.2"
 
 // General
 #define R_MOD_VERSION		_IOR(IOCTL_MAGIC, 0x00, char*)
