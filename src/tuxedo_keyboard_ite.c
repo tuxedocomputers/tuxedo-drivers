@@ -29,6 +29,7 @@
 #include <linux/acpi.h>
 #include <linux/delay.h>
 #include <linux/keyboard.h>
+#include <linux/led-class-multicolor.h>
 
 MODULE_DESCRIPTION("TUXEDO Computers, ITE backlight driver");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
@@ -52,8 +53,9 @@ static struct hid_device *kbdev = NULL;
 static struct mutex dev_lock;
 static struct mutex input_lock;
 
-// Default brightness (0-10)
+// Brightness (0-10)
 #define DEFAULT_BRIGHTNESS  3
+#define MAX_BRIGHTNESS  10
 // Default mode (index to mode_to_color array) or extra modes
 #define DEFAULT_MODE        6
 
@@ -215,6 +217,26 @@ static void init_from_params(struct hid_device *dev)
 	}
 }
 
+static int ledcdev_set_blocking_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
+	struct led_classdev_mc *led_cdev_mc = lcdev_to_mccdev(led_cdev);
+
+	keyb_send_data(to_hid_device(led_cdev->dev), 0x01, led_cdev_mc->subled_info[0].channel,
+		       led_cdev_mc->subled_info[0].intensity,
+		       led_cdev_mc->subled_info[1].intensity,
+		       led_cdev_mc->subled_info[2].intensity);
+
+	if (keyb_send_data(kbdev, 0x09, brightness, 0x02, 0x00, 0x00) >= 0) {
+		ti_data.brightness = brightness;
+	}
+
+	//TODO sensufll return value
+	return 0;
+}
+
+static enum led_brightness ledcdev_get(struct led_classdev *led_cdev) {
+	return ti_data.brightness;
+}
+
 static void key_actions(unsigned long key_code)
 {
 	mutex_lock(&input_lock);
@@ -311,9 +333,15 @@ static struct notifier_block keyboard_notifier_block = {
 	.notifier_call = keyboard_notifier_callb
 };
 
+static struct led_classdev_mc clevo_mcled_cdevs[KEYBOARD_ROWS][KEYBOARD_COLUMNS];
+
+static char cdev_kb_mc_name[32];
+
+static struct mc_subled clevo_mcled_cdevs_subleds[KEYBOARD_ROWS][KEYBOARD_COLUMNS][3];
+
 static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 {
-	int result;
+	int result, i, j;
 
 	result = hid_parse(dev);
 	if (result) {
@@ -332,6 +360,31 @@ static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 	register_keyboard_notifier(&keyboard_notifier_block);
 
 	init_from_params(dev);
+
+	snprintf(cdev_kb_mc_name, 32, "%s%s", dev->name, "::kbd_backlight");
+
+	for (i = 0; i < KEYBOARD_ROWS; ++i) {
+		for (j = 0; j < KEYBOARD_COLUMNS; ++j) {
+			         clevo_mcled_cdevs[i][j].led_cdev.name = cdev_kb_mc_name;
+			         clevo_mcled_cdevs[i][j].led_cdev.max_brightness = MAX_BRIGHTNESS;
+			         clevo_mcled_cdevs[i][j].led_cdev.brightness_set_blocking = &ledcdev_set_blocking_mc;
+			         clevo_mcled_cdevs[i][j].led_cdev.brightness_get = &ledcdev_get;
+			         clevo_mcled_cdevs[i][j].led_cdev.brightness = DEFAULT_BRIGHTNESS;
+			         clevo_mcled_cdevs[i][j].num_colors = 3;
+			         clevo_mcled_cdevs[i][j].subled_info = cdev_kb_mc_subled[i][j];
+			         clevo_mcled_cdevs[i][j].subled_info[0].color_index = LED_COLOR_ID_RED;
+			         clevo_mcled_cdevs[i][j].subled_info[0].intensity = 255;
+			         clevo_mcled_cdevs[i][j].subled_info[0].channel = get_led_id(i, j);
+			         clevo_mcled_cdevs[i][j].subled_info[1].color_index = LED_COLOR_ID_GREEN;
+			         clevo_mcled_cdevs[i][j].subled_info[1].intensity = 255;
+			         clevo_mcled_cdevs[i][j].subled_info[1].channel = get_led_id(i, j);
+			         clevo_mcled_cdevs[i][j].subled_info[2].color_index = LED_COLOR_ID_BLUE;
+			         clevo_mcled_cdevs[i][j].subled_info[2].intensity = 255;
+			         clevo_mcled_cdevs[i][j].subled_info[2].channel = get_led_id(i, j);
+
+			devm_led_classdev_multicolor_register(&dev->dev, &clevo_mcled_cdevs[i][j]);
+		}
+	}
 
 	return 0;
 }
