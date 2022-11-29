@@ -427,6 +427,7 @@ static int driver_reset_resume_callb(struct hid_device *hdev)
 static const struct hid_device_id ite8291_device_table[] = {
 	{ HID_USB_DEVICE(0x048d, 0xce00) },
 	{ HID_USB_DEVICE(0x048d, 0x6004) },
+	{ HID_USB_DEVICE(0x048d, 0x600a) },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, ite8291_device_table);
