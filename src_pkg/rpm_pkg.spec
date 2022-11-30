@@ -96,6 +96,8 @@ exit 0
 
 
 %changelog
+* Wed Nov 30 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.4-1
+- Add USB ID for Stellaris 16 Gen 4
 * Mon Feb 22 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.3-1
 - Fix broken brightness key reaction for ite_829x
 * Tue Feb 16 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.2-1
