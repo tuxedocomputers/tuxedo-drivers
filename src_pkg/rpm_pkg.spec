@@ -96,8 +96,11 @@ exit 0
 
 
 %changelog
+* Wed Dec 07 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.5-1
+- Add per-device color scaling to ite_8291 driver
+- Add additional scaling setting for Stellaris 17 AMD Gen 4
 * Wed Nov 30 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.4-1
-- Add USB ID for Stellaris 16 Gen 4
+- Add USB ID for Stellaris 17 Gen 4 keyboard backlight
 * Mon Feb 22 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.3-1
 - Fix broken brightness key reaction for ite_829x
 * Tue Feb 16 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.2-1
