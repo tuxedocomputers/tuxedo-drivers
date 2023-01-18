@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2020-2022 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-keyboard-ite.
  *
@@ -89,9 +89,11 @@
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 #include <linux/kernel.h>
+#include <linux/version.h>
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/hid.h>
+#include <linux/dmi.h>
 
 // USB HID control data write size
 #define HID_DATA_SIZE 8
@@ -115,6 +117,21 @@ struct ite8291_driver_data_t {
 	struct hid_device *hid_dev;
 	row_data_t row_data;
 };
+
+/**
+ * Color scaling quirk list
+ */
+static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
+{
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+	if (dmi_match(DMI_PRODUCT_SKU, "STEPOL1XA04") && hdev->product == 0x600a) {
+		*red = (126 * *red) / 255;
+	} else {
+		*green = (126 * *green) / 255;
+		*blue = (120 * *blue) / 255;
+	}
+#endif
+}
 
 #if 0
 /**
@@ -232,6 +249,8 @@ static int ite8291_write_color_full(struct hid_device *hdev, u8 red, u8 green, u
 	if (hdev == NULL)
 		return -ENODEV;
 
+	color_scaling(hdev, &red, &green, &blue);
+
 	ite8291_write_control(hdev, ctrl_params);
 	ite8291_write_control(hdev, ctrl_announce_data);
 
@@ -299,7 +318,7 @@ static int ite8291_write_rows(struct hid_device *hdev, row_data_t row_data, u8 b
 
 static int ite8291_write_state(struct ite8291_driver_data_t *ite8291_driver_data)
 {
-	ite8291_write_color_full(ite8291_driver_data->hid_dev, 0xff, 0x7e, 0x78, ite8291_driver_data->cdev_brightness.brightness);
+	ite8291_write_color_full(ite8291_driver_data->hid_dev, 0xff, 0xff, 0xff, ite8291_driver_data->cdev_brightness.brightness);
 	return 0;
 }
 
@@ -427,6 +446,7 @@ static int driver_reset_resume_callb(struct hid_device *hdev)
 static const struct hid_device_id ite8291_device_table[] = {
 	{ HID_USB_DEVICE(0x048d, 0xce00) },
 	{ HID_USB_DEVICE(0x048d, 0x6004) },
+	{ HID_USB_DEVICE(0x048d, 0x600a) },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, ite8291_device_table);
@@ -446,5 +466,5 @@ module_hid_driver(ite8291_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for ITE Device(8291) per-key RGB LED keyboard backlight.");
-MODULE_VERSION("0.0.2");
+MODULE_VERSION("0.0.4");
 MODULE_LICENSE("GPL");
