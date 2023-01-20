@@ -364,7 +364,7 @@ void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness 
 	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
 	struct device *dev = led_cdev->dev->parent;
 	struct hid_device *hdev = to_hid_device(dev);
-	struct ite8291_driver_data_t *ite8291_driver_data = hdev->driver_data;
+	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
 
 	led_mc_calc_color_components(mcled_cdev, brightness);
 	row_data_set(hdev, ite8291_driver_data->row_data, mcled_cdev->subled_info[0].channel / ITE8291_LEDS_PER_ROW_MAX,
@@ -377,7 +377,7 @@ void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness 
 
 static int register_leds(struct hid_device *hdev) {
 	int res, i, j, k, l;
-	struct ite8291_driver_data_t *ite8291_driver_data = hdev->driver_data;
+	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
 
 	for (i = 0; i < ITE8291_NR_ROWS; ++i) {
 		for (j = 0; j < ITE8291_LEDS_PER_ROW_MAX; ++j) {
@@ -397,8 +397,6 @@ static int register_leds(struct hid_device *hdev) {
 			ite8291_driver_data->mcled_cdevs[i][j].subled_info[2].intensity = 255;
 			ite8291_driver_data->mcled_cdevs[i][j].subled_info[2].channel = ITE8291_LEDS_PER_ROW_MAX * i + j;
 
-			pr_emerg("AAAAAAAAAAAAAAAAAAAAA i: %d j:%d\n", i, j);
-
 			res = devm_led_classdev_multicolor_register(&hdev->dev, &ite8291_driver_data->mcled_cdevs[i][j]);
 			if (res) {
 				for (k = 0; k <= i; ++k) {
@@ -415,7 +413,7 @@ static int register_leds(struct hid_device *hdev) {
 
 static void unregister_leds(struct hid_device *hdev) {
 	int i, j;
-	struct ite8291_driver_data_t *ite8291_driver_data = hdev->driver_data;
+	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
 
 	for (i = 0; i < ITE8291_NR_ROWS; ++i) {
 		for (j = 0; j < ITE8291_LEDS_PER_ROW_MAX; ++j) {
