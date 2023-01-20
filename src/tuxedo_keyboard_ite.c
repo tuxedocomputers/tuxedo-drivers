@@ -371,7 +371,7 @@ static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 			         clevo_mcled_cdevs[i][j].led_cdev.brightness_get = &ledcdev_get;
 			         clevo_mcled_cdevs[i][j].led_cdev.brightness = DEFAULT_BRIGHTNESS;
 			         clevo_mcled_cdevs[i][j].num_colors = 3;
-			         clevo_mcled_cdevs[i][j].subled_info = cdev_kb_mc_subled[i][j];
+			         clevo_mcled_cdevs[i][j].subled_info = clevo_mcled_cdevs_subleds[i][j];
 			         clevo_mcled_cdevs[i][j].subled_info[0].color_index = LED_COLOR_ID_RED;
 			         clevo_mcled_cdevs[i][j].subled_info[0].intensity = 255;
 			         clevo_mcled_cdevs[i][j].subled_info[0].channel = get_led_id(i, j);
