@@ -13,3 +13,4 @@
 *.rpm
 rpm
 deb/tuxedo-keyboard-ite-*
+*.kdev4
