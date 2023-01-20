@@ -449,8 +449,9 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	for (i = 0; i < ITE8291_NR_ROWS; ++i) {
 		for (j = 0; j < ITE8291_LEDS_PER_ROW_MAX; ++j) {
 			row_data_set(hdev, ite8291_driver_data->row_data, i, j,
-				     ITE8291_KB_COLOR_DEFAULT_RED, ITE8291_KB_COLOR_DEFAULT_GREEN,
-				     ITE8291_KB_COLOR_DEFAULT_BLUE);
+				     ITE8291_KB_COLOR_DEFAULT_RED * ITE8291_KBD_BRIGHTNESS_DEFAULT / ITE8291_KBD_BRIGHTNESS_MAX,
+				     ITE8291_KB_COLOR_DEFAULT_GREEN * ITE8291_KBD_BRIGHTNESS_DEFAULT / ITE8291_KBD_BRIGHTNESS_MAX,
+				     ITE8291_KB_COLOR_DEFAULT_BLUE * ITE8291_KBD_BRIGHTNESS_DEFAULT / ITE8291_KBD_BRIGHTNESS_MAX);
 		}
 	}
 	result = ite8291_write_state(ite8291_driver_data);
