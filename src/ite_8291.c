@@ -318,6 +318,8 @@ static int ite8291_write_rows(struct hid_device *hdev, row_data_t row_data, u8 b
 		if (result < 0)
 			return result;
 	}
+	if (result > 0)
+		result = 0;
 
 	return result;
 }
