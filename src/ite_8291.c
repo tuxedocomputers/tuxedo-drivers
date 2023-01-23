@@ -123,6 +123,7 @@ typedef u8 row_data_t[ITE8291_NR_ROWS][ITE8291_ROW_DATA_LENGTH];
 struct ite8291_driver_data_t {
 	struct hid_device *hid_dev;
 	row_data_t row_data;
+	u8 brightness;
 	struct led_classdev_mc mcled_cdevs[ITE8291_NR_ROWS][ITE8291_LEDS_PER_ROW_MAX];
 	struct mc_subled mcled_cdevs_subleds[ITE8291_NR_ROWS][ITE8291_LEDS_PER_ROW_MAX][3];
 };
@@ -181,6 +182,7 @@ static int row_data_set(struct hid_device *hdev, row_data_t row_data, int row, i
  * Set brightness only
  * 09 02 [brightness] 00 00 00 00 00
  */
+/*
 static int ite8291_write_brightness(struct hid_device *hdev, u8 brightness)
 {
 	int result = 0;
@@ -204,6 +206,7 @@ static int ite8291_write_brightness(struct hid_device *hdev, u8 brightness)
 
 	return result;
 }
+*/
 
 /**
  * Write control data
@@ -326,7 +329,7 @@ static int ite8291_write_rows(struct hid_device *hdev, row_data_t row_data, u8 b
 
 static int ite8291_write_state(struct ite8291_driver_data_t *ite8291_driver_data)
 {
-	return ite8291_write_rows(ite8291_driver_data->hid_dev, ite8291_driver_data->row_data, ITE8291_KBD_BRIGHTNESS_MAX);
+	return ite8291_write_rows(ite8291_driver_data->hid_dev, ite8291_driver_data->row_data, ite8291_driver_data->brightness);
 }
 
 static void stop_hw(struct hid_device *hdev)
@@ -360,6 +363,7 @@ err_stop_hw:
 	return result;
 }
 
+/*
 void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness brightness) {
 	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
 	struct device *dev = led_cdev->dev->parent;
@@ -374,6 +378,30 @@ void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness 
 
 	ite8291_write_state(ite8291_driver_data);
 }
+*/
+
+void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness brightness) {
+	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
+	struct device *dev = led_cdev->dev->parent;
+	struct hid_device *hdev = to_hid_device(dev);
+	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
+
+	ite8291_driver_data->brightness = brightness;
+	row_data_set(hdev, ite8291_driver_data->row_data, mcled_cdev->subled_info[0].channel / ITE8291_LEDS_PER_ROW_MAX,
+		     mcled_cdev->subled_info[0].channel % ITE8291_LEDS_PER_ROW_MAX,
+		     mcled_cdev->subled_info[0].brightness, mcled_cdev->subled_info[1].brightness,
+		     mcled_cdev->subled_info[2].brightness);
+
+	ite8291_write_state(ite8291_driver_data);
+}
+
+enum led_brightness leds_get_brightness_mc (struct led_classdev *led_cdev) {
+	struct device *dev = led_cdev->dev->parent;
+	struct hid_device *hdev = to_hid_device(dev);
+	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
+
+	return ite8291_driver_data->brightness;
+}
 
 static int register_leds(struct hid_device *hdev) {
 	int res, i, j, k, l;
@@ -384,6 +412,7 @@ static int register_leds(struct hid_device *hdev) {
 			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.name = "rgb:" LED_FUNCTION_KBD_BACKLIGHT;
 			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.max_brightness = ITE8291_KBD_BRIGHTNESS_MAX;
 			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.brightness_set = &leds_set_brightness_mc;
+			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.brightness_get = &leds_get_brightness_mc;
 			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.brightness = ITE8291_KBD_BRIGHTNESS_DEFAULT;
 			ite8291_driver_data->mcled_cdevs[i][j].num_colors = 3;
 			ite8291_driver_data->mcled_cdevs[i][j].subled_info = ite8291_driver_data->mcled_cdevs_subleds[i][j];
@@ -446,12 +475,23 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 
 	hid_set_drvdata(hdev, ite8291_driver_data);
 
+	/*
 	for (i = 0; i < ITE8291_NR_ROWS; ++i) {
 		for (j = 0; j < ITE8291_LEDS_PER_ROW_MAX; ++j) {
 			row_data_set(hdev, ite8291_driver_data->row_data, i, j,
 				     ITE8291_KB_COLOR_DEFAULT_RED * ITE8291_KBD_BRIGHTNESS_DEFAULT / ITE8291_KBD_BRIGHTNESS_MAX,
 				     ITE8291_KB_COLOR_DEFAULT_GREEN * ITE8291_KBD_BRIGHTNESS_DEFAULT / ITE8291_KBD_BRIGHTNESS_MAX,
 				     ITE8291_KB_COLOR_DEFAULT_BLUE * ITE8291_KBD_BRIGHTNESS_DEFAULT / ITE8291_KBD_BRIGHTNESS_MAX);
+		}
+	}
+	*/
+	ite8291_driver_data->brightness = ITE8291_KBD_BRIGHTNESS_DEFAULT;
+	for (i = 0; i < ITE8291_NR_ROWS; ++i) {
+		for (j = 0; j < ITE8291_LEDS_PER_ROW_MAX; ++j) {
+			row_data_set(hdev, ite8291_driver_data->row_data, i, j,
+				     ITE8291_KB_COLOR_DEFAULT_RED,
+				     ITE8291_KB_COLOR_DEFAULT_GREEN,
+				     ITE8291_KB_COLOR_DEFAULT_BLUE);
 		}
 	}
 	result = ite8291_write_state(ite8291_driver_data);
