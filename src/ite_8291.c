@@ -101,7 +101,8 @@
 #define HID_DATA_SIZE 8
 
 // led_classdev names, default and max brightness
-#define ITE8291_KBD_BRIGHTNESS_MAX	0xff
+//#define ITE8291_KBD_BRIGHTNESS_MAX	0xff
+#define ITE8291_KBD_BRIGHTNESS_MAX	0x32
 #define ITE8291_KBD_BRIGHTNESS_DEFAULT	0x00
 
 #define ITE8291_KB_COLOR_DEFAULT_RED	0xff
