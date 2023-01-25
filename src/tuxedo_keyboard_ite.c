@@ -54,8 +54,8 @@ static struct mutex dev_lock;
 static struct mutex input_lock;
 
 // Brightness (0-10)
-#define DEFAULT_BRIGHTNESS  3
-#define MAX_BRIGHTNESS  10
+#define ITE829X_KBD_BRIGHTNESS_MAX	0x0a
+#define ITE829X_KBD_BRIGHTNESS_DEFAULT	0x00
 // Default mode (index to mode_to_color array) or extra modes
 #define DEFAULT_MODE        6
 
@@ -64,7 +64,7 @@ static struct tuxedo_keyboard_ite_data {
 	int on;
 	int mode;
 } ti_data = {
-	.brightness = DEFAULT_BRIGHTNESS,
+	.brightness = ITE829X_KBD_BRIGHTNESS_DEFAULT,
 	.on = TRUE,
 	.mode = DEFAULT_MODE
 };
@@ -201,39 +201,27 @@ err_stop_hw:
 	return result;
 }
 
-static void init_from_params(struct hid_device *dev)
-{
-	if (ti_data.on) {
-		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
-	}
-	else {
-		keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00, 0x00);
-	}
-
-	if (p_set_color == 1) {
-		keyb_set_all(dev, p_color_red, p_color_green, p_color_blue);
-	} else {
-		send_mode(dev, ti_data.mode);
-	}
-}
-
-static int ledcdev_set_blocking_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
+static int leds_set_brightness_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
+	int ret;
 	struct led_classdev_mc *led_cdev_mc = lcdev_to_mccdev(led_cdev);
 
-	keyb_send_data(to_hid_device(led_cdev->dev), 0x01, led_cdev_mc->subled_info[0].channel,
+	ret = keyb_send_data(kbdev, 0x09, brightness, 0x02, 0x00, 0x00);
+	if (ret >= 0)
+		ti_data.brightness = brightness;
+	else
+		return ret;
+
+	ret = keyb_send_data(to_hid_device(led_cdev->dev), 0x01, led_cdev_mc->subled_info[0].channel,
 		       led_cdev_mc->subled_info[0].intensity,
 		       led_cdev_mc->subled_info[1].intensity,
 		       led_cdev_mc->subled_info[2].intensity);
-
-	if (keyb_send_data(kbdev, 0x09, brightness, 0x02, 0x00, 0x00) >= 0) {
-		ti_data.brightness = brightness;
-	}
-
-	//TODO sensufll return value
-	return 0;
+	if (ret >= 0)
+		return 0;
+	else
+		return ret;
 }
 
-static enum led_brightness ledcdev_get(struct led_classdev *led_cdev) {
+static enum led_brightness leds_get_brightness_mc(struct led_classdev *led_cdev) {
 	return ti_data.brightness;
 }
 
@@ -334,9 +322,6 @@ static struct notifier_block keyboard_notifier_block = {
 };
 
 static struct led_classdev_mc clevo_mcled_cdevs[KEYBOARD_ROWS][KEYBOARD_COLUMNS];
-
-static char cdev_kb_mc_name[32];
-
 static struct mc_subled clevo_mcled_cdevs_subleds[KEYBOARD_ROWS][KEYBOARD_COLUMNS][3];
 
 static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
@@ -359,28 +344,32 @@ static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 
 	register_keyboard_notifier(&keyboard_notifier_block);
 
-	init_from_params(dev);
-
-	snprintf(cdev_kb_mc_name, 32, "%s%s", dev->name, "::kbd_backlight");
+	keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
+	for (i = 0; i < KEYBOARD_ROWS; ++i) {
+		for (j = 0; j < KEYBOARD_COLUMNS; ++j) {
+			keyb_send_data(dev, 0x01, get_led_id(i, j), 255, 255, 255);
+		}
+	}
+	send_mode(kbdev, ti_data.mode);
 
 	for (i = 0; i < KEYBOARD_ROWS; ++i) {
 		for (j = 0; j < KEYBOARD_COLUMNS; ++j) {
-			         clevo_mcled_cdevs[i][j].led_cdev.name = cdev_kb_mc_name;
-			         clevo_mcled_cdevs[i][j].led_cdev.max_brightness = MAX_BRIGHTNESS;
-			         clevo_mcled_cdevs[i][j].led_cdev.brightness_set_blocking = &ledcdev_set_blocking_mc;
-			         clevo_mcled_cdevs[i][j].led_cdev.brightness_get = &ledcdev_get;
-			         clevo_mcled_cdevs[i][j].led_cdev.brightness = DEFAULT_BRIGHTNESS;
-			         clevo_mcled_cdevs[i][j].num_colors = 3;
-			         clevo_mcled_cdevs[i][j].subled_info = clevo_mcled_cdevs_subleds[i][j];
-			         clevo_mcled_cdevs[i][j].subled_info[0].color_index = LED_COLOR_ID_RED;
-			         clevo_mcled_cdevs[i][j].subled_info[0].intensity = 255;
-			         clevo_mcled_cdevs[i][j].subled_info[0].channel = get_led_id(i, j);
-			         clevo_mcled_cdevs[i][j].subled_info[1].color_index = LED_COLOR_ID_GREEN;
-			         clevo_mcled_cdevs[i][j].subled_info[1].intensity = 255;
-			         clevo_mcled_cdevs[i][j].subled_info[1].channel = get_led_id(i, j);
-			         clevo_mcled_cdevs[i][j].subled_info[2].color_index = LED_COLOR_ID_BLUE;
-			         clevo_mcled_cdevs[i][j].subled_info[2].intensity = 255;
-			         clevo_mcled_cdevs[i][j].subled_info[2].channel = get_led_id(i, j);
+			clevo_mcled_cdevs[i][j].led_cdev.name = "rgb:" LED_FUNCTION_KBD_BACKLIGHT;
+			clevo_mcled_cdevs[i][j].led_cdev.max_brightness = ITE829X_KBD_BRIGHTNESS_MAX;
+			clevo_mcled_cdevs[i][j].led_cdev.brightness_set_blocking = &leds_set_brightness_mc;
+			clevo_mcled_cdevs[i][j].led_cdev.brightness_get = &leds_get_brightness_mc;
+			clevo_mcled_cdevs[i][j].led_cdev.brightness = ITE829X_KBD_BRIGHTNESS_DEFAULT;
+			clevo_mcled_cdevs[i][j].num_colors = 3;
+			clevo_mcled_cdevs[i][j].subled_info = clevo_mcled_cdevs_subleds[i][j];
+			clevo_mcled_cdevs[i][j].subled_info[0].color_index = LED_COLOR_ID_RED;
+			clevo_mcled_cdevs[i][j].subled_info[0].intensity = 255;
+			clevo_mcled_cdevs[i][j].subled_info[0].channel = get_led_id(i, j);
+			clevo_mcled_cdevs[i][j].subled_info[1].color_index = LED_COLOR_ID_GREEN;
+			clevo_mcled_cdevs[i][j].subled_info[1].intensity = 255;
+			clevo_mcled_cdevs[i][j].subled_info[1].channel = get_led_id(i, j);
+			clevo_mcled_cdevs[i][j].subled_info[2].color_index = LED_COLOR_ID_BLUE;
+			clevo_mcled_cdevs[i][j].subled_info[2].intensity = 255;
+			clevo_mcled_cdevs[i][j].subled_info[2].channel = get_led_id(i, j);
 
 			devm_led_classdev_multicolor_register(&dev->dev, &clevo_mcled_cdevs[i][j]);
 		}
@@ -391,7 +380,13 @@ static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 
 static void remove_callb(struct hid_device *dev)
 {
+	int i, j;
 	unregister_keyboard_notifier(&keyboard_notifier_block);
+	for (i = 0; i < KEYBOARD_ROWS; ++i) {
+		for (j = 0; j < KEYBOARD_COLUMNS; ++j) {
+			devm_led_classdev_multicolor_unregister(&dev->dev, &clevo_mcled_cdevs[i][j]);
+		}
+	}
 	stop_hw(dev);
 	pr_debug("driver remove\n");
 }
@@ -404,8 +399,18 @@ static int driver_suspend_callb(struct device *dev)
 
 static int driver_resume_callb(struct device *dev)
 {
+	int i, j;
 	pr_debug("driver resume\n");
-	init_from_params(kbdev);
+	keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
+	for (i = 0; i < KEYBOARD_ROWS; ++i) {
+		for (j = 0; j < KEYBOARD_COLUMNS; ++j) {
+			keyb_send_data(kbdev, 0x01, get_led_id(i, j),
+				       clevo_mcled_cdevs[i][j].subled_info[0].intensity,
+				       clevo_mcled_cdevs[i][j].subled_info[1].intensity,
+				       clevo_mcled_cdevs[i][j].subled_info[2].intensity);
+		}
+	}
+	send_mode(kbdev, ti_data.mode);
 	return 0;
 }
 
@@ -441,80 +446,6 @@ static void __exit tuxedo_keyboard_ite_exit(void)
 	hid_unregister_driver(&hd);
 	pr_debug("module exit\n");
 }
-
-// ---
-// Module parameters
-// ---
-/*static int param_set_sweep_delay(const char *val, const struct kernel_param *kp)
-{
-	int result, value;
-	result = kstrtoint(val, 10, &value);
-	if (result != 0 || value < 0 || value > 10) {
-		return -EINVAL;
-	}
-
-	value = clamp(value, 0, 10);
-	return param_set_int(val, kp);
-}
-
-static const struct kernel_param_ops p_ops_sweep_delay = {
-	.set = param_set_sweep_delay,
-	.get = param_get_int
-};
- 
-module_param_cb(sweep_delay, &p_ops_sweep_delay, &p_sweep_delay, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(sweep_delay, "Delay LED sweep time (0-10)");*/
-
-module_param_cb(color_red, &param_ops_byte, &p_color_red, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(color_red, "Red color (0-255)");
-module_param_cb(color_green, &param_ops_byte, &p_color_green, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(color_green, "Green color (0-255)");
-module_param_cb(color_blue, &param_ops_byte, &p_color_blue, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(color_blue, "Blue color (0-255)");
-
-static int param_set_mode(const char *val, const struct kernel_param *kp)
-{
-	int result, value;
-	result = kstrtoint(val, 10, &value);
-	if (result != 0 || value < 0 || value >= MODE_MAP_LENGTH + MODE_EXTRAS_LENGTH) {
-		return -EINVAL;
-	}
-
-	ti_data.on = TRUE;
-	send_mode(kbdev, value);
-	return param_set_int(val, kp);
-}
-
-static const struct kernel_param_ops p_ops_mode = {
-	.set = param_set_mode,
-	.get = param_get_int
-};
-module_param_cb(mode, &p_ops_mode, &(ti_data.mode), S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(mode, "Mode");
-
-
-static int param_set_color(const char *val, const struct kernel_param *kp)
-{
-	int result, value;
-	result = kstrtoint(val, 10, &value);
-	if (result != 0 || value <= 0 || value > 1) {
-		return -EINVAL;
-	}
-	
-	if (value == 1) {
-		ti_data.on = TRUE;
-		keyb_set_all(kbdev, p_color_red, p_color_green, p_color_blue);
-	}
-	return param_set_int(val, kp);
-}
-
-static const struct kernel_param_ops p_ops_set_color = {
-	.set = param_set_color,
-	.get = param_get_int
-};
-
-module_param_cb(set_color, &p_ops_set_color, &p_set_color, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(set_color, "Applies chosen color to all keys if set to 1");
 
 // ---
 // Module bootstrap
