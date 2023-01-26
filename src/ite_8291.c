@@ -387,6 +387,10 @@ void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness 
 	struct hid_device *hdev = to_hid_device(dev);
 	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
 
+	pr_debug("leds_set_brightness_mc: channel: %d, brightness: %d, saved brightness: %d, red: %d, green: %d, blue: %d\n",
+		 mcled_cdev->subled_info[0].channel, brightness, ite8291_driver_data->brightness, mcled_cdev->subled_info[0].intensity,
+		 mcled_cdev->subled_info[1].intensity, mcled_cdev->subled_info[2].intensity);
+
 	ite8291_driver_data->brightness = brightness;
 	row_data_set(hdev, ite8291_driver_data->row_data, mcled_cdev->subled_info[0].channel / ITE8291_LEDS_PER_ROW_MAX,
 		     mcled_cdev->subled_info[0].channel % ITE8291_LEDS_PER_ROW_MAX,
