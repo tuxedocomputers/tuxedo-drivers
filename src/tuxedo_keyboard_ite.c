@@ -304,15 +304,12 @@ static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 		return result;
 	}
 
-	register_keyboard_notifier(&keyboard_notifier_block);
-
 	keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
 	for (i = 0; i < KEYBOARD_ROWS; ++i) {
 		for (j = 0; j < KEYBOARD_COLUMNS; ++j) {
 			keyb_send_data(dev, 0x01, get_led_id(i, j), 255, 255, 255);
 		}
 	}
-	send_mode(kbdev, ti_data.mode);
 
 	for (i = 0; i < KEYBOARD_ROWS; ++i) {
 		for (j = 0; j < KEYBOARD_COLUMNS; ++j) {
@@ -335,6 +332,8 @@ static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 			devm_led_classdev_multicolor_register(&dev->dev, &clevo_mcled_cdevs[i][j]);
 		}
 	}
+
+	register_keyboard_notifier(&keyboard_notifier_block);
 
 	return 0;
 }
