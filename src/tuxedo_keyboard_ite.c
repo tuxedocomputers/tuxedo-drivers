@@ -201,24 +201,22 @@ err_stop_hw:
 	return result;
 }
 
-static int leds_set_brightness_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
+void leds_set_brightness_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
 	int ret;
 	struct led_classdev_mc *led_cdev_mc = lcdev_to_mccdev(led_cdev);
 
-	ret = keyb_send_data(kbdev, 0x09, brightness, 0x02, 0x00, 0x00);
-	if (ret >= 0)
-		ti_data.brightness = brightness;
-	else
-		return ret;
+	pr_debug("leds_set_brightness_mc: channel: %d, brightness: %d, saved brightness: %d, red: %d, green: %d, blue: %d\n",
+		 led_cdev_mc->subled_info[0].channel, brightness, ti_data.brightness, led_cdev_mc->subled_info[0].intensity,
+		 led_cdev_mc->subled_info[1].intensity, led_cdev_mc->subled_info[2].intensity);
 
-	ret = keyb_send_data(to_hid_device(led_cdev->dev), 0x01, led_cdev_mc->subled_info[0].channel,
+	ti_data.brightness = brightness;
+
+	ret = keyb_send_data(kbdev, 0x09, brightness, 0x02, 0x00, 0x00);
+
+	ret = keyb_send_data(kbdev, 0x01, led_cdev_mc->subled_info[0].channel,
 		       led_cdev_mc->subled_info[0].intensity,
 		       led_cdev_mc->subled_info[1].intensity,
 		       led_cdev_mc->subled_info[2].intensity);
-	if (ret >= 0)
-		return 0;
-	else
-		return ret;
 }
 
 static enum led_brightness leds_get_brightness_mc(struct led_classdev *led_cdev) {
@@ -356,7 +354,7 @@ static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 		for (j = 0; j < KEYBOARD_COLUMNS; ++j) {
 			clevo_mcled_cdevs[i][j].led_cdev.name = "rgb:" LED_FUNCTION_KBD_BACKLIGHT;
 			clevo_mcled_cdevs[i][j].led_cdev.max_brightness = ITE829X_KBD_BRIGHTNESS_MAX;
-			clevo_mcled_cdevs[i][j].led_cdev.brightness_set_blocking = &leds_set_brightness_mc;
+			clevo_mcled_cdevs[i][j].led_cdev.brightness_set = &leds_set_brightness_mc;
 			clevo_mcled_cdevs[i][j].led_cdev.brightness_get = &leds_get_brightness_mc;
 			clevo_mcled_cdevs[i][j].led_cdev.brightness = ITE829X_KBD_BRIGHTNESS_DEFAULT;
 			clevo_mcled_cdevs[i][j].num_colors = 3;
