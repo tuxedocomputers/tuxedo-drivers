@@ -78,6 +78,9 @@ static int keyb_send_data(struct hid_device *dev, u8 cmd, u8 d0, u8 d1, u8 d2, u
 {
 	int result = 0;
 	u8 *buf;
+
+	pr_debug("keyb_send_data: cmd: %hhu, d0: %hhu, d1: %hhu, d2: %hhu, d3: %hhu\n", cmd, d0, d1, d2, d3);
+
 	if (dev == NULL) {
 		return -ENODEV;
 	}
@@ -103,11 +106,11 @@ static int keyb_send_data(struct hid_device *dev, u8 cmd, u8 d0, u8 d1, u8 d2, u
 void keyb_set_all(struct hid_device *dev, u8 color_red, u8 color_green, u8 color_blue)
 {
 	int row, col;
-	for (col = 0; col < KEYBOARD_COLUMNS; ++col) {
-		for (row = 0; row < KEYBOARD_ROWS; ++row) {
-			clevo_mcled_cdevs[col][row].subled_info[0].intensity = color_red;
-			clevo_mcled_cdevs[col][row].subled_info[1].intensity = color_green;
-			clevo_mcled_cdevs[col][row].subled_info[2].intensity = color_blue;
+	for (row = 0; row < KEYBOARD_ROWS; ++row) {
+		for (col = 0; col < KEYBOARD_COLUMNS; ++col) {
+			clevo_mcled_cdevs[row][col].subled_info[0].intensity = color_red;
+			clevo_mcled_cdevs[row][col].subled_info[1].intensity = color_green;
+			clevo_mcled_cdevs[row][col].subled_info[2].intensity = color_blue;
 			keyb_send_data(dev, 0x01, get_led_id(row, col), color_red, color_green, color_blue);
 		}
 	}
@@ -130,8 +133,8 @@ static void send_mode(struct hid_device *dev, int mode)
 		keyb_set_all(dev, color_red, color_green, color_blue);
 	} else if (mode == MODE_MAP_LENGTH) {
 		// White background, TUXEDO letters in red
-		for (col = 0; col < KEYBOARD_COLUMNS; ++col) {
-			for (row = 0; row < KEYBOARD_ROWS; ++row) {
+		for (row = 0; row < KEYBOARD_ROWS; ++row) {
+			for (col = 0; col < KEYBOARD_COLUMNS; ++col) {
 				if (
 					(row == 2 && col == 6) ||   // T
 					(row == 2 && col == 8) ||   // U
@@ -140,14 +143,14 @@ static void send_mode(struct hid_device *dev, int mode)
 					(row == 3 && col == 4) ||   // D
 					(row == 2 && col == 10)     // O
 				) {
-					clevo_mcled_cdevs[col][row].subled_info[0].intensity = 0xff;
-					clevo_mcled_cdevs[col][row].subled_info[1].intensity = 0x00;
-					clevo_mcled_cdevs[col][row].subled_info[2].intensity = 0x00;
+					clevo_mcled_cdevs[row][col].subled_info[0].intensity = 0xff;
+					clevo_mcled_cdevs[row][col].subled_info[1].intensity = 0x00;
+					clevo_mcled_cdevs[row][col].subled_info[2].intensity = 0x00;
 					keyb_send_data(dev, 0x01, get_led_id(row, col), 0xff, 0x00, 0x00);
 				} else {
-					clevo_mcled_cdevs[col][row].subled_info[0].intensity = 0xff;
-					clevo_mcled_cdevs[col][row].subled_info[1].intensity = 0xff;
-					clevo_mcled_cdevs[col][row].subled_info[2].intensity = 0xff;
+					clevo_mcled_cdevs[row][col].subled_info[0].intensity = 0xff;
+					clevo_mcled_cdevs[row][col].subled_info[1].intensity = 0xff;
+					clevo_mcled_cdevs[row][col].subled_info[2].intensity = 0xff;
 					keyb_send_data(dev, 0x01, get_led_id(row, col), 0xff, 0xff, 0xff);
 				}
 			}
@@ -290,6 +293,8 @@ static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 	keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00, 0x00);
 	for (i = 0; i < KEYBOARD_ROWS; ++i) {
 		for (j = 0; j < KEYBOARD_COLUMNS; ++j) {
+			pr_debug("Initialize led %d to %d %d %d.\n", get_led_id(i, j), 255, 255, 255);
+
 			keyb_send_data(dev, 0x01, get_led_id(i, j), 255, 255, 255);
 		}
 	}
