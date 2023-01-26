@@ -74,20 +74,6 @@ static const int MODE_MAP_LENGTH = sizeof(mode_to_color)/sizeof(mode_to_color[0]
 // Amount of extra modes in addition to the color ones
 static const int MODE_EXTRAS_LENGTH = 2;
 
-// Other parameters
-int p_sweep_delay = 0;
-u8 p_color_red = 0;
-u8 p_color_green = 0;
-u8 p_color_blue = 0;
-int p_set_color = 0;
-
-static void sweep_delay(void)
-{
-	if (p_sweep_delay != 0) {
-		udelay(200 * clamp(p_sweep_delay, 0, 10));
-	}
-}
-
 static int keyb_send_data(struct hid_device *dev, u8 cmd, u8 d0, u8 d1, u8 d2, u8 d3)
 {
 	int result = 0;
@@ -123,7 +109,6 @@ void keyb_set_all(struct hid_device *dev, u8 color_red, u8 color_green, u8 color
 			clevo_mcled_cdevs[col][row].subled_info[1].intensity = color_green;
 			clevo_mcled_cdevs[col][row].subled_info[2].intensity = color_blue;
 			keyb_send_data(dev, 0x01, get_led_id(row, col), color_red, color_green, color_blue);
-			sweep_delay();
 		}
 	}
 }
@@ -136,8 +121,6 @@ static void send_mode(struct hid_device *dev, int mode)
 	if (dev == NULL) {
 		return;
 	}
-
-	p_set_color = 0;
 
 	if (mode < MODE_MAP_LENGTH) {
 		// Color modes, mode is index to mode_to_color array map
