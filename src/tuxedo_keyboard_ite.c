@@ -44,9 +44,6 @@ MODULE_LICENSE("GPL");
 #define HID_DATA_SIZE 6
 
 // Keyboard events
-#define INT_KEY_B_UP		KEY_KBDILLUMUP
-#define INT_KEY_B_DOWN		KEY_KBDILLUMDOWN
-#define INT_KEY_B_TOGGLE	KEY_KBDILLUMTOGGLE
 #define INT_KEY_B_NEXT		KEY_LIGHTS_TOGGLE
 
 static struct hid_device *kbdev = NULL;
@@ -61,13 +58,14 @@ static struct mutex input_lock;
 
 static struct tuxedo_keyboard_ite_data {
 	int brightness;
-	int on;
 	int mode;
 } ti_data = {
 	.brightness = ITE829X_KBD_BRIGHTNESS_DEFAULT,
-	.on = TRUE,
 	.mode = DEFAULT_MODE
 };
+
+static struct led_classdev_mc clevo_mcled_cdevs[KEYBOARD_ROWS][KEYBOARD_COLUMNS];
+static struct mc_subled clevo_mcled_cdevs_subleds[KEYBOARD_ROWS][KEYBOARD_COLUMNS][3];
 
 // Color mode definition
 static int mode_to_color[] = { 0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xffffff };
@@ -121,6 +119,9 @@ void keyb_set_all(struct hid_device *dev, u8 color_red, u8 color_green, u8 color
 	int row, col;
 	for (col = 0; col < KEYBOARD_COLUMNS; ++col) {
 		for (row = 0; row < KEYBOARD_ROWS; ++row) {
+			clevo_mcled_cdevs[col][row].subled_info[0].intensity = color_red;
+			clevo_mcled_cdevs[col][row].subled_info[1].intensity = color_green;
+			clevo_mcled_cdevs[col][row].subled_info[2].intensity = color_blue;
 			keyb_send_data(dev, 0x01, get_led_id(row, col), color_red, color_green, color_blue);
 			sweep_delay();
 		}
@@ -156,8 +157,14 @@ static void send_mode(struct hid_device *dev, int mode)
 					(row == 3 && col == 4) ||   // D
 					(row == 2 && col == 10)     // O
 				) {
+					clevo_mcled_cdevs[col][row].subled_info[0].intensity = 0xff;
+					clevo_mcled_cdevs[col][row].subled_info[1].intensity = 0x00;
+					clevo_mcled_cdevs[col][row].subled_info[2].intensity = 0x00;
 					keyb_send_data(dev, 0x01, get_led_id(row, col), 0xff, 0x00, 0x00);
 				} else {
+					clevo_mcled_cdevs[col][row].subled_info[0].intensity = 0xff;
+					clevo_mcled_cdevs[col][row].subled_info[1].intensity = 0xff;
+					clevo_mcled_cdevs[col][row].subled_info[2].intensity = 0xff;
 					keyb_send_data(dev, 0x01, get_led_id(row, col), 0xff, 0xff, 0xff);
 				}
 			}
@@ -227,50 +234,8 @@ static void key_actions(unsigned long key_code)
 	mutex_lock(&input_lock);
 
 	switch (key_code) {
-	case INT_KEY_B_UP:
-		// Brightness one step up
-		ti_data.on = TRUE;
-		ti_data.brightness += 1;
-
-		if (ti_data.brightness > 10) {
-			ti_data.brightness = 10;
-		}
-
-		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00,
-			       0x00);
-		break;
-	case INT_KEY_B_DOWN:
-		// Brightness one step down
-		ti_data.on = TRUE;
-		ti_data.brightness -= 1;
-
-		if (ti_data.brightness < 0) {
-			ti_data.brightness = 0;
-		}
-
-		keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02, 0x00,
-			       0x00);
-
-		break;
-	case INT_KEY_B_TOGGLE:
-		// Toggle on/off
-		if (ti_data.on) {
-			ti_data.on = FALSE;
-		} else {
-			ti_data.on = TRUE;
-		}
-
-		if (ti_data.on) {
-			keyb_send_data(kbdev, 0x09, ti_data.brightness, 0x02,
-				       0x00, 0x00);
-		} else {
-			keyb_send_data(kbdev, 0x09, 0x00, 0x02, 0x00, 0x00);
-		}
-
-		break;
 	case INT_KEY_B_NEXT:
 		// Next mode
-		ti_data.on = TRUE;
 		ti_data.mode += 1;
 
 		if (ti_data.mode >= MODE_MAP_LENGTH + MODE_EXTRAS_LENGTH) {
@@ -317,9 +282,6 @@ static int keyboard_notifier_callb(struct notifier_block *nb, unsigned long code
 static struct notifier_block keyboard_notifier_block = {
 	.notifier_call = keyboard_notifier_callb
 };
-
-static struct led_classdev_mc clevo_mcled_cdevs[KEYBOARD_ROWS][KEYBOARD_COLUMNS];
-static struct mc_subled clevo_mcled_cdevs_subleds[KEYBOARD_ROWS][KEYBOARD_COLUMNS][3];
 
 static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 {
