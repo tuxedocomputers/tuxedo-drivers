@@ -202,7 +202,6 @@ err_stop_hw:
 }
 
 void leds_set_brightness_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
-	int ret;
 	struct led_classdev_mc *led_cdev_mc = lcdev_to_mccdev(led_cdev);
 
 	pr_debug("leds_set_brightness_mc: channel: %d, brightness: %d, saved brightness: %d, red: %d, green: %d, blue: %d\n",
@@ -211,9 +210,9 @@ void leds_set_brightness_mc(struct led_classdev *led_cdev, enum led_brightness b
 
 	ti_data.brightness = brightness;
 
-	ret = keyb_send_data(kbdev, 0x09, brightness, 0x02, 0x00, 0x00);
+	keyb_send_data(kbdev, 0x09, brightness, 0x02, 0x00, 0x00);
 
-	ret = keyb_send_data(kbdev, 0x01, led_cdev_mc->subled_info[0].channel,
+	keyb_send_data(kbdev, 0x01, led_cdev_mc->subled_info[0].channel,
 		       led_cdev_mc->subled_info[0].intensity,
 		       led_cdev_mc->subled_info[1].intensity,
 		       led_cdev_mc->subled_info[2].intensity);
