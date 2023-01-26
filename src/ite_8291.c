@@ -382,6 +382,7 @@ void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness 
 */
 
 void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness brightness) {
+	int i, j;
 	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
 	struct device *dev = led_cdev->dev->parent;
 	struct hid_device *hdev = to_hid_device(dev);
@@ -392,20 +393,19 @@ void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness 
 		 mcled_cdev->subled_info[1].intensity, mcled_cdev->subled_info[2].intensity);
 
 	ite8291_driver_data->brightness = brightness;
+
+	for (i = 0; i < ITE8291_NR_ROWS; ++i) {
+		for (j = 0; j < ITE8291_LEDS_PER_ROW_MAX; ++j) {
+			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.brightness = brightness;
+		}
+	}
+
 	row_data_set(hdev, ite8291_driver_data->row_data, mcled_cdev->subled_info[0].channel / ITE8291_LEDS_PER_ROW_MAX,
 		     mcled_cdev->subled_info[0].channel % ITE8291_LEDS_PER_ROW_MAX,
 		     mcled_cdev->subled_info[0].intensity, mcled_cdev->subled_info[1].intensity,
 		     mcled_cdev->subled_info[2].intensity);
 
 	ite8291_write_state(ite8291_driver_data);
-}
-
-enum led_brightness leds_get_brightness_mc (struct led_classdev *led_cdev) {
-	struct device *dev = led_cdev->dev->parent;
-	struct hid_device *hdev = to_hid_device(dev);
-	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
-
-	return ite8291_driver_data->brightness;
 }
 
 static int register_leds(struct hid_device *hdev) {
@@ -417,7 +417,6 @@ static int register_leds(struct hid_device *hdev) {
 			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.name = "rgb:" LED_FUNCTION_KBD_BACKLIGHT;
 			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.max_brightness = ITE8291_KBD_BRIGHTNESS_MAX;
 			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.brightness_set = &leds_set_brightness_mc;
-			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.brightness_get = &leds_get_brightness_mc;
 			ite8291_driver_data->mcled_cdevs[i][j].led_cdev.brightness = ITE8291_KBD_BRIGHTNESS_DEFAULT;
 			ite8291_driver_data->mcled_cdevs[i][j].num_colors = 3;
 			ite8291_driver_data->mcled_cdevs[i][j].subled_info = ite8291_driver_data->mcled_cdevs_subleds[i][j];
