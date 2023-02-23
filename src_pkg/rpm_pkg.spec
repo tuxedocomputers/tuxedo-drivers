@@ -96,6 +96,8 @@ exit 0
 
 
 %changelog
+* Thu Feb 23 2023 C Sandberg <tux@tuxedocomputers.com> 0.3.0-1
+- Leds interface support (/sys/class/leds)
 * Wed Dec 07 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.5-1
 - Add per-device color scaling to ite_8291 driver
 - Add additional scaling setting for Stellaris 17 AMD Gen 4
