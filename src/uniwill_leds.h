@@ -179,6 +179,7 @@ int uniwill_leds_init_early(struct platform_device *dev)
 		pr_err("Reading barebone ID failed.\n");
 		return ret;
 	}
+	pr_debug("UW_EC_REG_BAREBONE_ID: 0x%02x\n", data);
 
 	if (data == UW_EC_REG_BAREBONE_ID_VALUE_PFxxxxx ||
 	    data == UW_EC_REG_BAREBONE_ID_VALUE_PFxMxxx ||
@@ -193,6 +194,8 @@ int uniwill_leds_init_early(struct platform_device *dev)
 			pr_err("Reading keyboard backlight status failed.\n");
 			return ret;
 		}
+		pr_debug("UW_EC_REG_KBD_BL_STATUS: 0x%02x\n", data);
+
 		if (data & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB) {
 			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
 		}
@@ -203,6 +206,8 @@ int uniwill_leds_init_early(struct platform_device *dev)
 			pr_err("Reading features 1 failed.\n");
 			return ret;
 		}
+		pr_debug("UW_EC_REG_FEATURES_1: 0x%02x\n", data);
+
 		if (data & UW_EC_REG_FEATURES_1_BIT_1_ZONE_RGB_KB) {
 			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB;
 		}
