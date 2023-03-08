@@ -189,7 +189,7 @@ int uniwill_leds_init_early(struct platform_device *dev)
 	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH4TQx1 ||
 	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH6TRX1 ||
 	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH6TQxx ||
-	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx) {
+	    data == UW_EC_REG_BAREBONE_ID_VALUE_PHxAxxx) {
 		ret = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data2);
 		if (ret) {
 			pr_err("Reading keyboard backlight status failed.\n");
@@ -202,7 +202,7 @@ int uniwill_leds_init_early(struct platform_device *dev)
 		 * check since we don't have IBP 16 Gen7 devices without keyboard backlight anyway.
 		 */
 		if (data2 & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB
-		    || data == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx) {
+		    || data == UW_EC_REG_BAREBONE_ID_VALUE_PHxAxxx) {
 			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
 		}
 	}
