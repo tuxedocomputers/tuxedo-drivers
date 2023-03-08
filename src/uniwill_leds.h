@@ -173,6 +173,7 @@ int uniwill_leds_init_early(struct platform_device *dev)
 	// FIXME Use mutexes
 	int ret;
 	u8 data;
+	u8 data2;
 
 	ret = uniwill_read_ec_ram(UW_EC_REG_BAREBONE_ID, &data);
 	if (ret) {
@@ -189,21 +190,21 @@ int uniwill_leds_init_early(struct platform_device *dev)
 	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH6TRX1 ||
 	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH6TQxx ||
 	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx) {
-		ret = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
+		ret = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data2);
 		if (ret) {
 			pr_err("Reading keyboard backlight status failed.\n");
 			return ret;
 		}
-		pr_debug("UW_EC_REG_KBD_BL_STATUS: 0x%02x\n", data);
+		pr_debug("UW_EC_REG_KBD_BL_STATUS: 0x%02x\n", data2);
 
 		/*
 		 * At least one IBP 16 Gen7 which should have this bit set doesn't. So skip this
-		 * check completly since we don't have TF/UW devices without keyboard backlight.
-		 * if (data & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB) {
-		 * 	uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
-		 * }
+		 * check since we don't have IBP 16 Gen7 devices without keyboard backlight anyway.
 		 */
-		uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
+		if (data2 & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB
+		    || data == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx) {
+			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
+		}
 	}
 	else {
 		ret = uniwill_read_ec_ram(UW_EC_REG_FEATURES_1, &data);
