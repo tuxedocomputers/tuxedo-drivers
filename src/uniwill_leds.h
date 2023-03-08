@@ -196,9 +196,14 @@ int uniwill_leds_init_early(struct platform_device *dev)
 		}
 		pr_debug("UW_EC_REG_KBD_BL_STATUS: 0x%02x\n", data);
 
-		if (data & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB) {
-			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
-		}
+		/*
+		 * At least one IBP 16 Gen7 which should have this bit set doesn't. So skip this
+		 * check completly since we don't have TF/UW devices without keyboard backlight.
+		 * if (data & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB) {
+		 * 	uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
+		 * }
+		 */
+		uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
 	}
 	else {
 		ret = uniwill_read_ec_ram(UW_EC_REG_FEATURES_1, &data);
