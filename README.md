@@ -101,3 +101,8 @@ sudo su
 
 echo tuxedo_keyboard >> /etc/modules
 ```
+
+## configuration file
+
+Starting with version 3.2.0, the configuration file `tuxedo_keyboard.conf` is deprecated due to complete interface rewrite. \
+`tuxedo-keyboard` now uses the `/sys/class/leds/:kbd_backlight` SysFS interface.
