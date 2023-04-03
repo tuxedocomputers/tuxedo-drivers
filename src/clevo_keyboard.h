@@ -472,6 +472,26 @@ bool clevo_fn_lock_available(void){
 	return 0;
 }
 
+static u8 clevo_legacy_flexicharger_start_values[] = {40, 50, 60, 70, 80, 95};
+static u8 clevo_legacy_flexicharger_end_values[] = {60, 70, 80, 90, 100};
+
+static int array_find_closest_u8(u8 value, u8 *haystack, size_t length)
+{
+	int i;
+	u8 closest;
+
+	if (length == 0)
+		return -EINVAL;
+
+	closest = haystack[0];
+	for (i = 0; i < length; ++i) {
+		if (abs(value - haystack[i]) < abs(value - closest))
+			closest = haystack[i];
+	}
+
+	return closest;
+}
+
 static int clevo_has_legacy_flexicharger(bool *status)
 {
 	u32 read_data = 0;
@@ -623,7 +643,7 @@ static ssize_t charge_control_start_threshold_store(struct device *dev,
 						    const char *buf,
 						    size_t count)
 {
-	u8 value;
+	u8 value, write_value;
 	int result;
 
 	result = kstrtou8(buf, 10, &value);
@@ -633,8 +653,10 @@ static ssize_t charge_control_start_threshold_store(struct device *dev,
 	if (value < 1 || value > 100)
 		return -EINVAL;
 	
-	// TODO: Set closest value possible
-	result = clevo_legacy_flexicharger_write(&value, NULL, NULL);
+	write_value = array_find_closest_u8(value,
+					    clevo_legacy_flexicharger_start_values,
+					    ARRAY_SIZE(clevo_legacy_flexicharger_start_values));
+	result = clevo_legacy_flexicharger_write(&write_value, NULL, NULL);
 
 	if (result < 0)
 		return result;
@@ -662,7 +684,7 @@ static ssize_t charge_control_end_threshold_store(struct device *dev,
 						  const char *buf,
 						  size_t count)
 {
-	u8 value;
+	u8 value, write_value;
 	int result;
 
 	result = kstrtou8(buf, 10, &value);
@@ -672,8 +694,10 @@ static ssize_t charge_control_end_threshold_store(struct device *dev,
 	if (value < 1 || value > 100)
 		return -EINVAL;
 
-	// TODO: Set closest value possible
-	result = clevo_legacy_flexicharger_write(NULL, &value, NULL);
+	write_value = array_find_closest_u8(value,
+					    clevo_legacy_flexicharger_end_values,
+					    ARRAY_SIZE(clevo_legacy_flexicharger_end_values));
+	result = clevo_legacy_flexicharger_write(NULL, &write_value, NULL);
 
 
 	if (result < 0)
