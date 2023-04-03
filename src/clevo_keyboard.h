@@ -706,14 +706,59 @@ static ssize_t charge_control_end_threshold_store(struct device *dev,
 		return count;
 }
 
+static ssize_t charge_control_start_available_thresholds_show(struct device *device,
+							    struct device_attribute *attr,
+							    char *buf)
+{
+	int i;
+	ssize_t length = ARRAY_SIZE(clevo_legacy_flexicharger_start_values);
+
+	for (i = 0; i < length; ++i) {
+		sprintf(buf + strlen(buf), "%d",
+			clevo_legacy_flexicharger_start_values[i]);
+		if (i < length - 1)
+			sprintf(buf + strlen(buf), " ");
+		else
+			sprintf(buf + strlen(buf), "\n");
+	}
+
+	return strlen(buf);
+}
+
+static ssize_t charge_control_end_available_thresholds_show(struct device *device,
+							    struct device_attribute *attr,
+							    char *buf)
+{
+	int i;
+	ssize_t length = ARRAY_SIZE(clevo_legacy_flexicharger_end_values);
+
+	for (i = 0; i < length; ++i) {
+		sprintf(buf + strlen(buf), "%d",
+			clevo_legacy_flexicharger_end_values[i]);
+		if (i < length - 1)
+			sprintf(buf + strlen(buf), " ");
+		else
+			sprintf(buf + strlen(buf), "\n");
+	}
+
+	return strlen(buf);
+}
+
+// Official attributes
 static DEVICE_ATTR_RW(charge_type);
 static DEVICE_ATTR_RW(charge_control_start_threshold);
 static DEVICE_ATTR_RW(charge_control_end_threshold);
+
+// Unofficial attributes
+static DEVICE_ATTR_RO(charge_control_start_available_thresholds);
+static DEVICE_ATTR_RO(charge_control_end_available_thresholds);
 
 static struct attribute *clevo_battery_attrs[] = {
 	&dev_attr_charge_type.attr,
 	&dev_attr_charge_control_start_threshold.attr,
 	&dev_attr_charge_control_end_threshold.attr,
+	&dev_attr_charge_control_start_available_thresholds.attr,
+	&dev_attr_charge_control_end_available_thresholds.attr,
 	NULL,
 };
 
