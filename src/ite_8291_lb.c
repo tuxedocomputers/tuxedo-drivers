@@ -25,6 +25,7 @@
 #include <linux/dmi.h>
 #include <linux/led-class-multicolor.h>
 #include <linux/of.h>
+#include <linux/delay.h>
 
 // USB HID control data write size
 #define HID_DATA_SIZE 8
@@ -34,6 +35,37 @@ struct ite8291_driver_data_t {
 	struct led_classdev_mc mcled_cdev_lightbar;
 	struct mc_subled mcled_cdev_subleds_lightbar[3];
 };
+
+static void stop_hw(struct hid_device *hdev)
+{
+	hid_hw_power(hdev, PM_HINT_NORMAL);
+	hid_hw_close(hdev);
+	hid_hw_stop(hdev);
+}
+
+static int start_hw(struct hid_device *hdev)
+{
+	int result;
+	result = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
+	if (result) {
+		pr_err("hid_hw_start failed\n");
+		goto err_stop_hw;
+	}
+
+	hid_hw_power(hdev, PM_HINT_FULLON);
+
+	result = hid_hw_open(hdev);
+	if (result) {
+		pr_err("hid_hw_open failed\n");
+		goto err_stop_hw;
+	}
+
+	return 0;
+
+err_stop_hw:
+	stop_hw(hdev);
+	return result;
+}
 
 /**
  * Color scaling quirk list
@@ -69,6 +101,31 @@ static int ite8291_write_control(struct hid_device *hdev, u8 *ctrl_data)
 	return result;
 }
 
+static int ite8291_write_lightbar(struct hid_device *hdev, u8 red, u8 green, u8 blue, u8 brightness)
+{
+	if (hdev == NULL)
+		return -ENODEV;
+
+	color_scaling(hdev, &red, &green, &blue);
+
+	switch (hdev->product) {
+	case 0x6010:
+		ite8291_write_control(hdev, (u8[]){ 0x14, 0x00, 0x01, red, green, blue, 0x00, 0x00 });
+		ite8291_write_control(hdev, (u8[]){ 0x08, 0x02, 0x01, 0x01, brightness, 0x08, 0x00, 0x00 });
+		break;
+
+	case 0x7000:
+		ite8291_write_control(hdev, (u8[]){ 0x14, 0x01, 0x01, red, green, blue, 0x00, 0x00 });
+		ite8291_write_control(hdev, (u8[]){ 0x08, 0x21, 0x01, 0x01, brightness, 0x01, 0x00, 0x00 });
+		break;
+
+	default:
+		return -ENODEV;
+	}
+
+	return 0;
+}
+
 static int ite8291_write_on(struct hid_device *hdev)
 {
 	switch (hdev->product) {
@@ -91,7 +148,11 @@ static int ite8291_write_off(struct hid_device *hdev)
 {
 	switch (hdev->product) {
 	case 0x6010:
-		// TODO: Fix for Stellaris 17 Gen 4
+		// Explicitly write mono color "off" due to issue with turning off reliably (especially for sleep)
+		ite8291_write_lightbar(hdev, 0, 0, 0, 0);
+		msleep(50);
+
+		ite8291_write_control(hdev, (u8[]){ 0x12, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 });
 		ite8291_write_control(hdev, (u8[]){ 0x08, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
 		ite8291_write_control(hdev, (u8[]){ 0x08, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
 		ite8291_write_control(hdev, (u8[]){ 0x1a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 });
@@ -102,62 +163,6 @@ static int ite8291_write_off(struct hid_device *hdev)
 		ite8291_write_control(hdev, (u8[]){ 0x08, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
 		ite8291_write_control(hdev, (u8[]){ 0x08, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 });
 		ite8291_write_control(hdev, (u8[]){ 0x1a, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 });
-		break;
-
-	default:
-		return -ENODEV;
-	}
-
-	return 0;
-}
-
-static void stop_hw(struct hid_device *hdev)
-{
-	hid_hw_power(hdev, PM_HINT_NORMAL);
-	hid_hw_close(hdev);
-	hid_hw_stop(hdev);
-}
-
-static int start_hw(struct hid_device *hdev)
-{
-	int result;
-	result = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
-	if (result) {
-		pr_err("hid_hw_start failed\n");
-		goto err_stop_hw;
-	}
-
-	hid_hw_power(hdev, PM_HINT_FULLON);
-
-	result = hid_hw_open(hdev);
-	if (result) {
-		pr_err("hid_hw_open failed\n");
-		goto err_stop_hw;
-	}
-
-	return 0;
-
-err_stop_hw:
-	stop_hw(hdev);
-	return result;
-}
-
-static int ite8291_write_lightbar(struct hid_device *hdev, u8 red, u8 green, u8 blue, u8 brightness)
-{
-	if (hdev == NULL)
-		return -ENODEV;
-
-	color_scaling(hdev, &red, &green, &blue);
-
-	switch (hdev->product) {
-	case 0x6010:
-		ite8291_write_control(hdev, (u8[]){ 0x14, 0x00, 0x01, red, green, blue, 0x00, 0x01 });
-		ite8291_write_control(hdev, (u8[]){ 0x08, 0x02, 0x01, 0x01, brightness, 0x08, 0x00, 0x00 });
-		break;
-
-	case 0x7000:
-		ite8291_write_control(hdev, (u8[]){ 0x14, 0x01, 0x01, red, green, blue, 0x00, 0x00 });
-		ite8291_write_control(hdev, (u8[]){ 0x08, 0x21, 0x01, 0x01, brightness, 0x01, 0x00, 0x00 });
 		break;
 
 	default:
