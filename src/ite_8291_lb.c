@@ -41,6 +41,10 @@ struct ite8291_driver_data_t {
 static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+	if (dmi_match(DMI_PRODUCT_SKU, "STEPOL1XA04") && hdev->product == 0x6010) {
+		*green = (100 * *green) / 255;
+		*blue = (100 * *blue) / 255;
+	}
 #endif
 }
 
