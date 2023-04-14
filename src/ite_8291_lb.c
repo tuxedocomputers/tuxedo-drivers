@@ -507,6 +507,12 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	int result;
 	struct ite8291_driver_data_t *ite8291_driver_data;
 
+	// Apparently unused device on Stellaris Gen5, avoid binding to it
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+	if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") && hdev->product == 0x6010)
+		return -ENODEV;
+#endif
+
 	result = hid_parse(hdev);
 	if (result) {
 		pr_err("hid_parse failed\n");
