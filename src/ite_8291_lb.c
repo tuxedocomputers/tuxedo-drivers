@@ -140,7 +140,7 @@ static int ite8291_write_color_list(struct hid_device *hdev)
 		break;
 
 	default:
-		return -ENODEV;
+		return -ENOSYS;
 	}
 
 	for (i = 0; i < driver_data->color_list_length; ++i) {
@@ -187,7 +187,7 @@ static int ite8291_write_lightbar_mono(struct hid_device *hdev, u8 red, u8 green
 		break;
 
 	default:
-		return -ENODEV;
+		return -ENOSYS;
 	}
 
 	return 0;
@@ -222,7 +222,134 @@ static int ite8291_write_lightbar_breathe(struct hid_device *hdev, u8 brightness
 		break;
 
 	default:
+		return -ENOSYS;
+	}
+
+	return 0;
+}
+
+/**
+ * Write wave mode
+ * 
+ * @param brightness Range 0x00 - 0x64
+ * @param speed Range slowest 0x0a to fastest 0x01
+ */
+static int ite8291_write_lightbar_wave(struct hid_device *hdev, u8 brightness, u8 speed)
+{
+	if (hdev == NULL)
 		return -ENODEV;
+
+	if (brightness > 0x64)
+		return -EINVAL;
+
+	if (speed < 0x01 || speed > 0x0a)
+		return -EINVAL;
+
+	switch (hdev->product) {
+
+	case 0x7000:
+		// Reference usage writes previous color but no color is available for mode => skipping
+		ite8291_write_control(hdev, (u8[]){ 0x08, 0x21, 0x03, speed, brightness, 0x01, 0x00, 0x00 });
+		break;
+
+	default:
+		return -ENOSYS;
+	}
+
+	return 0;
+}
+
+/**
+ * Write clash mode
+ * 
+ * @param brightness Range 0x00 - 0x64
+ * @param speed Range slowest 0x0a to fastest 0x01
+ */
+static int ite8291_write_lightbar_clash(struct hid_device *hdev, u8 brightness, u8 speed)
+{
+	if (hdev == NULL)
+		return -ENODEV;
+
+	if (brightness > 0x64)
+		return -EINVAL;
+
+	if (speed < 0x01 || speed > 0x0a)
+		return -EINVAL;
+
+	switch (hdev->product) {
+
+	case 0x7000:
+		ite8291_write_color_list(hdev);
+		ite8291_write_control(hdev, (u8[]){ 0x08, 0x21, 0x04, speed, brightness, 0x08, 0x00, 0x00 });
+		break;
+
+	default:
+		return -ENOSYS;
+	}
+
+	return 0;
+}
+
+/**
+ * Write "catch up" mode
+ * 
+ * @param brightness Range 0x00 - 0x64
+ * @param speed Range slowest 0x0a to fastest 0x01
+ */
+static int ite8291_write_lightbar_catchup(struct hid_device *hdev, u8 brightness, u8 speed)
+{
+	if (hdev == NULL)
+		return -ENODEV;
+
+	if (brightness > 0x64)
+		return -EINVAL;
+
+	if (speed < 0x01 || speed > 0x0a)
+		return -EINVAL;
+
+	switch (hdev->product) {
+
+	case 0x7000:
+		// Reference usage writes previous color but no color is available for mode => skipping
+		ite8291_write_control(hdev, (u8[]){ 0x08, 0x21, 0x05, speed, brightness, 0x01, 0x00, 0x00 });
+		break;
+
+	default:
+		return -ENOSYS;
+	}
+
+	return 0;
+}
+
+/**
+ * Write flash mode
+ * 
+ * @param brightness Range 0x00 - 0x64
+ * @param speed Range slowest 0x0a to fastest 0x01
+ * @param direction 0x00: no, 0x01: right, 0x02 left
+ */
+static int ite8291_write_lightbar_flash(struct hid_device *hdev, u8 brightness, u8 speed, u8 direction)
+{
+	if (hdev == NULL)
+		return -ENODEV;
+
+	if (brightness > 0x64)
+		return -EINVAL;
+
+	if (speed < 0x01 || speed > 0x0a)
+		return -EINVAL;
+
+	if (direction > 0x02)
+		return -EINVAL;
+
+	switch (hdev->product) {
+	case 0x6010:
+		ite8291_write_color_list(hdev);
+		ite8291_write_control(hdev, (u8[]){ 0x08, 0x02, 0x11, speed, brightness, 0x08, direction, 0x00 });
+		break;
+
+	default:
+		return -ENOSYS;
 	}
 
 	return 0;
@@ -240,7 +367,7 @@ static int ite8291_write_on(struct hid_device *hdev)
 		break;
 
 	default:
-		return -ENODEV;
+		return -ENOSYS;
 	}
 
 	return 0;
@@ -268,7 +395,7 @@ static int ite8291_write_off(struct hid_device *hdev)
 		break;
 
 	default:
-		return -ENODEV;
+		return -ENOSYS;
 	}
 
 	return 0;
@@ -341,9 +468,8 @@ static int ite8291_driver_data_setup(struct hid_device *hdev, struct ite8291_dri
 
 	switch (hdev->product) {
 	case 0x6010:
-		driver_data->color_list_length = 9;
-		break;
-
+		// Reference usage writes 9 entries but only 7 seem to be in
+		// effect. Therefore defining 7.
 	case 0x7000:
 		driver_data->color_list_length = 7;
 		break;
