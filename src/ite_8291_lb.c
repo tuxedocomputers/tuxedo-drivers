@@ -30,10 +30,18 @@
 // USB HID control data write size
 #define HID_DATA_SIZE 8
 
+struct color_u8 {
+	u8 red;
+	u8 green;
+	u8 blue;
+};
+
 struct ite8291_driver_data_t {
 	struct hid_device *hid_dev;
 	struct led_classdev_mc mcled_cdev_lightbar;
 	struct mc_subled mcled_cdev_subleds_lightbar[3];
+	struct color_u8 *color_list;
+	int color_list_length;
 };
 
 static void stop_hw(struct hid_device *hdev)
@@ -80,6 +88,20 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 #endif
 }
 
+static int ite8291_set_color_list_entry(struct hid_device *hdev, int index, u8 red, u8 green, u8 blue)
+{
+	struct ite8291_driver_data_t *driver_data = hid_get_drvdata(hdev);
+
+	if (index >= driver_data->color_list_length)
+		return -EINVAL;
+
+	driver_data->color_list[index].red = red;
+	driver_data->color_list[index].green = green;
+	driver_data->color_list[index].blue = blue;
+
+	return 0;
+}
+
 /**
  * Write control data
  */
@@ -101,10 +123,55 @@ static int ite8291_write_control(struct hid_device *hdev, u8 *ctrl_data)
 	return result;
 }
 
-static int ite8291_write_lightbar(struct hid_device *hdev, u8 red, u8 green, u8 blue, u8 brightness)
+static int ite8291_write_color_list(struct hid_device *hdev)
+{
+	struct ite8291_driver_data_t *driver_data = hid_get_drvdata(hdev);
+	int i;
+
+	u8 color_ctrl[] = { 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+
+	switch (hdev->product) {
+	case 0x6010:
+		break;
+
+	case 0x7000:
+		color_ctrl[1] = 0x01;
+		break;
+
+	default:
+		return -ENODEV;
+	}
+
+	for (i = 0; i < driver_data->color_list_length; ++i) {
+		color_ctrl[2] = (u8)i + 1;
+		color_ctrl[3] = driver_data->color_list[i].red;
+		color_ctrl[4] = driver_data->color_list[i].green;
+		color_ctrl[5] = driver_data->color_list[i].blue;
+		color_scaling(hdev, &color_ctrl[3], &color_ctrl[4], &color_ctrl[5]);
+		ite8291_write_control(hdev, color_ctrl);
+	}
+
+	return 0;
+}
+
+/**
+ * Set mono color
+ * 
+ * Note: For now not using color list
+ * 
+ * @param red Range 0x00 - 0xff
+ * @param green Range 0x00 - 0xff
+ * @param blue Range 0x00 - 0xff
+ * @param brightness Range 0x00 - 0x64
+ */
+static int ite8291_write_lightbar_mono(struct hid_device *hdev, u8 red, u8 green, u8 blue, u8 brightness)
 {
 	if (hdev == NULL)
 		return -ENODEV;
+
+	if (brightness > 0x64)
+		return -EINVAL;
 
 	color_scaling(hdev, &red, &green, &blue);
 
@@ -117,6 +184,41 @@ static int ite8291_write_lightbar(struct hid_device *hdev, u8 red, u8 green, u8 
 	case 0x7000:
 		ite8291_write_control(hdev, (u8[]){ 0x14, 0x01, 0x01, red, green, blue, 0x00, 0x00 });
 		ite8291_write_control(hdev, (u8[]){ 0x08, 0x21, 0x01, 0x01, brightness, 0x01, 0x00, 0x00 });
+		break;
+
+	default:
+		return -ENODEV;
+	}
+
+	return 0;
+}
+
+/**
+ * Write breathe mode
+ * 
+ * @param brightness Range 0x00 - 0x64
+ * @param speed Range slowest 0x0a to fastest 0x01
+ */
+static int ite8291_write_lightbar_breathe(struct hid_device *hdev, u8 brightness, u8 speed)
+{
+	if (hdev == NULL)
+		return -ENODEV;
+	
+	if (brightness > 0x64)
+		return -EINVAL;
+
+	if (speed < 0x01 || speed > 0x0a)
+		return -EINVAL;
+
+	switch (hdev->product) {
+	case 0x6010:
+		ite8291_write_color_list(hdev);
+		ite8291_write_control(hdev, (u8[]){ 0x08, 0x02, 0x02, speed, brightness, 0x08, 0x00, 0x00 });
+		break;
+
+	case 0x7000:
+		ite8291_write_color_list(hdev);
+		ite8291_write_control(hdev, (u8[]){ 0x08, 0x21, 0x02, speed, brightness, 0x08, 0x00, 0x00 });
 		break;
 
 	default:
@@ -149,7 +251,7 @@ static int ite8291_write_off(struct hid_device *hdev)
 	switch (hdev->product) {
 	case 0x6010:
 		// Explicitly write mono color "off" due to issue with turning off reliably (especially for sleep)
-		ite8291_write_lightbar(hdev, 0, 0, 0, 0);
+		ite8291_write_lightbar_mono(hdev, 0, 0, 0, 0);
 		msleep(50);
 
 		ite8291_write_control(hdev, (u8[]){ 0x12, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 });
@@ -172,12 +274,28 @@ static int ite8291_write_off(struct hid_device *hdev)
 	return 0;
 }
 
+static void ite8291_set_testcolors(struct hid_device *hdev)
+{
+	ite8291_set_color_list_entry(hdev, 0, 0xff, 0x00, 0x00);
+	ite8291_set_color_list_entry(hdev, 1, 0xff, 0xff, 0x00);
+	ite8291_set_color_list_entry(hdev, 2, 0x00, 0xff, 0x00);
+	ite8291_set_color_list_entry(hdev, 3, 0xff, 0x00, 0xff);
+	ite8291_set_color_list_entry(hdev, 4, 0xff, 0xff, 0x00);
+	ite8291_set_color_list_entry(hdev, 5, 0x00, 0xff, 0x00);
+	ite8291_set_color_list_entry(hdev, 6, 0x00, 0x00, 0xff);
+}
+
 static int ite8291_write_state(struct hid_device *hdev)
 {
 	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
 	struct led_classdev_mc *mcled_cdev = &ite8291_driver_data->mcled_cdev_lightbar;
 
-	return ite8291_write_lightbar(hdev, mcled_cdev->subled_info[0].intensity, mcled_cdev->subled_info[1].intensity, mcled_cdev->subled_info[2].intensity, ite8291_driver_data->mcled_cdev_lightbar.led_cdev.brightness);
+	// For now only supports mono color state saved in sysfs structure
+	return ite8291_write_lightbar_mono(hdev,
+					   mcled_cdev->subled_info[0].intensity,
+					   mcled_cdev->subled_info[1].intensity,
+					   mcled_cdev->subled_info[2].intensity,
+					   ite8291_driver_data->mcled_cdev_lightbar.led_cdev.brightness);
 }
 
 void leds_set_brightness_mc_lightbar(struct led_classdev *led_cdev, enum led_brightness brightness) {
@@ -215,6 +333,43 @@ static int ite8291_init_leds(struct hid_device *hdev)
 	return 0;
 }
 
+static int ite8291_driver_data_setup(struct hid_device *hdev, struct ite8291_driver_data_t *driver_data)
+{
+	int i;
+
+	driver_data->hid_dev = hdev;
+
+	switch (hdev->product) {
+	case 0x6010:
+		driver_data->color_list_length = 9;
+		break;
+
+	case 0x7000:
+		driver_data->color_list_length = 7;
+		break;
+
+	default:
+		driver_data->color_list_length = 0;
+	}
+
+	if (driver_data->color_list_length != 0) {
+		driver_data->color_list = devm_kzalloc(&hdev->dev,
+						       sizeof(struct color_u8) * driver_data->color_list_length,
+						       GFP_KERNEL);
+		if (!driver_data->color_list)
+			return -ENOMEM;
+
+		// Initialize color list
+		for (i = 0; i < driver_data->color_list_length; ++i) {
+			driver_data->color_list[i].red = 0;
+			driver_data->color_list[i].green = 0;
+			driver_data->color_list[i].blue = 0;
+		}
+	}
+
+	return 0;
+}
+
 static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_id *id)
 {
 	int result;
@@ -235,7 +390,9 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	if (!ite8291_driver_data)
 		return -ENOMEM;
 
-	ite8291_driver_data->hid_dev = hdev;
+	result = ite8291_driver_data_setup(hdev, ite8291_driver_data);
+	if (result != 0)
+		return result;
 
 	hid_set_drvdata(hdev, ite8291_driver_data);
 
