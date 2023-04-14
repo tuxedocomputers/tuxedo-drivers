@@ -30,6 +30,12 @@
 // USB HID control data write size
 #define HID_DATA_SIZE 8
 
+#define LIGHTBAR_MAX_BRIGHTNESS		0x64
+#define LIGHTBAR_DEFAULT_BRIGHTNESS	0x00
+#define LIGHTBAR_DEFAULT_COLOR_RED	0xff
+#define LIGHTBAR_DEFAULT_COLOR_GREEN	0xff
+#define LIGHTBAR_DEFAULT_COLOR_BLUE	0xff
+
 struct color_u8 {
 	u8 red;
 	u8 green;
@@ -438,19 +444,19 @@ static int ite8291_init_leds(struct hid_device *hdev)
 	int retval;
 
 	ite8291_driver_data->mcled_cdev_lightbar.led_cdev.name = "rgb:" "lightbar";
-	ite8291_driver_data->mcled_cdev_lightbar.led_cdev.max_brightness = 0x64;
+	ite8291_driver_data->mcled_cdev_lightbar.led_cdev.max_brightness = LIGHTBAR_MAX_BRIGHTNESS;
 	ite8291_driver_data->mcled_cdev_lightbar.led_cdev.brightness_set = &leds_set_brightness_mc_lightbar;
-	ite8291_driver_data->mcled_cdev_lightbar.led_cdev.brightness = 0x64;
+	ite8291_driver_data->mcled_cdev_lightbar.led_cdev.brightness = LIGHTBAR_DEFAULT_BRIGHTNESS;
 	ite8291_driver_data->mcled_cdev_lightbar.num_colors = 3;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info = ite8291_driver_data->mcled_cdev_subleds_lightbar;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[0].color_index = LED_COLOR_ID_RED;
-	ite8291_driver_data->mcled_cdev_lightbar.subled_info[0].intensity = 255;
+	ite8291_driver_data->mcled_cdev_lightbar.subled_info[0].intensity = LIGHTBAR_DEFAULT_COLOR_RED;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[0].channel = 0;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[1].color_index = LED_COLOR_ID_GREEN;
-	ite8291_driver_data->mcled_cdev_lightbar.subled_info[1].intensity = 255;
+	ite8291_driver_data->mcled_cdev_lightbar.subled_info[1].intensity = LIGHTBAR_DEFAULT_COLOR_GREEN;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[1].channel = 0;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[2].color_index = LED_COLOR_ID_BLUE;
-	ite8291_driver_data->mcled_cdev_lightbar.subled_info[2].intensity = 255;
+	ite8291_driver_data->mcled_cdev_lightbar.subled_info[2].intensity = LIGHTBAR_DEFAULT_COLOR_BLUE;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[2].channel = 0;
 
 	retval = devm_led_classdev_multicolor_register(&hdev->dev, &ite8291_driver_data->mcled_cdev_lightbar);
