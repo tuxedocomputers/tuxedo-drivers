@@ -588,6 +588,6 @@ static struct hid_driver ite8291_driver = {
 module_hid_driver(ite8291_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_DESCRIPTION("Driver for ITE Device(8291) RGB lightbar");
+MODULE_DESCRIPTION("Driver for ITE RGB lightbars");
 MODULE_VERSION("0.0.1");
 MODULE_LICENSE("GPL");
