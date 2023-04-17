@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2019-2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2019-2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-keyboard-ite.
  *
@@ -33,7 +33,7 @@
 
 MODULE_DESCRIPTION("TUXEDO Computers, ITE backlight driver");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_VERSION("0.1.0");
+MODULE_VERSION("0.2.0");
 MODULE_LICENSE("GPL");
 
 #define KEYBOARD_ROWS       6

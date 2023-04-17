@@ -99,6 +99,9 @@ exit 0
 
 
 %changelog
+* Mon Apr 17 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.0-1
+- Color scaling for Stellaris Intel Gen5
+- Lightbar impl. for Stellaris Gen4/5
 * Thu Feb 23 2023 C Sandberg <tux@tuxedocomputers.com> 0.3.0-1
 - Leds interface support (/sys/class/leds)
 * Wed Dec 07 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.5-1
