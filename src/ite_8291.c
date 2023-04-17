@@ -137,6 +137,9 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
 	if (dmi_match(DMI_PRODUCT_SKU, "STEPOL1XA04") && hdev->product == 0x600a) {
 		*red = (126 * *red) / 255;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") && hdev->product == 0x600a) {
+		*red = (200 * *red) / 255;
+		*blue = (220 * *blue) / 255;
 	} else {
 		*green = (126 * *green) / 255;
 		*blue = (120 * *blue) / 255;
