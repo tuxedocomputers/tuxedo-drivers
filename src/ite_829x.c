@@ -56,7 +56,7 @@ static struct mutex input_lock;
 // Default mode (index to mode_to_color array) or extra modes
 #define DEFAULT_MODE        6
 
-static struct tuxedo_keyboard_ite_data {
+static struct ite8291_data {
 	int brightness;
 	int mode;
 } ti_data = {
@@ -362,41 +362,41 @@ static int driver_resume_callb(struct device *dev)
 	return 0;
 }
 
-static const struct hid_device_id hd_table[] = {
+static const struct hid_device_id ite829x_device_table[] = {
 	{ HID_USB_DEVICE(0x048d, 0x8910) },
 	{ }
 };
-MODULE_DEVICE_TABLE(hid, hd_table);
+MODULE_DEVICE_TABLE(hid, ite829x_device_table);
 
-static struct hid_driver hd = {
-	.name = "tuxedo-keyboard-ite",
+static struct hid_driver ite829x_driver = {
+	.name = KBUILD_MODNAME,
 	.probe = probe_callb,
 	.remove = remove_callb,
-	.id_table = hd_table,
+	.id_table = ite829x_device_table,
 };
 
-static const struct dev_pm_ops tuxedo_keyboard_ite_pm = {
+static const struct dev_pm_ops ite8291_pm = {
 	SET_SYSTEM_SLEEP_PM_OPS(driver_suspend_callb, driver_resume_callb)
 };
 
-static int __init tuxedo_keyboard_ite_init(void)
+static int __init ite8291_init(void)
 {
 	pr_debug("module init\n");
 	mutex_init(&input_lock);
 	
-	hd.driver.pm = &tuxedo_keyboard_ite_pm;
+	ite829x_driver.driver.pm = &ite8291_pm;
 
-	return hid_register_driver(&hd);
+	return hid_register_driver(&ite829x_driver);
 }
 
-static void __exit tuxedo_keyboard_ite_exit(void)
+static void __exit ite8291_exit(void)
 {
-	hid_unregister_driver(&hd);
+	hid_unregister_driver(&ite829x_driver);
 	pr_debug("module exit\n");
 }
 
 // ---
 // Module bootstrap
 // ---
-module_init(tuxedo_keyboard_ite_init);
-module_exit(tuxedo_keyboard_ite_exit);
+module_init(ite8291_init);
+module_exit(ite8291_exit);
