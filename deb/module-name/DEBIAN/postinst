@@ -42,12 +42,14 @@ case "$1" in
         dkms_configure
 
 		# Attempt to (re-)load modules immediately, fail silently if not possible at this stage
-		rmmod ${module} > /dev/null 2>&1 || true
-		modprobe ${module} > /dev/null 2>&1 || true
+		rmmod ite_829x > /dev/null 2>&1 || true
+		modprobe ite_829x > /dev/null 2>&1 || true
 		rmmod ite_8297 > /dev/null 2>&1 || true
 		modprobe ite_8297 > /dev/null 2>&1 || true
 		rmmod ite_8291 > /dev/null 2>&1 || true
 		modprobe ite_8291 > /dev/null 2>&1 || true
+		rmmod ite_8291_lb > /dev/null 2>&1 || true
+		modprobe ite_8291_lb > /dev/null 2>&1 || true
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)

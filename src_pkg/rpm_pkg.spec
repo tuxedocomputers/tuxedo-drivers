@@ -65,12 +65,14 @@ for POSTINST in /usr/lib/dkms/common.postinst /usr/share/%{module}/postinst; do
     if [ -f $POSTINST ]; then
         $POSTINST %{module} %{version} /usr/share/%{module}
         RET=$?
-        rmmod %{module} > /dev/null 2>&1 || true
-        modprobe %{module} > /dev/null 2>&1 || true
+        rmmod ite_829x > /dev/null 2>&1 || true
+        modprobe ite_829x > /dev/null 2>&1 || true
         rmmod ite_8297 > /dev/null 2>&1 || true
         modprobe ite_8297 > /dev/null 2>&1 || true
         rmmod ite_8291 > /dev/null 2>&1 || true
         modprobe ite_8291 > /dev/null 2>&1 || true
+        rmmod ite_8291_lb > /dev/null 2>&1 || true
+        modprobe ite_8291_lb > /dev/null 2>&1 || true
         exit $RET
     fi
     echo "WARNING: $POSTINST does not exist."
@@ -88,9 +90,10 @@ echo -e
 echo -e "Uninstall of %{module} module (version %{version}-%{release}) beginning:"
 dkms remove -m %{module} -v %{version} --all --rpm_safe_upgrade
 if [ $1 != 1 ];then
-    /usr/sbin/rmmod %{module} > /dev/null 2>&1 || true
+    /usr/sbin/rmmod ite_829x > /dev/null 2>&1 || true
     /usr/sbin/rmmod ite_8297 > /dev/null 2>&1 || true
     /usr/sbin/rmmod ite_8291 > /dev/null 2>&1 || true
+    /usr/sbin/rmmod ite_8291_lb > /dev/null 2>&1 || true
 fi
 exit 0
 
