@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2019-2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+# Copyright (c) 2019-2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 #
 # This file is part of tuxedo-keyboard-ite.
 #
@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this software.  If not, see <https://www.gnu.org/licenses/>.
 #
-obj-m := ./src/ite_829x.o ./src/ite_8297.o ./src/ite_8291.o
+obj-m := ./src/ite_829x.o ./src/ite_8297.o ./src/ite_8291.o ./src/ite_8291_lb.o
 
 PWD := $(shell pwd)
 KDIR := /lib/modules/$(shell uname -r)/build
