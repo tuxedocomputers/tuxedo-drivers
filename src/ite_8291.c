@@ -92,6 +92,7 @@
 #include <linux/version.h>
 #include <linux/module.h>
 #include <linux/device.h>
+#include <linux/usb.h>
 #include <linux/hid.h>
 #include <linux/dmi.h>
 #include <linux/led-class-multicolor.h>
@@ -122,6 +123,7 @@
 typedef u8 row_data_t[ITE8291_NR_ROWS][ITE8291_ROW_DATA_LENGTH];
 
 struct ite8291_driver_data_t {
+	u16 bcd_device;
 	struct hid_device *hid_dev;
 	row_data_t row_data;
 	u8 brightness;
@@ -411,7 +413,8 @@ void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness 
 	ite8291_write_state(ite8291_driver_data);
 }
 
-static int register_leds(struct hid_device *hdev) {
+static int register_leds(struct hid_device *hdev)
+{
 	int res, i, j, k, l;
 	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
 
@@ -461,7 +464,14 @@ static void unregister_leds(struct hid_device *hdev) {
 static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_id *id)
 {
 	int result, i, j;
+	u16 bcd_device;
 	struct ite8291_driver_data_t *ite8291_driver_data;
+	struct usb_device *usb_dev;
+	struct usb_device_descriptor *usb_desc;
+
+	usb_dev = to_usb_device(hdev->dev.parent->parent);
+	usb_desc = &(usb_dev->descriptor);
+	bcd_device = le16_to_cpu(usb_desc->bcdDevice);
 
 	result = hid_parse(hdev);
 	if (result) {
@@ -479,6 +489,7 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 		return -ENOMEM;
 
 	ite8291_driver_data->hid_dev = hdev;
+	ite8291_driver_data->bcd_device = bcd_device;
 
 	hid_set_drvdata(hdev, ite8291_driver_data);
 
