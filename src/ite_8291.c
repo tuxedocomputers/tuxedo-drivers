@@ -146,17 +146,39 @@ static int ite8291_perkey_write_on(struct hid_device *);
 static int ite8291_perkey_write_off(struct hid_device *);
 static int ite8291_perkey_write_state(struct hid_device *);
 
+// Zones device specific defines
+#define ITE8291_NR_ZONES 			4
+#define ITE8291_KBD_ZONES_BRIGHTNESS_MAX	0x32
+#define ITE8291_KBD_ZONES_BRIGHTNESS_DEFAULT	0x00
+struct ite8291_driver_data_zones_t {
+	u8 brightness;
+	struct led_classdev_mc mcled_cdevs[ITE8291_NR_ZONES];
+	struct mc_subled mcled_cdev_subleds[ITE8291_NR_ZONES][3];
+};
+
+static int ite8291_zones_add(struct hid_device *);
+static int ite8291_zones_remove(struct hid_device *);
+static int ite8291_zones_write_on(struct hid_device *);
+static int ite8291_zones_write_off(struct hid_device *);
+static int ite8291_zones_write_state(struct hid_device *);
+
 /**
  * Color scaling quirk list
  */
 static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 {
+	struct ite8291_driver_data_t *driver_data = hid_get_drvdata(hdev);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
 	if (dmi_match(DMI_PRODUCT_SKU, "STEPOL1XA04") && hdev->product == 0x600a) {
 		*red = (126 * *red) / 255;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") && hdev->product == 0x600a) {
 		*red = (200 * *red) / 255;
 		*blue = (220 * *blue) / 255;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") &&
+		   hdev->product == 0xce00 && driver_data->bcd_device == 0x0002) {
+		*red = (255 * *red) / 255;
+		*green = (220 * *green) / 255;
+		*blue = (200 * *blue) / 255;
 	} else {
 		*green = (126 * *green) / 255;
 		*blue = (120 * *blue) / 255;
@@ -534,6 +556,126 @@ static int ite8291_perkey_write_state(struct hid_device *hdev)
 	return ite8291_write_rows(hdev, device_data->row_data, device_data->brightness);
 }
 
+static void leds_zones_set_brightness_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
+	int i;
+	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
+	struct device *dev = led_cdev->dev->parent;
+	struct hid_device *hdev = to_hid_device(dev);
+	struct ite8291_driver_data_t *driver_data = hid_get_drvdata(hdev);
+	struct ite8291_driver_data_zones_t *device_data = driver_data->device_data;
+
+	pr_debug("leds_set_brightness_mc: channel: %d, brightness: %d, saved brightness: %d, red: %d, green: %d, blue: %d\n",
+		 mcled_cdev->subled_info[0].channel, brightness, device_data->brightness, mcled_cdev->subled_info[0].intensity,
+		 mcled_cdev->subled_info[1].intensity, mcled_cdev->subled_info[2].intensity);
+
+	device_data->brightness = brightness;
+
+	for (i = 0; i < ITE8291_NR_ZONES; ++i) {
+		device_data->mcled_cdevs[i].led_cdev.brightness = brightness;
+	}
+
+	/*row_data_set(hdev, device_data->row_data, mcled_cdev->subled_info[0].channel / ITE8291_LEDS_PER_ROW_MAX,
+		     mcled_cdev->subled_info[0].channel % ITE8291_LEDS_PER_ROW_MAX,
+		     mcled_cdev->subled_info[0].intensity, mcled_cdev->subled_info[1].intensity,
+		     mcled_cdev->subled_info[2].intensity);*/
+
+	ite8291_zones_write_state(hdev);
+}
+
+static int ite8291_zones_add(struct hid_device *hdev)
+{
+	struct ite8291_driver_data_t *driver_data;
+	struct ite8291_driver_data_zones_t *zones_data;
+	int result, i, k;
+
+	driver_data = hid_get_drvdata(hdev);
+
+	zones_data = devm_kzalloc(&hdev->dev, sizeof(*zones_data), GFP_KERNEL);
+	if (!zones_data)
+		return -ENOMEM;
+
+	driver_data->device_data = zones_data;
+
+	for (i = 0; i < ITE8291_NR_ZONES; ++i) {
+		zones_data->mcled_cdevs[i].led_cdev.name = "rgb:" LED_FUNCTION_KBD_BACKLIGHT;
+		zones_data->mcled_cdevs[i].led_cdev.max_brightness = ITE8291_KBD_ZONES_BRIGHTNESS_MAX;
+		zones_data->mcled_cdevs[i].led_cdev.brightness_set = &leds_zones_set_brightness_mc;
+		zones_data->mcled_cdevs[i].led_cdev.brightness = ITE8291_KBD_ZONES_BRIGHTNESS_DEFAULT;
+		zones_data->mcled_cdevs[i].num_colors = 3;
+		zones_data->mcled_cdevs[i].subled_info = zones_data->mcled_cdev_subleds[i];
+		zones_data->mcled_cdevs[i].subled_info[0].color_index = LED_COLOR_ID_RED;
+		zones_data->mcled_cdevs[i].subled_info[0].intensity = 255;
+		zones_data->mcled_cdevs[i].subled_info[0].channel = i;
+		zones_data->mcled_cdevs[i].subled_info[1].color_index = LED_COLOR_ID_GREEN;
+		zones_data->mcled_cdevs[i].subled_info[1].intensity = 255;
+		zones_data->mcled_cdevs[i].subled_info[1].channel = i;
+		zones_data->mcled_cdevs[i].subled_info[2].color_index = LED_COLOR_ID_BLUE;
+		zones_data->mcled_cdevs[i].subled_info[2].intensity = 255;
+		zones_data->mcled_cdevs[i].subled_info[2].channel = i;
+
+		result = devm_led_classdev_multicolor_register(&hdev->dev, &zones_data->mcled_cdevs[i]);
+		if (result) {
+			for (k = 0; k < i; ++k)
+				devm_led_classdev_multicolor_unregister(&hdev->dev, &zones_data->mcled_cdevs[k]);
+			return result;
+		}
+	}
+
+	return 0;
+}
+
+static int ite8291_zones_remove(struct hid_device *hdev)
+{
+	int i;
+	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
+	struct ite8291_driver_data_zones_t *zones_data = ite8291_driver_data->device_data;
+
+	for (i = 0; i < ITE8291_NR_ZONES; ++i)
+		devm_led_classdev_multicolor_unregister(&hdev->dev, &zones_data->mcled_cdevs[i]);
+
+	return 0;
+}
+
+static int ite8291_zones_write_on(struct hid_device *hdev)
+{
+	ite8291_write_control(hdev, (u8[]){ 0x1a, 0x00, 0x01, 0x04, 0x00, 0x00, 0x00, 0x01 });
+	return 0;
+}
+
+static int ite8291_zones_write_off(struct hid_device *hdev)
+{
+	ite8291_write_control(hdev, (u8[]){ 0x09, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+	ite8291_write_control(hdev, (u8[]){ 0x12, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 });
+	ite8291_write_control(hdev, (u8[]){ 0x08, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+	ite8291_write_control(hdev, (u8[]){ 0x08, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+	ite8291_write_control(hdev, (u8[]){ 0x1a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 });
+	return 0;
+}
+
+static int ite8291_zones_write_state(struct hid_device *hdev)
+{
+	struct ite8291_driver_data_t *ite8291_driver_data = hid_get_drvdata(hdev);
+	struct ite8291_driver_data_zones_t *zones_data = ite8291_driver_data->device_data;
+	struct led_classdev_mc *mcled_cdev;
+	int i;
+	u8 red, green, blue;
+
+	u8 brightness  = zones_data->mcled_cdevs[0].led_cdev.brightness;
+
+	for (i = 0; i < ITE8291_NR_ZONES; ++i) {
+		mcled_cdev = &zones_data->mcled_cdevs[i];
+		red = mcled_cdev->subled_info[0].intensity;
+		green = mcled_cdev->subled_info[1].intensity;
+		blue = mcled_cdev->subled_info[2].intensity;
+		color_scaling(hdev, &red, &green, &blue);
+		ite8291_write_control(hdev, (u8[]){ 0x14, 0x00, i + 1, red, green, blue, 0x00, 0x00 });
+	}
+
+	ite8291_write_control(hdev, (u8[]){ 0x08, 0x02, 0x01, 0x03, brightness, 0x08, 0x00, 0x00 });
+
+	return 0;
+}
+
 static int ite8291_driver_data_setup(struct hid_device *hdev)
 {
 	struct ite8291_driver_data_t *driver_data;
@@ -550,11 +692,19 @@ static int ite8291_driver_data_setup(struct hid_device *hdev)
 	driver_data->bcd_device = le16_to_cpu(usb_desc->bcdDevice);
 
 	// Initialize device specific data
-	driver_data->device_add = ite8291_perkey_add;
-	driver_data->device_remove = ite8291_perkey_remove;
-	driver_data->device_write_on = ite8291_perkey_write_on;
-	driver_data->device_write_off = ite8291_perkey_write_off;
-	driver_data->device_write_state = ite8291_perkey_write_state;
+	if (hdev->product == 0xce00 && driver_data->bcd_device == 0x0002) {
+		driver_data->device_add = ite8291_zones_add;
+		driver_data->device_remove = ite8291_zones_remove;
+		driver_data->device_write_on = ite8291_zones_write_on;
+		driver_data->device_write_off = ite8291_zones_write_off;
+		driver_data->device_write_state = ite8291_zones_write_state;
+	} else {
+		driver_data->device_add = ite8291_perkey_add;
+		driver_data->device_remove = ite8291_perkey_remove;
+		driver_data->device_write_on = ite8291_perkey_write_on;
+		driver_data->device_write_off = ite8291_perkey_write_off;
+		driver_data->device_write_state = ite8291_perkey_write_state;
+	}
 
 	return 0;
 }
