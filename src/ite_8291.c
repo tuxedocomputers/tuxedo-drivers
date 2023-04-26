@@ -124,13 +124,14 @@ struct ite8291_driver_data_t {
 	u16 bcd_device;
 	struct hid_device *hid_dev;
 	void *device_data;
-	int (*add)(struct hid_device *);
-	int (*remove)(struct hid_device *);
-	int (*write_on)(struct hid_device *);
-	int (*write_off)(struct hid_device *);
-	int (*write_state)(struct hid_device *);
+	int (*device_add)(struct hid_device *);
+	int (*device_remove)(struct hid_device *);
+	int (*device_write_on)(struct hid_device *);
+	int (*device_write_off)(struct hid_device *);
+	int (*device_write_state)(struct hid_device *);
 };
 
+// Per key device specific defines
 typedef u8 row_data_t[ITE8291_NR_ROWS][ITE8291_ROW_DATA_LENGTH];
 struct ite8291_driver_data_perkey_t {
 	row_data_t row_data;
@@ -138,6 +139,12 @@ struct ite8291_driver_data_perkey_t {
 	struct led_classdev_mc mcled_cdevs[ITE8291_NR_ROWS][ITE8291_LEDS_PER_ROW_MAX];
 	struct mc_subled mcled_cdevs_subleds[ITE8291_NR_ROWS][ITE8291_LEDS_PER_ROW_MAX][3];
 };
+
+static int ite8291_perkey_add(struct hid_device *);
+static int ite8291_perkey_remove(struct hid_device *);
+static int ite8291_perkey_write_on(struct hid_device *);
+static int ite8291_perkey_write_off(struct hid_device *);
+static int ite8291_perkey_write_state(struct hid_device *);
 
 /**
  * Color scaling quirk list
@@ -243,12 +250,6 @@ static int ite8291_write_control(struct hid_device *hdev, u8 *ctrl_data)
 	return result;
 }
 
-static int ite8291_write_off(struct hid_device *hdev)
-{
-	u8 ctrl_params_off[] = {0x08, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	return ite8291_write_control(hdev, ctrl_params_off);
-}
-
 #if 0
 /**
  * *experimental*
@@ -341,13 +342,6 @@ static int ite8291_write_rows(struct hid_device *hdev, row_data_t row_data, u8 b
 	return result;
 }
 
-static int ite8291_write_state(struct hid_device* hdev)
-{
-	struct ite8291_driver_data_t *driver_data = hid_get_drvdata(hdev);
-	struct ite8291_driver_data_perkey_t *device_data = driver_data->device_data;
-	return ite8291_write_rows(hdev, device_data->row_data, device_data->brightness);
-}
-
 static void stop_hw(struct hid_device *hdev)
 {
 	hid_hw_power(hdev, PM_HINT_NORMAL);
@@ -421,7 +415,7 @@ void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness 
 		     mcled_cdev->subled_info[0].intensity, mcled_cdev->subled_info[1].intensity,
 		     mcled_cdev->subled_info[2].intensity);
 
-	ite8291_write_state(hdev);
+	ite8291_perkey_write_state(hdev);
 }
 
 static int register_leds(struct hid_device *hdev)
@@ -474,24 +468,14 @@ static void unregister_leds(struct hid_device *hdev) {
 	}
 }
 
-static int ite8291_driver_data_setup(struct hid_device *hdev)
+static int ite8291_perkey_add(struct hid_device *hdev)
 {
-	int i, j;
 	struct ite8291_driver_data_t *driver_data;
 	struct ite8291_driver_data_perkey_t *perkey_data;
-
-	struct usb_device *usb_dev;
-	struct usb_device_descriptor *usb_desc;
+	int result, i, j;
 
 	driver_data = hid_get_drvdata(hdev);
 
-	usb_dev = to_usb_device(hdev->dev.parent->parent);
-	usb_desc = &(usb_dev->descriptor);
-
-	driver_data->hid_dev = hdev;
-	driver_data->bcd_device = le16_to_cpu(usb_desc->bcdDevice);
-
-	// Initialize device specific data
 	perkey_data = devm_kzalloc(&hdev->dev, sizeof(*perkey_data), GFP_KERNEL);
 	if (!perkey_data)
 		return -ENOMEM;
@@ -518,6 +502,59 @@ static int ite8291_driver_data_setup(struct hid_device *hdev)
 		}
 	}
 	*/
+
+	result = register_leds(hdev);
+	if (result)
+		return result;
+
+	return 0;
+}
+
+static int ite8291_perkey_remove(struct hid_device *hdev)
+{
+	unregister_leds(hdev);
+	return 0;
+}
+
+static int ite8291_perkey_write_on(struct hid_device *hdev)
+{
+	return 0;
+}
+
+static int ite8291_perkey_write_off(struct hid_device *hdev)
+{
+	u8 ctrl_params_off[] = {0x08, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	return ite8291_write_control(hdev, ctrl_params_off);
+}
+
+static int ite8291_perkey_write_state(struct hid_device *hdev)
+{
+	struct ite8291_driver_data_t *driver_data = hid_get_drvdata(hdev);
+	struct ite8291_driver_data_perkey_t *device_data = driver_data->device_data;
+	return ite8291_write_rows(hdev, device_data->row_data, device_data->brightness);
+}
+
+static int ite8291_driver_data_setup(struct hid_device *hdev)
+{
+	struct ite8291_driver_data_t *driver_data;
+
+	struct usb_device *usb_dev;
+	struct usb_device_descriptor *usb_desc;
+
+	driver_data = hid_get_drvdata(hdev);
+
+	usb_dev = to_usb_device(hdev->dev.parent->parent);
+	usb_desc = &(usb_dev->descriptor);
+
+	driver_data->hid_dev = hdev;
+	driver_data->bcd_device = le16_to_cpu(usb_desc->bcdDevice);
+
+	// Initialize device specific data
+	driver_data->device_add = ite8291_perkey_add;
+	driver_data->device_remove = ite8291_perkey_remove;
+	driver_data->device_write_on = ite8291_perkey_write_on;
+	driver_data->device_write_off = ite8291_perkey_write_off;
+	driver_data->device_write_state = ite8291_perkey_write_state;
 
 	return 0;
 }
@@ -549,42 +586,52 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	if (result != 0)
 		return result;
 
-	result = ite8291_write_state(hdev);
-	if (result)
+	result = ite8291_driver_data->device_add(hdev);
+	if (result != 0)
 		return result;
 
-	result = register_leds(hdev);
-	if (result)
-		return result;
+	ite8291_driver_data->device_write_on(hdev);
+	ite8291_driver_data->device_write_state(hdev);
 
 	return 0;
 }
 
 static void driver_remove_callb(struct hid_device *hdev)
 {
-	unregister_leds(hdev);
-	stop_hw(hdev);
+	struct ite8291_driver_data_t *driver_data;
 	pr_debug("driver remove\n");
+	driver_data = hid_get_drvdata(hdev);
+	driver_data->device_write_off(hdev);
+	driver_data->device_remove(hdev);
+	stop_hw(hdev);
 }
 
 #ifdef CONFIG_PM
 static int driver_suspend_callb(struct hid_device *hdev, pm_message_t message)
 {
-	ite8291_write_off(hdev);
+	struct ite8291_driver_data_t *driver_data;
 	pr_debug("driver suspend\n");
+	driver_data = hid_get_drvdata(hdev);
+	driver_data->device_write_off(hdev);
 	return 0;
 }
 
 static int driver_resume_callb(struct hid_device *hdev)
 {
+	struct ite8291_driver_data_t *driver_data;
 	pr_debug("driver resume\n");
-	return ite8291_write_state(hdev);
+	driver_data = hid_get_drvdata(hdev);
+	driver_data->device_write_on(hdev);
+	return driver_data->device_write_state(hdev);
 }
 
 static int driver_reset_resume_callb(struct hid_device *hdev)
 {
+	struct ite8291_driver_data_t *driver_data;
 	pr_debug("driver reset resume\n");
-	return ite8291_write_state(hdev);
+	driver_data = hid_get_drvdata(hdev);
+	driver_data->device_write_on(hdev);
+	return driver_data->device_write_state(hdev);
 }
 #endif
 
