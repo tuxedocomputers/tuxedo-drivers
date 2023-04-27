@@ -574,11 +574,6 @@ static void leds_zones_set_brightness_mc(struct led_classdev *led_cdev, enum led
 		device_data->mcled_cdevs[i].led_cdev.brightness = brightness;
 	}
 
-	/*row_data_set(hdev, device_data->row_data, mcled_cdev->subled_info[0].channel / ITE8291_LEDS_PER_ROW_MAX,
-		     mcled_cdev->subled_info[0].channel % ITE8291_LEDS_PER_ROW_MAX,
-		     mcled_cdev->subled_info[0].intensity, mcled_cdev->subled_info[1].intensity,
-		     mcled_cdev->subled_info[2].intensity);*/
-
 	ite8291_zones_write_state(hdev);
 }
 
