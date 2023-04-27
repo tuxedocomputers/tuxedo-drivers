@@ -807,6 +807,6 @@ static struct hid_driver ite8291_driver = {
 module_hid_driver(ite8291_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_DESCRIPTION("Driver for ITE Device(8291) per-key RGB LED keyboard backlight.");
-MODULE_VERSION("0.1.0");
+MODULE_DESCRIPTION("Driver for ITE Device(8291) RGB LED keyboard backlight.");
+MODULE_VERSION("0.2.0");
 MODULE_LICENSE("GPL");
