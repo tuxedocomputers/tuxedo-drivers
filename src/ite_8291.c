@@ -124,6 +124,8 @@ struct ite8291_driver_data_t {
 	u16 bcd_device;
 	struct hid_device *hid_dev;
 	void *device_data;
+	bool device_has_buffer_input_control;
+	bool device_buffer_input;
 	int (*device_add)(struct hid_device *);
 	int (*device_remove)(struct hid_device *);
 	int (*device_write_on)(struct hid_device *);
@@ -437,7 +439,8 @@ void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness 
 		     mcled_cdev->subled_info[0].intensity, mcled_cdev->subled_info[1].intensity,
 		     mcled_cdev->subled_info[2].intensity);
 
-	ite8291_perkey_write_state(hdev);
+	if (!ite8291_driver_data->device_buffer_input)
+		ite8291_perkey_write_state(hdev);
 }
 
 static int register_leds(struct hid_device *hdev)
@@ -688,12 +691,14 @@ static int ite8291_driver_data_setup(struct hid_device *hdev)
 
 	// Initialize device specific data
 	if (hdev->product == 0xce00 && driver_data->bcd_device == 0x0002) {
+		driver_data->device_has_buffer_input_control = false;
 		driver_data->device_add = ite8291_zones_add;
 		driver_data->device_remove = ite8291_zones_remove;
 		driver_data->device_write_on = ite8291_zones_write_on;
 		driver_data->device_write_off = ite8291_zones_write_off;
 		driver_data->device_write_state = ite8291_zones_write_state;
 	} else {
+		driver_data->device_has_buffer_input_control = true;
 		driver_data->device_add = ite8291_perkey_add;
 		driver_data->device_remove = ite8291_perkey_remove;
 		driver_data->device_write_on = ite8291_perkey_write_on;
@@ -703,6 +708,49 @@ static int ite8291_driver_data_setup(struct hid_device *hdev)
 
 	return 0;
 }
+
+static ssize_t buffer_input_show(struct device *device,
+				 struct device_attribute *attr,
+				 char *buf)
+{
+	struct hid_device *hdev;
+	struct ite8291_driver_data_t *driver_data;
+	hdev = container_of(device, struct hid_device, dev);
+	driver_data = hid_get_drvdata(hdev);
+	return sysfs_emit(buf, "%d\n", (bool) driver_data->device_buffer_input);
+
+}
+
+static ssize_t buffer_input_store(struct device *device,
+				  struct device_attribute *attr,
+				  const char *buf,
+				  size_t size)
+{
+	struct hid_device *hdev;
+	struct ite8291_driver_data_t *driver_data;
+	hdev = container_of(device, struct hid_device, dev);
+	driver_data = hid_get_drvdata(hdev);
+
+	if (kstrtobool(buf, &driver_data->device_buffer_input) < 0)
+		return -EINVAL;
+
+	if (!driver_data->device_buffer_input)
+		driver_data->device_write_state(hdev);
+
+	return size;
+}
+
+DEVICE_ATTR_RW(buffer_input);
+
+static struct attribute *control_group_attrs[] = {
+	&dev_attr_buffer_input.attr,
+	NULL
+};
+
+static struct attribute_group control_group = {
+	.name = "controls",
+	.attrs = control_group_attrs
+};
 
 static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_id *id)
 {
@@ -743,6 +791,14 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	ite8291_driver_data->device_write_on(hdev);
 	ite8291_driver_data->device_write_state(hdev);
 
+	if (ite8291_driver_data->device_has_buffer_input_control) {
+		result = sysfs_create_group(&hdev->dev.kobj, &control_group);
+		if (result != 0) {
+			stop_hw(hdev);
+			return result;
+		}
+	}
+
 	return 0;
 }
 
@@ -753,6 +809,9 @@ static void driver_remove_callb(struct hid_device *hdev)
 	driver_data = hid_get_drvdata(hdev);
 	driver_data->device_write_off(hdev);
 	driver_data->device_remove(hdev);
+	if (driver_data->device_has_buffer_input_control)
+		sysfs_remove_group(&hdev->dev.kobj, &control_group);
+
 	stop_hw(hdev);
 }
 
