@@ -99,6 +99,9 @@ exit 0
 
 
 %changelog
+* Thu May 04 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.1-1
+- Four zone backlight support for Stellaris Gen5
+- Experimental buffered writes for Stellaris/Fusion per-key variants
 * Mon Apr 17 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.0-1
 - Color scaling for Stellaris Intel Gen5
 - Lightbar impl. for Stellaris Gen4/5
