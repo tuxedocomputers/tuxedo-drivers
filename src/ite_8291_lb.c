@@ -50,6 +50,19 @@ struct ite8291_driver_data_t {
 	int color_list_length;
 };
 
+/**
+ * strstr version of dmi_match
+ */
+static bool dmi_string_in(enum dmi_field f, const char *str)
+{
+	const char *info = dmi_get_system_info(f);
+
+	if (info == NULL || str == NULL)
+		return info == str;
+
+	return strstr(info, str) != NULL;
+}
+
 static void stop_hw(struct hid_device *hdev)
 {
 	hid_hw_power(hdev, PM_HINT_NORMAL);
@@ -509,7 +522,9 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 
 	// Apparently unused device on Stellaris Gen5, avoid binding to it
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
-	if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") && hdev->product == 0x6010)
+	if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") &&
+	    dmi_string_in(DMI_PRODUCT_SERIAL, "GM6PX") &&
+	    hdev->product == 0x6010)
 		return -ENODEV;
 #endif
 
