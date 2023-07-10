@@ -355,6 +355,9 @@ static void uw_kbd_bl_init_ready_check_work_func(struct work_struct *work)
 	u8 uw_cur_red, uw_cur_green, uw_cur_blue;
 	int i;
 	bool prev_colors_same;
+
+	pr_debug("Check keyboard boot animation ...");
+
 	uniwill_read_kbd_bl_rgb(&uw_cur_red, &uw_cur_green, &uw_cur_blue);
 	uw_prev_colors[uw_prev_colors_index] = (uw_cur_red << 0x10) | (uw_cur_green << 0x08) | uw_cur_blue;
 	uw_prev_colors_index = (uw_prev_colors_index + 1) % uw_prev_colors_size;
@@ -365,10 +368,12 @@ static void uw_kbd_bl_init_ready_check_work_func(struct work_struct *work)
 	}
 
 	if (prev_colors_same) {
+		pr_debug("Boot animation finished.");
 		uw_kbd_bl_init_set(uw_kbd_bl_init_ready_check_work_func_args_dev);
 		del_timer(&uw_kbd_bl_init_timer);
 	} else {
 		if (uw_kbd_bl_check_count != 0) {
+			pr_debug("Boot animation ongoing.");
 			mod_timer(&uw_kbd_bl_init_timer, jiffies + msecs_to_jiffies(uw_kbd_bl_init_check_interval_ms));
 		} else {
 			TUXEDO_INFO("uw kbd init timeout, failed to detect end of boot animation\n");
