@@ -32,7 +32,7 @@ enum uniwill_kb_backlight_types {
 	UNIWILL_KB_BACKLIGHT_TYPE_PER_KEY_RGB
 };
 
-#define UNIWILL_KBD_BRIGHTNESS_MAX		0xff
+#define UNIWILL_KBD_BRIGHTNESS_MAX		0x05
 #define UNIWILL_KBD_BRIGHTNESS_DEFAULT		0x00
 
 #define UNIWILL_KBD_BRIGHTNESS_WHITE_MAX	0x02
@@ -63,44 +63,69 @@ void uniwill_leds_set_color_extern(u32 color);
 static enum uniwill_kb_backlight_types uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_NONE;
 static bool uw_leds_initialized = false;
 
-static int uniwill_write_kbd_bl_white(u8 brightness)
+static int uniwill_write_kbd_bl_brightness(u8 brightness)
 {
+	int result;
 	u8 data;
 
-	uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE, &data);
-	// When keyboard backlight  is off, new settings to 0x078c do not get applied automatically
-	// on Pulse Gen1/2 until next keypress or manual change to 0x1808 (immediate brightness
+	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
+	if (result)
+		return result;
+	data &= 0x0f; // lower bits must be preserved
+	data |= brightness << 5; // upper 2 to 3 bits encode brightness
+	data |= UW_EC_REG_KBD_BL_STATUS_SUBCMD_RESET; // "apply bit"
+	return uniwill_write_ec_ram(UW_EC_REG_KBD_BL_STATUS, data);
+}
+
+static int uniwill_write_kbd_bl_white(u8 brightness)
+{
+	int result;
+	u8 data;
+
+	// When keyboard backlight is off, new settings to 0x078c do not get applied automatically
+	// on Pulse Gen1/2 until next keypress or manual change to the 0x1808 immediate brightness
 	// value for some reason.
 	// Sidenote: IBP Gen6/7 has immediate brightness value on 0x1802 and not on 0x1808, but does
-	// not need this workaround.
+	// not need this workaround. No model check required because this doesn't do anything on
+	// these devices.
+
+	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE, &data);
+	if (result)
+		pr_debug("uniwill_write_kbd_bl_white(): Get UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE failed.\n");
+
 	if (!data && brightness) {
-		uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE, 0x01);
+		result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE, 0x01);
+		if (result)
+			pr_debug("uniwill_write_kbd_bl_white(): Set UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE failed.\n");
 	}
 
-	data = 0;
-	uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
-	data &= 0x0f; // lower bits must be preserved
-	data |= UW_EC_REG_KBD_BL_STATUS_SUBCMD_RESET;
-	data |= brightness << 5;
-	return uniwill_write_ec_ram(UW_EC_REG_KBD_BL_STATUS, data);
+	return uniwill_write_kbd_bl_brightness(brightness);
 }
 
 static int uniwill_write_kbd_bl_rgb(u8 red, u8 green, u8 blue)
 {
-	int result = 0;
+	int result;
+	u8 data;
 
-	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_RED_BRIGHTNESS_IMMEDIATE, red);
-	if (result) {
+	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_RED_BRIGHTNESS, red/3);
+	if (result)
 		return result;
-	}
-	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_GREEN_BRIGHTNESS_IMMEDIATE, green);
-	if (result) {
+
+	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_GREEN_BRIGHTNESS, green/3);
+	if (result)
 		return result;
-	}
-	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE, blue);
-	if (result) {
+
+	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS, blue/3);
+	if (result)
 		return result;
-	}
+
+	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_MODE, &data);
+	if (result)
+		return result;
+
+	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_MODE, data | UW_EC_REG_KBD_BL_RGB_MODE_BIT_APPLY_COLOR);
+	if (result)
+		return result;
 
 	pr_debug("Wrote kbd color [%0#4x, %0#4x, %0#4x]\n", red, green, blue);
 
@@ -108,11 +133,14 @@ static int uniwill_write_kbd_bl_rgb(u8 red, u8 green, u8 blue)
 }
 
 static void uniwill_leds_set_brightness(struct led_classdev *led_cdev __always_unused, enum led_brightness brightness) {
-	int ret = uniwill_write_kbd_bl_white(brightness);
+	int ret;
+
+	ret = uniwill_write_kbd_bl_white(brightness);
 	if (ret) {
 		pr_debug("uniwill_leds_set_brightness(): uniwill_write_kbd_bl_white() failed\n");
 		return;
 	}
+
 	led_cdev->brightness = brightness;
 }
 
@@ -120,15 +148,20 @@ static void uniwill_leds_set_brightness_mc(struct led_classdev *led_cdev, enum l
 	int ret;
 	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
 
-	led_mc_calc_color_components(mcled_cdev, brightness);
-
-	ret = uniwill_write_kbd_bl_rgb(mcled_cdev->subled_info[0].brightness,
-				       mcled_cdev->subled_info[1].brightness,
-				       mcled_cdev->subled_info[2].brightness);
+	ret = uniwill_write_kbd_bl_rgb(mcled_cdev->subled_info[0].intensity,
+				       mcled_cdev->subled_info[1].intensity,
+				       mcled_cdev->subled_info[2].intensity);
 	if (ret) {
 		pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_rgb() failed\n");
 		return;
 	}
+
+	ret = uniwill_write_kbd_bl_brightness(brightness);
+	if (ret) {
+		pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_brightness() failed\n");
+		return;
+	}
+
 	led_cdev->brightness = brightness;
 }
 
