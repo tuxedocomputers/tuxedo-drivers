@@ -75,6 +75,7 @@ struct clevo_interface_t {
 	char *string_id;
 	void (*event_callb)(u32);
 	int (*method_call)(u8, u32, union acpi_object **);
+	int (*method_call_pkgbuf)(u8, u8 *, u32, union acpi_object **);
 };
 
 int clevo_keyboard_add_interface(struct clevo_interface_t *new_interface);

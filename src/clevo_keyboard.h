@@ -116,6 +116,16 @@ int clevo_evaluate_method2(u8 cmd, u32 arg, union acpi_object **result)
 }
 EXPORT_SYMBOL(clevo_evaluate_method2);
 
+int clevo_evaluate_method_pkgbuf(u8 cmd, u8 *arg, u32 length, union acpi_object **result)
+{
+	if (IS_ERR_OR_NULL(active_clevo_interface)) {
+		pr_err("clevo_keyboard: no active interface while attempting cmd %02x\n", cmd);
+		return -ENODEV;
+	}
+	return active_clevo_interface->method_call_pkgbuf(cmd, arg, length, result);
+}
+EXPORT_SYMBOL(clevo_evaluate_method_pkgbuf);
+
 int clevo_evaluate_method(u8 cmd, u32 arg, u32 *result)
 {
 	int status = 0;
@@ -296,6 +306,150 @@ static bool dmi_string_in(enum dmi_field f, const char *str)
 	return strstr(info, str) != NULL;
 }
 
+// Fn lock
+
+static int clevo_acpi_fn_get(u8 *on, u8 *kbstatus1, u8 *kbstatus2)
+{
+	int status = 0;
+	union acpi_object *out_obj;
+	u8 fnlock;
+
+	status = clevo_evaluate_method2(0x4, 0x18, &out_obj);
+	if (status) {
+		return status;
+	}
+
+	if (out_obj->type == ACPI_TYPE_BUFFER ) {
+		if (out_obj->buffer.length >= 3) {
+			// use buffer
+			fnlock = out_obj->buffer.pointer[0];
+			if (fnlock == 1) {
+				pr_debug("FnLock is set: kbstatus[1]: %08x  kbstatus[2]: %08x\n", (u32) out_obj->buffer.pointer[1], (u32)out_obj->buffer.pointer[2]);
+				*on = 1;
+			}
+			if (fnlock == 2) {
+				pr_debug("FnLock is not set: kbstatus[1]: %08x  kbstatus[2]: %08x\n", (u32) out_obj->buffer.pointer[1], (u32)out_obj->buffer.pointer[2]);
+				*on = 0;
+			}
+			if (fnlock != 1 && fnlock != 2) {
+				pr_err("FnLock undefined: 0x%x\n", fnlock);
+				status = -ENODATA;
+			}
+			*kbstatus1 = out_obj->buffer.pointer[1];
+			*kbstatus2 = out_obj->buffer.pointer[2];
+		}
+		else {
+			pr_err("unexpected buffer size %d\n", out_obj->buffer.length);
+		}
+		ACPI_FREE(out_obj);
+	}
+
+	return status;
+}
+
+static int clevo_acpi_fn_lock_set(int on)
+{
+	int status = 0;
+	union acpi_object *out_obj;
+	u8 fnlock_on, kbstatus1, kbstatus2;
+
+	// cmd 0x19; fnlock_off = 0x02, fnlock_on = 0x01
+	u8 args[] = {0x19, 0x02, 0x00, 0x00};
+
+	if (on)
+		args[1] = 0x01;
+
+	// read keyboard status first
+	status = clevo_acpi_fn_get(&fnlock_on, &kbstatus1, &kbstatus2);
+	if (status)
+		return status;
+
+	args[2] = kbstatus1;
+	args[3] = kbstatus2;
+
+	// set Fn lock
+	status = clevo_evaluate_method_pkgbuf(0x4, args, 4, &out_obj);
+
+	if (status)
+		pr_err("set/unset FnLock failed\n");
+	else
+		ACPI_FREE(out_obj);
+
+	return status;
+}
+
+static ssize_t clevo_fn_lock_show(struct device *dev,
+		struct device_attribute *attr,
+		char *buf)
+{
+	int err;
+	u8 on, kbstatus1, kbstatus2;
+
+	err = clevo_acpi_fn_get(&on, &kbstatus1, &kbstatus2);
+	if (err)
+		return err;
+
+	return sprintf(buf, "%d\n", on);
+}
+
+static ssize_t clevo_fn_lock_store(struct device *dev,
+		struct device_attribute *attr,
+		const char *buf, size_t size)
+{
+	int on, err;
+
+	if (kstrtoint(buf, 10, &on) ||
+			on < 0 || on > 1)
+		return -EINVAL;
+
+	err = clevo_acpi_fn_lock_set(on);
+	if (err)
+		return err;
+
+	return size;
+}
+
+bool clevo_fn_lock_available(void){
+	int err;
+	union acpi_object *out_obj;
+	u8 fnlock;
+
+	// check Fn lock for WMI
+	if( strcmp(active_clevo_interface->string_id, CLEVO_INTERFACE_WMI_STRID) == 0) {
+		pr_debug("FnLock test: WMI is not supported\n");
+		return 0;
+	}
+
+	// check Fn Lock for ACPI
+	if( strcmp(active_clevo_interface->string_id, CLEVO_INTERFACE_ACPI_STRID) == 0) {
+		err = clevo_evaluate_method2(0x4, 0x18, &out_obj);
+		if (err) {
+			pr_debug("FnLock test: ACPI evaluate returned an error\n");
+			return 0;
+		}
+
+		if (out_obj->type != ACPI_TYPE_BUFFER ) {
+			pr_debug("FnLock test: no ACPI buffer\n");
+			return 0;
+		}
+		if (out_obj->buffer.length < 3) {
+			pr_debug("FnLock test: ACPI buffer too small\n");
+			ACPI_FREE(out_obj);
+			return 0;
+		}
+		fnlock = out_obj->buffer.pointer[0];
+		if (fnlock != 1 && fnlock != 2) {
+			pr_debug("FnLock test: unexpected FnLock value 0x%02x\n", fnlock);
+			ACPI_FREE(out_obj);
+			return 0;
+		}
+		ACPI_FREE(out_obj);
+		return 1;
+	}
+
+	return 0;
+}
+
 static void clevo_keyboard_init(void)
 {
 	bool performance_profile_set_workaround;
@@ -383,6 +537,9 @@ static struct tuxedo_keyboard_driver clevo_keyboard_driver = {
 	.platform_driver = &platform_driver_clevo,
 	.probe = clevo_keyboard_probe,
 	.key_map = clevo_keymap,
+	.fn_lock_available = clevo_fn_lock_available,
+	.fn_lock_show = clevo_fn_lock_show,
+	.fn_lock_store = clevo_fn_lock_store,
 };
 
 int clevo_keyboard_add_interface(struct clevo_interface_t *new_interface)
