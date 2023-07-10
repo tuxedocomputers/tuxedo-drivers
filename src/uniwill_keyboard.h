@@ -80,6 +80,8 @@ static struct key_entry uniwill_wmi_keymap[] = {
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL2,	{ KEY_KBDILLUMTOGGLE } },
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL3,	{ KEY_KBDILLUMTOGGLE } },
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL4,	{ KEY_KBDILLUMTOGGLE } },
+	// Send FN_ESC to user space as input-event-codes.h does not define Fn-Lock
+	{ KE_KEY,	UNIWILL_KEY_FN_LOCK,		{ KEY_FN_ESC } },
 	// Only used to put ev bits
 	{ KE_KEY,	0xffff,				{ KEY_F6 } },
 	{ KE_KEY,	0xffff,				{ KEY_LEFTALT } },
