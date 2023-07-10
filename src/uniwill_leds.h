@@ -67,14 +67,14 @@ static int uniwill_write_kbd_bl_white(u8 brightness)
 {
 	u8 data;
 
-	uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS, &data);
+	uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE, &data);
 	// When keyboard backlight  is off, new settings to 0x078c do not get applied automatically
 	// on Pulse Gen1/2 until next keypress or manual change to 0x1808 (immediate brightness
 	// value for some reason.
 	// Sidenote: IBP Gen6/7 has immediate brightness value on 0x1802 and not on 0x1808, but does
 	// not need this workaround.
 	if (!data && brightness) {
-		uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS, 0x01);
+		uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE, 0x01);
 	}
 
 	data = 0;
@@ -89,15 +89,15 @@ static int uniwill_write_kbd_bl_rgb(u8 red, u8 green, u8 blue)
 {
 	int result = 0;
 
-	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_RED_BRIGHTNESS, red);
+	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_RED_BRIGHTNESS_IMMEDIATE, red);
 	if (result) {
 		return result;
 	}
-	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_GREEN_BRIGHTNESS, green);
+	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_GREEN_BRIGHTNESS_IMMEDIATE, green);
 	if (result) {
 		return result;
 	}
-	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS, blue);
+	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE, blue);
 	if (result) {
 		return result;
 	}
@@ -241,7 +241,7 @@ int uniwill_leds_init_late(struct platform_device *dev)
 	// FIXME Use mutexes
 	int ret;
 
-	ret = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_MAX_BRIGHTNESS, 0xff);
+	ret = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_MAX_BRIGHTNESS_IMMEDIATE, 0xff);
 	if (ret) {
 		pr_err("Setting max keyboard brightness value failed\n");
 		uniwill_leds_remove(dev);
@@ -263,7 +263,7 @@ int uniwill_leds_remove(struct platform_device *dev)
 		uw_leds_initialized = false;
 
 		uniwill_leds_set_brightness_extern(0x00);
-		ret = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_MAX_BRIGHTNESS, 0xc8);
+		ret = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_MAX_BRIGHTNESS_IMMEDIATE, 0xc8);
 		if (ret) {
 			pr_err("Resetting max keyboard brightness value failed\n");
 		}

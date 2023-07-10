@@ -332,15 +332,15 @@ static int uniwill_read_kbd_bl_rgb(u8 *red, u8 *green, u8 *blue)
 {
 	int result = 0;
 
-	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_RED_BRIGHTNESS, red);
+	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_RED_BRIGHTNESS_IMMEDIATE, red);
 	if (result) {
 		return result;
 	}
-	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_GREEN_BRIGHTNESS, green);
+	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_GREEN_BRIGHTNESS_IMMEDIATE, green);
 	if (result) {
 		return result;
 	}
-	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS, blue);
+	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS_IMMEDIATE, blue);
 	if (result) {
 		return result;
 	}
