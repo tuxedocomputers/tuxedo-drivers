@@ -20,10 +20,7 @@
 #ifndef UNIWILL_LEDS_H
 #define UNIWILL_LEDS_H
 
-#include <linux/types.h>
 #include <linux/platform_device.h>
-#include <linux/leds.h>
-#include <linux/completion.h>
 
 typedef enum {
 	UNIWILL_KB_BACKLIGHT_TYPE_NONE,
@@ -31,6 +28,23 @@ typedef enum {
 	UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB,
 	UNIWILL_KB_BACKLIGHT_TYPE_PER_KEY_RGB
 } uniwill_kb_backlight_type_t;
+
+int uniwill_leds_init(struct platform_device *dev);
+int uniwill_leds_remove(struct platform_device *dev);
+
+uniwill_kb_backlight_type_t uniwill_leds_get_backlight_type_extern(void);
+void uniwill_leds_restore_state_extern(void);
+bool uniwill_leds_notify_brightness_change_extern(void);
+
+// TODO The following should go into a seperate .c file, but for this to work more reworking is required in the tuxedo_keyboard structure.
+
+#include "uniwill_leds.h"
+
+#include "uniwill_interfaces.h"
+
+#include <linux/types.h>
+#include <linux/leds.h>
+#include <linux/led-class-multicolor.h>
 
 #define UNIWILL_KBD_BRIGHTNESS_MAX		0x04
 #define UNIWILL_KBD_BRIGHTNESS_DEFAULT		0x00
@@ -41,23 +55,6 @@ typedef enum {
 #define UNIWILL_KB_COLOR_DEFAULT_RED		0xff
 #define UNIWILL_KB_COLOR_DEFAULT_GREEN		0xff
 #define UNIWILL_KB_COLOR_DEFAULT_BLUE		0xff
-#define UNIWILL_KB_COLOR_DEFAULT		((UNIWILL_KB_COLOR_DEFAULT_RED << 16) + (UNIWILL_KB_COLOR_DEFAULT_GREEN << 8) + UNIWILL_KB_COLOR_DEFAULT_BLUE)
-
-int uniwill_leds_init(struct platform_device *dev);
-int uniwill_leds_remove(struct platform_device *dev);
-
-uniwill_kb_backlight_type_t uniwill_leds_get_backlight_type(void);
-
-bool uniwill_leds_notify_brightness_change_extern(void);
-void uniwill_leds_restore_state_extern(void);
-
-// TODO The following should go into a seperate .c file, but for this to work more reworking is required in the tuxedo_keyboard structure.
-
-#include "uniwill_leds.h"
-
-#include "uniwill_interfaces.h"
-
-#include <linux/led-class-multicolor.h>
 
 static uniwill_kb_backlight_type_t uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_NONE;
 static u8 uniwill_barebone_id = 0;
@@ -66,8 +63,8 @@ static bool uw_leds_initialized = false;
 
 static int uniwill_write_kbd_bl_brightness(u8 brightness)
 {
-	int result;
-	u8 data;
+	int result = 0;
+	u8 data = 0;
 
 	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
 	if (result)
@@ -78,10 +75,10 @@ static int uniwill_write_kbd_bl_brightness(u8 brightness)
 	return uniwill_write_ec_ram(UW_EC_REG_KBD_BL_STATUS, data);
 }
 
-static int uniwill_write_kbd_bl_white(u8 brightness)
+static int uniwill_write_kbd_bl_brightness_white_workaround(u8 brightness)
 {
-	int result;
-	u8 data;
+	int result = 0;
+	u8 data = 0;
 
 	// When keyboard backlight is off, new settings to 0x078c do not get applied automatically
 	// on Pulse Gen1/2 until next keypress or manual change to the 0x1808 immediate brightness
@@ -108,10 +105,10 @@ static int tf_convert_rgb_range(u8 input) {
 	return input*200/(255*4);
 }
 
-static int uniwill_write_kbd_bl_rgb(u8 red, u8 green, u8 blue)
+static int uniwill_write_kbd_bl_color(u8 red, u8 green, u8 blue)
 {
-	int result;
-	u8 data;
+	int result = 0;
+	u8 data = 0;
 
 	// If, after conversion, all three (red, green, and blue) values are zero at the same time,
 	// a special case is triggered in the EC and (probably device dependent) default values are
@@ -143,10 +140,10 @@ static int uniwill_write_kbd_bl_rgb(u8 red, u8 green, u8 blue)
 }
 
 static void uniwill_leds_set_brightness(struct led_classdev *led_cdev __always_unused, enum led_brightness brightness) {
-	int ret;
+	int result = 0;
 
-	ret = uniwill_write_kbd_bl_white(brightness);
-	if (ret) {
+	result = uniwill_write_kbd_bl_brightness_white_workaround(brightness);
+	if (result) {
 		pr_debug("uniwill_leds_set_brightness(): uniwill_write_kbd_bl_white() failed\n");
 		return;
 	}
@@ -155,30 +152,30 @@ static void uniwill_leds_set_brightness(struct led_classdev *led_cdev __always_u
 }
 
 static void uniwill_leds_set_brightness_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
-	int ret;
+	int result = 0;
 	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
 
 	if (mcled_cdev->subled_info[0].intensity == 0 &&
 	    mcled_cdev->subled_info[1].intensity == 0 &&
 	    mcled_cdev->subled_info[2].intensity == 0) {
 		pr_debug("uniwill_leds_set_brightness_mc(): Trigger RGB 0x000000 special case\n");
-		ret = uniwill_write_kbd_bl_brightness(0);
-		if (ret) {
+		result = uniwill_write_kbd_bl_brightness(0);
+		if (result) {
 			pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_brightness() failed\n");
 			return;
 		}
 	}
 	else {
-		ret = uniwill_write_kbd_bl_rgb(mcled_cdev->subled_info[0].intensity,
+		result = uniwill_write_kbd_bl_color(mcled_cdev->subled_info[0].intensity,
 					       mcled_cdev->subled_info[1].intensity,
 					       mcled_cdev->subled_info[2].intensity);
-		if (ret) {
+		if (result) {
 			pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_rgb() failed\n");
 			return;
 		}
 
-		ret = uniwill_write_kbd_bl_brightness(brightness);
-		if (ret) {
+		result = uniwill_write_kbd_bl_brightness(brightness);
+		if (result) {
 			pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_brightness() failed\n");
 			return;
 		}
@@ -197,19 +194,16 @@ static struct led_classdev uniwill_led_cdev = {
 static struct mc_subled uw_mcled_cdev_subleds[3] = {
 	{
 		.color_index = LED_COLOR_ID_RED,
-		.brightness = UNIWILL_KBD_BRIGHTNESS_MAX,
 		.intensity = UNIWILL_KB_COLOR_DEFAULT_RED,
 		.channel = 0
 	},
 	{
 		.color_index = LED_COLOR_ID_GREEN,
-		.brightness = UNIWILL_KBD_BRIGHTNESS_MAX,
 		.intensity = UNIWILL_KB_COLOR_DEFAULT_GREEN,
 		.channel = 0
 	},
 	{
 		.color_index = LED_COLOR_ID_BLUE,
-		.brightness = UNIWILL_KBD_BRIGHTNESS_MAX,
 		.intensity = UNIWILL_KB_COLOR_DEFAULT_BLUE,
 		.channel = 0
 	}
@@ -245,10 +239,10 @@ int uniwill_leds_init(struct platform_device *dev)
 	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TQxx ||
 	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx ||
 	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Pxxx) {
-		ret = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
-		if (ret) {
+		result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
+		if (result) {
 			pr_err("Reading keyboard backlight status failed.\n");
-			return ret;
+			return result;
 		}
 		if (data & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB) {
 			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
@@ -256,10 +250,10 @@ int uniwill_leds_init(struct platform_device *dev)
 		}
 	}
 	else {
-		ret = uniwill_read_ec_ram(UW_EC_REG_FEATURES_1, &data);
-		if (ret) {
+		result = uniwill_read_ec_ram(UW_EC_REG_FEATURES_1, &data);
+		if (result) {
 			pr_err("Reading features 1 failed.\n");
-			return ret;
+			return result;
 		}
 		if (data & UW_EC_REG_FEATURES_1_BIT_1_ZONE_RGB_KB) {
 			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB;
@@ -273,42 +267,32 @@ int uniwill_leds_init(struct platform_device *dev)
 		pr_debug("Registering fixed color leds interface\n");
 		if (uniwill_kbl_brightness_ec_controlled)
 			uniwill_led_cdev.flags = LED_BRIGHT_HW_CHANGED;
-		ret = led_classdev_register(&dev->dev, &uniwill_led_cdev);
-		if (ret) {
+		result = led_classdev_register(&dev->dev, &uniwill_led_cdev);
+		if (result) {
 			pr_err("Registering fixed color leds interface failed\n");
-			return ret;
+			return result;
 		}
 	}
 	else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
 		pr_debug("Registering single zone rgb leds interface\n");
 		if (uniwill_kbl_brightness_ec_controlled)
 			uniwill_mcled_cdev.led_cdev.flags = LED_BRIGHT_HW_CHANGED;
-		ret = devm_led_classdev_multicolor_register(&dev->dev, &uniwill_mcled_cdev);
-		if (ret) {
+		result = devm_led_classdev_multicolor_register(&dev->dev, &uniwill_mcled_cdev);
+		if (result) {
 			pr_err("Registering single zone rgb leds interface failed\n");
-			return ret;
+			return result;
 		}
 	}
 
 	uw_leds_initialized = true;
-	return 0;
-}
-EXPORT_SYMBOL(uniwill_leds_init_early);
-
-int uniwill_leds_init_late(struct platform_device *dev)
-{
-	// FIXME Use mutexes
-
-	uniwill_leds_restore_state_extern();
 
 	return 0;
 }
-EXPORT_SYMBOL(uniwill_leds_init_late);
+EXPORT_SYMBOL(uniwill_leds_init);
 
 int uniwill_leds_remove(struct platform_device *dev)
 {
-	// FIXME Use mutexes
-	int ret = 0;
+	int result = 0;
 
 	if (uw_leds_initialized) {
 		uw_leds_initialized = false;
@@ -321,14 +305,14 @@ int uniwill_leds_remove(struct platform_device *dev)
 		}
 	}
 
-	return ret;
+	return result;
 }
 EXPORT_SYMBOL(uniwill_leds_remove);
 
-uniwill_kb_backlight_type_t uniwill_leds_get_backlight_type(void) {
+uniwill_kb_backlight_type_t uniwill_leds_get_backlight_type_extern(void) {
 	return uniwill_kb_backlight_type;
 }
-EXPORT_SYMBOL(uniwill_leds_get_backlight_type);
+EXPORT_SYMBOL(uniwill_leds_get_backlight_type_extern);
 
 bool uniwill_leds_notify_brightness_change_extern(void) {
 	u8 data = 0;
@@ -336,8 +320,7 @@ bool uniwill_leds_notify_brightness_change_extern(void) {
 	if (uw_leds_initialized) {
 		if (uniwill_kbl_brightness_ec_controlled) {
 			uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
-			data = (data >> 5) & 0x7;
-			uniwill_led_cdev.brightness = data;
+			uniwill_led_cdev.brightness = (data >> 5) & 0x7;
 			if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
 				led_classdev_notify_brightness_hw_changed(&uniwill_led_cdev, data);
 				return true;
@@ -353,12 +336,12 @@ bool uniwill_leds_notify_brightness_change_extern(void) {
 
 void uniwill_leds_restore_state_extern(void) {
 	if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
-		if (uniwill_write_kbd_bl_white(uniwill_led_cdev.brightness)) {
+		if (uniwill_write_kbd_bl_brightness_white_workaround(uniwill_led_cdev.brightness)) {
 			pr_debug("uniwill_leds_restore_state_extern(): uniwill_write_kbd_bl_white() failed\n");
 		}
 	}
 	else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
-		if (uniwill_write_kbd_bl_rgb(uniwill_mcled_cdev.subled_info[0].intensity,
+		if (uniwill_write_kbd_bl_color(uniwill_mcled_cdev.subled_info[0].intensity,
 					     uniwill_mcled_cdev.subled_info[1].intensity,
 					     uniwill_mcled_cdev.subled_info[2].intensity)) {
 			pr_debug("uniwill_leds_restore_state_extern(): uniwill_write_kbd_bl_rgb() failed\n");
