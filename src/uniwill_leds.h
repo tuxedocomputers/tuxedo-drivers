@@ -32,7 +32,7 @@ enum uniwill_kb_backlight_types {
 	UNIWILL_KB_BACKLIGHT_TYPE_PER_KEY_RGB
 };
 
-#define UNIWILL_KBD_BRIGHTNESS_MAX		0x05
+#define UNIWILL_KBD_BRIGHTNESS_MAX		0x04
 #define UNIWILL_KBD_BRIGHTNESS_DEFAULT		0x00
 
 #define UNIWILL_KBD_BRIGHTNESS_WHITE_MAX	0x02
@@ -102,20 +102,25 @@ static int uniwill_write_kbd_bl_white(u8 brightness)
 	return uniwill_write_kbd_bl_brightness(brightness);
 }
 
+// Converts the range 0-255 to the range 0-50
+static int tf_convert_rgb_range(u8 input) {
+	return input*200/(255*4);
+}
+
 static int uniwill_write_kbd_bl_rgb(u8 red, u8 green, u8 blue)
 {
 	int result;
 	u8 data;
 
-	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_RED_BRIGHTNESS, red/3);
+	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_RED_BRIGHTNESS, tf_convert_rgb_range(red));
 	if (result)
 		return result;
 
-	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_GREEN_BRIGHTNESS, green/3);
+	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_GREEN_BRIGHTNESS, tf_convert_rgb_range(green));
 	if (result)
 		return result;
 
-	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS, blue/3);
+	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS, tf_convert_rgb_range(blue));
 	if (result)
 		return result;
 
@@ -274,13 +279,6 @@ int uniwill_leds_init_late(struct platform_device *dev)
 	// FIXME Use mutexes
 	int ret;
 
-	ret = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_MAX_BRIGHTNESS_IMMEDIATE, 0xff);
-	if (ret) {
-		pr_err("Setting max keyboard brightness value failed\n");
-		uniwill_leds_remove(dev);
-		return ret;
-	}
-
 	uniwill_leds_restore_state_extern();
 
 	return 0;
@@ -295,11 +293,8 @@ int uniwill_leds_remove(struct platform_device *dev)
 	if (uw_leds_initialized) {
 		uw_leds_initialized = false;
 
+		//FIXME Remove?
 		uniwill_leds_set_brightness_extern(0x00);
-		ret = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_MAX_BRIGHTNESS_IMMEDIATE, 0xc8);
-		if (ret) {
-			pr_err("Resetting max keyboard brightness value failed\n");
-		}
 
 		if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
 			led_classdev_unregister(&uniwill_led_cdev);
