@@ -256,8 +256,7 @@ int uniwill_leds_init(struct platform_device *dev)
 		}
 		if (data & UW_EC_REG_FEATURES_1_BIT_1_ZONE_RGB_KB) {
 			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB;
-			if (uniwill_barebone_id != UW_EC_REG_BAREBONE_ID_VALUE_GKxxxxx)
-				uniwill_kbl_brightness_ec_controlled = true;
+			uniwill_kbl_brightness_ec_controlled = true;
 		}
 	}
 	pr_debug("Keyboard backlight type: 0x%02x\n", uniwill_kb_backlight_type);
