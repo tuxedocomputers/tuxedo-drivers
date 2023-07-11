@@ -46,8 +46,10 @@ enum uniwill_kb_backlight_types {
 int uniwill_leds_init_early(struct platform_device *dev);
 int uniwill_leds_init_late(struct platform_device *dev);
 int uniwill_leds_remove(struct platform_device *dev);
+
 enum uniwill_kb_backlight_types uniwill_leds_get_backlight_type(void);
-int uniwill_leds_notify_brightness_change_extern(void);
+
+bool uniwill_leds_notify_brightness_change_extern(void);
 void uniwill_leds_restore_state_extern(void);
 
 // TODO The following should go into a seperate .c file, but for this to work more reworking is required in the tuxedo_keyboard structure.
@@ -330,7 +332,7 @@ enum uniwill_kb_backlight_types uniwill_leds_get_backlight_type(void) {
 }
 EXPORT_SYMBOL(uniwill_leds_get_backlight_type);
 
-int uniwill_leds_notify_brightness_change_extern(void) {
+bool uniwill_leds_notify_brightness_change_extern(void) {
 	u8 data = 0;
 
 	if (uw_leds_initialized) {
