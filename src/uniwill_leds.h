@@ -221,7 +221,7 @@ int uniwill_leds_init_early(struct platform_device *dev)
 		pr_err("Reading barebone ID failed.\n");
 		return ret;
 	}
-	pr_debug("EC Barebone ID: %#04x\n", barebone_id);
+	pr_debug("EC Barebone ID: %#04x\n", uniwill_barebone_id);
 
 	if (uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxxxxx ||
 	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxMxxx ||
@@ -285,7 +285,6 @@ EXPORT_SYMBOL(uniwill_leds_init_early);
 int uniwill_leds_init_late(struct platform_device *dev)
 {
 	// FIXME Use mutexes
-	int ret;
 
 	uniwill_leds_restore_state_extern();
 
