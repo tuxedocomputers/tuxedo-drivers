@@ -114,6 +114,10 @@ static int uniwill_write_kbd_bl_rgb(u8 red, u8 green, u8 blue)
 	int result;
 	u8 data;
 
+	// If, after conversion, all three (red, green, and blue) values are zero at the same time,
+	// a special case is triggered in the EC and (probably device dependent) default values are
+	// written instead.
+
 	result = uniwill_write_ec_ram(UW_EC_REG_KBD_BL_RGB_RED_BRIGHTNESS, tf_convert_rgb_range(red));
 	if (result)
 		return result;
@@ -155,18 +159,30 @@ static void uniwill_leds_set_brightness_mc(struct led_classdev *led_cdev, enum l
 	int ret;
 	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
 
-	ret = uniwill_write_kbd_bl_rgb(mcled_cdev->subled_info[0].intensity,
-				       mcled_cdev->subled_info[1].intensity,
-				       mcled_cdev->subled_info[2].intensity);
-	if (ret) {
-		pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_rgb() failed\n");
-		return;
+	if (mcled_cdev->subled_info[0].intensity == 0 &&
+	    mcled_cdev->subled_info[1].intensity == 0 &&
+	    mcled_cdev->subled_info[2].intensity == 0) {
+		pr_debug("uniwill_leds_set_brightness_mc(): Trigger RGB 0x000000 special case\n");
+		ret = uniwill_write_kbd_bl_brightness(0);
+		if (ret) {
+			pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_brightness() failed\n");
+			return;
+		}
 	}
+	else {
+		ret = uniwill_write_kbd_bl_rgb(mcled_cdev->subled_info[0].intensity,
+					       mcled_cdev->subled_info[1].intensity,
+					       mcled_cdev->subled_info[2].intensity);
+		if (ret) {
+			pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_rgb() failed\n");
+			return;
+		}
 
-	ret = uniwill_write_kbd_bl_brightness(brightness);
-	if (ret) {
-		pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_brightness() failed\n");
-		return;
+		ret = uniwill_write_kbd_bl_brightness(brightness);
+		if (ret) {
+			pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_brightness() failed\n");
+			return;
+		}
 	}
 
 	led_cdev->brightness = brightness;
