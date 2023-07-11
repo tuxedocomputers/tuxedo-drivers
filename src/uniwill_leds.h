@@ -25,12 +25,12 @@
 #include <linux/leds.h>
 #include <linux/completion.h>
 
-enum uniwill_kb_backlight_types {
+typedef enum {
 	UNIWILL_KB_BACKLIGHT_TYPE_NONE,
 	UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR,
 	UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB,
 	UNIWILL_KB_BACKLIGHT_TYPE_PER_KEY_RGB
-};
+} uniwill_kb_backlight_type_t;
 
 #define UNIWILL_KBD_BRIGHTNESS_MAX		0x04
 #define UNIWILL_KBD_BRIGHTNESS_DEFAULT		0x00
@@ -47,7 +47,7 @@ int uniwill_leds_init_early(struct platform_device *dev);
 int uniwill_leds_init_late(struct platform_device *dev);
 int uniwill_leds_remove(struct platform_device *dev);
 
-enum uniwill_kb_backlight_types uniwill_leds_get_backlight_type(void);
+uniwill_kb_backlight_type_t uniwill_leds_get_backlight_type(void);
 
 bool uniwill_leds_notify_brightness_change_extern(void);
 void uniwill_leds_restore_state_extern(void);
@@ -60,7 +60,7 @@ void uniwill_leds_restore_state_extern(void);
 
 #include <linux/led-class-multicolor.h>
 
-static enum uniwill_kb_backlight_types uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_NONE;
+static uniwill_kb_backlight_type_t uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_NONE;
 static u8 uniwill_barebone_id = 0;
 static bool uniwill_kbl_brightness_ec_controlled = false;
 static bool uw_leds_initialized = false;
@@ -327,7 +327,7 @@ int uniwill_leds_remove(struct platform_device *dev)
 }
 EXPORT_SYMBOL(uniwill_leds_remove);
 
-enum uniwill_kb_backlight_types uniwill_leds_get_backlight_type(void) {
+uniwill_kb_backlight_type_t uniwill_leds_get_backlight_type(void) {
 	return uniwill_kb_backlight_type;
 }
 EXPORT_SYMBOL(uniwill_leds_get_backlight_type);
