@@ -38,23 +38,22 @@ bool uniwill_leds_notify_brightness_change_extern(void);
 
 // TODO The following should go into a seperate .c file, but for this to work more reworking is required in the tuxedo_keyboard structure.
 
-#include "uniwill_leds.h"
-
-#include "uniwill_interfaces.h"
+//#include "uniwill_leds.h"
 
 #include <linux/types.h>
 #include <linux/leds.h>
 #include <linux/led-class-multicolor.h>
+#include "uniwill_interfaces.h"
 
-#define UNIWILL_KBD_BRIGHTNESS_MAX		0x04
-#define UNIWILL_KBD_BRIGHTNESS_DEFAULT		0x00
+#define UNIWILL_KBD_BRIGHTNESS_MAX_WHITE		0x02
+#define UNIWILL_KBD_BRIGHTNESS_DEFAULT_WHITE		0x00
 
-#define UNIWILL_KBD_BRIGHTNESS_WHITE_MAX	0x02
-#define UNIWILL_KBD_BRIGHTNESS_WHITE_DEFAULT	0x00
+#define UNIWILL_KBD_BRIGHTNESS_MAX_1_ZONE_RGB		0x04
+#define UNIWILL_KBD_BRIGHTNESS_DEFAULT_1_ZONE_RGB	0x00
 
-#define UNIWILL_KB_COLOR_DEFAULT_RED		0xff
-#define UNIWILL_KB_COLOR_DEFAULT_GREEN		0xff
-#define UNIWILL_KB_COLOR_DEFAULT_BLUE		0xff
+#define UNIWILL_KBD_COLOR_DEFAULT_RED			0xff
+#define UNIWILL_KBD_COLOR_DEFAULT_GREEN			0xff
+#define UNIWILL_KBD_COLOR_DEFAULT_BLUE			0xff
 
 static uniwill_kb_backlight_type_t uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_NONE;
 static u8 uniwill_barebone_id = 0;
@@ -186,34 +185,34 @@ static void uniwill_leds_set_brightness_mc(struct led_classdev *led_cdev, enum l
 
 static struct led_classdev uniwill_led_cdev = {
 	.name = "white:" LED_FUNCTION_KBD_BACKLIGHT,
-	.max_brightness = UNIWILL_KBD_BRIGHTNESS_WHITE_MAX,
+	.max_brightness = UNIWILL_KBD_BRIGHTNESS_MAX_WHITE,
 	.brightness_set = &uniwill_leds_set_brightness,
-	.brightness = UNIWILL_KBD_BRIGHTNESS_WHITE_DEFAULT,
+	.brightness = UNIWILL_KBD_BRIGHTNESS_DEFAULT_WHITE,
 };
 
 static struct mc_subled uw_mcled_cdev_subleds[3] = {
 	{
 		.color_index = LED_COLOR_ID_RED,
-		.intensity = UNIWILL_KB_COLOR_DEFAULT_RED,
+		.intensity = UNIWILL_KBD_COLOR_DEFAULT_RED,
 		.channel = 0
 	},
 	{
 		.color_index = LED_COLOR_ID_GREEN,
-		.intensity = UNIWILL_KB_COLOR_DEFAULT_GREEN,
+		.intensity = UNIWILL_KBD_COLOR_DEFAULT_GREEN,
 		.channel = 0
 	},
 	{
 		.color_index = LED_COLOR_ID_BLUE,
-		.intensity = UNIWILL_KB_COLOR_DEFAULT_BLUE,
+		.intensity = UNIWILL_KBD_COLOR_DEFAULT_BLUE,
 		.channel = 0
 	}
 };
 
 static struct led_classdev_mc uniwill_mcled_cdev = {
 	.led_cdev.name = "rgb:" LED_FUNCTION_KBD_BACKLIGHT,
-	.led_cdev.max_brightness = UNIWILL_KBD_BRIGHTNESS_MAX,
+	.led_cdev.max_brightness = UNIWILL_KBD_BRIGHTNESS_MAX_1_ZONE_RGB,
 	.led_cdev.brightness_set = &uniwill_leds_set_brightness_mc,
-	.led_cdev.brightness = UNIWILL_KBD_BRIGHTNESS_DEFAULT,
+	.led_cdev.brightness = UNIWILL_KBD_BRIGHTNESS_DEFAULT_1_ZONE_RGB,
 	.num_colors = 3,
 	.subled_info = uw_mcled_cdev_subleds
 };
@@ -314,6 +313,25 @@ uniwill_kb_backlight_type_t uniwill_leds_get_backlight_type_extern(void) {
 }
 EXPORT_SYMBOL(uniwill_leds_get_backlight_type_extern);
 
+void uniwill_leds_restore_state_extern(void) {
+	if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
+		if (uniwill_write_kbd_bl_brightness_white_workaround(uniwill_led_cdev.brightness)) {
+			pr_debug("uniwill_leds_restore_state_extern(): uniwill_write_kbd_bl_white() failed\n");
+		}
+	}
+	else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
+		if (uniwill_write_kbd_bl_color(uniwill_mcled_cdev.subled_info[0].intensity,
+					     uniwill_mcled_cdev.subled_info[1].intensity,
+					     uniwill_mcled_cdev.subled_info[2].intensity)) {
+			pr_debug("uniwill_leds_restore_state_extern(): uniwill_write_kbd_bl_rgb() failed\n");
+		}
+		if (uniwill_write_kbd_bl_brightness(uniwill_mcled_cdev.led_cdev.brightness)) {
+			pr_debug("uniwill_leds_restore_state_extern(): uniwill_write_kbd_bl_brightness() failed\n");
+		}
+	}
+}
+EXPORT_SYMBOL(uniwill_leds_restore_state_extern);
+
 bool uniwill_leds_notify_brightness_change_extern(void) {
 	u8 data = 0;
 
@@ -333,25 +351,6 @@ bool uniwill_leds_notify_brightness_change_extern(void) {
 	}
 	return false;
 }
-
-void uniwill_leds_restore_state_extern(void) {
-	if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
-		if (uniwill_write_kbd_bl_brightness_white_workaround(uniwill_led_cdev.brightness)) {
-			pr_debug("uniwill_leds_restore_state_extern(): uniwill_write_kbd_bl_white() failed\n");
-		}
-	}
-	else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
-		if (uniwill_write_kbd_bl_color(uniwill_mcled_cdev.subled_info[0].intensity,
-					     uniwill_mcled_cdev.subled_info[1].intensity,
-					     uniwill_mcled_cdev.subled_info[2].intensity)) {
-			pr_debug("uniwill_leds_restore_state_extern(): uniwill_write_kbd_bl_rgb() failed\n");
-		}
-		if (uniwill_write_kbd_bl_brightness(uniwill_mcled_cdev.led_cdev.brightness)) {
-			pr_debug("uniwill_leds_restore_state_extern(): uniwill_write_kbd_bl_brightness() failed\n");
-		}
-	}
-}
-EXPORT_SYMBOL(uniwill_leds_restore_state_extern);
 
 MODULE_LICENSE("GPL");
 
