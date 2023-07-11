@@ -49,8 +49,6 @@ int uniwill_leds_remove(struct platform_device *dev);
 enum uniwill_kb_backlight_types uniwill_leds_get_backlight_type(void);
 int uniwill_leds_notify_brightness_change_extern(void);
 void uniwill_leds_restore_state_extern(void);
-void uniwill_leds_set_brightness_extern(enum led_brightness brightness);
-void uniwill_leds_set_color_extern(u32 color);
 
 // TODO The following should go into a seperate .c file, but for this to work more reworking is required in the tuxedo_keyboard structure.
 
@@ -315,9 +313,6 @@ int uniwill_leds_remove(struct platform_device *dev)
 	if (uw_leds_initialized) {
 		uw_leds_initialized = false;
 
-		//FIXME Remove?
-		uniwill_leds_set_brightness_extern(0x00);
-
 		if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
 			led_classdev_unregister(&uniwill_led_cdev);
 		}
@@ -381,30 +376,6 @@ void uniwill_leds_restore_state_extern(void) {
 	}
 }
 EXPORT_SYMBOL(uniwill_leds_restore_state_extern);
-
-void uniwill_leds_set_brightness_extern(enum led_brightness brightness) {
-	if (uw_leds_initialized) {
-		if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
-			uniwill_led_cdev.brightness_set(&uniwill_led_cdev, brightness);
-		}
-		else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
-			uniwill_mcled_cdev.led_cdev.brightness_set(&uniwill_mcled_cdev.led_cdev, brightness);
-		}
-	}
-}
-EXPORT_SYMBOL(uniwill_leds_set_brightness_extern);
-
-void uniwill_leds_set_color_extern(u32 color) {
-	if (uw_leds_initialized) {
-		if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
-			uniwill_mcled_cdev.subled_info[0].intensity = (color >> 16) & 0xff;
-			uniwill_mcled_cdev.subled_info[1].intensity = (color >> 8) & 0xff;
-			uniwill_mcled_cdev.subled_info[2].intensity = color & 0xff;
-			uniwill_mcled_cdev.led_cdev.brightness_set(&uniwill_mcled_cdev.led_cdev, uniwill_mcled_cdev.led_cdev.brightness);
-		}
-	}
-}
-EXPORT_SYMBOL(uniwill_leds_set_color_extern);
 
 MODULE_LICENSE("GPL");
 
