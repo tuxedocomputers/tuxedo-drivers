@@ -193,7 +193,6 @@ static struct led_classdev uniwill_led_cdev = {
 	.max_brightness = UNIWILL_KBD_BRIGHTNESS_WHITE_MAX,
 	.brightness_set = &uniwill_leds_set_brightness,
 	.brightness = UNIWILL_KBD_BRIGHTNESS_WHITE_DEFAULT,
-	.flags = LED_BRIGHT_HW_CHANGED
 };
 
 static struct mc_subled uw_mcled_cdev_subleds[3] = {
@@ -344,8 +343,14 @@ int uniwill_leds_notify_brightness_change_extern(void) {
 			uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
 			data = (data >> 5) & 0x3;
 			uniwill_led_cdev.brightness = data;
-			led_classdev_notify_brightness_hw_changed(&uniwill_led_cdev, data);
-			return true;
+			if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
+				led_classdev_notify_brightness_hw_changed(&uniwill_led_cdev, data);
+				return true;
+			}
+			else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
+				led_classdev_notify_brightness_hw_changed(&uniwill_mcled_cdev.led_cdev, data);
+				return true;
+			}
 		}
 	}
 	return false;
