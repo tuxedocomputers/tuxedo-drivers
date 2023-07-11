@@ -64,6 +64,7 @@ typedef void (uniwill_event_callb_t)(u32);
 #define UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS		0x076b
 
 #define UW_EC_REG_BAREBONE_ID				0x0740
+#define UW_EC_REG_BAREBONE_ID_VALUE_GKxxxxx		0x03
 #define UW_EC_REG_BAREBONE_ID_VALUE_PFxxxxx		0x09
 #define UW_EC_REG_BAREBONE_ID_VALUE_PFxMxxx		0x0e
 #define UW_EC_REG_BAREBONE_ID_VALUE_PH4TRX1		0x12

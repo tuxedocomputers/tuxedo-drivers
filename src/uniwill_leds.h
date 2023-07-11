@@ -61,6 +61,8 @@ void uniwill_leds_set_color_extern(u32 color);
 #include <linux/led-class-multicolor.h>
 
 static enum uniwill_kb_backlight_types uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_NONE;
+static u8 uniwill_barebone_id = 0;
+static bool uniwill_kbl_brightness_ec_controlled = false;
 static bool uw_leds_initialized = false;
 
 static int uniwill_write_kbd_bl_brightness(u8 brightness)
@@ -204,7 +206,6 @@ static struct led_classdev_mc uniwill_mcled_cdev = {
 	.led_cdev.max_brightness = UNIWILL_KBD_BRIGHTNESS_MAX,
 	.led_cdev.brightness_set = &uniwill_leds_set_brightness_mc,
 	.led_cdev.brightness = UNIWILL_KBD_BRIGHTNESS_DEFAULT,
-	.led_cdev.flags = LED_BRIGHT_HW_CHANGED,
 	.num_colors = 3,
 	.subled_info = uw_mcled_cdev_subleds
 };
@@ -215,22 +216,22 @@ int uniwill_leds_init_early(struct platform_device *dev)
 	int ret;
 	u8 data;
 
-	ret = uniwill_read_ec_ram(UW_EC_REG_BAREBONE_ID, &data);
-	if (ret) {
+	ret = uniwill_read_ec_ram(UW_EC_REG_BAREBONE_ID, &uniwill_barebone_id);
+	if (ret || !uniwill_barebone_id) {
 		pr_err("Reading barebone ID failed.\n");
 		return ret;
 	}
-	pr_debug("EC Barebone ID: %#04x\n", data);
+	pr_debug("EC Barebone ID: %#04x\n", barebone_id);
 
-	if (data == UW_EC_REG_BAREBONE_ID_VALUE_PFxxxxx ||
-	    data == UW_EC_REG_BAREBONE_ID_VALUE_PFxMxxx ||
-	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH4TRX1 ||
-	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH4TUX1 ||
-	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH4TQx1 ||
-	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH6TRX1 ||
-	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH6TQxx ||
-	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx ||
-	    data == UW_EC_REG_BAREBONE_ID_VALUE_PH4Pxxx) {
+	if (uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxxxxx ||
+	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxMxxx ||
+	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TRX1 ||
+	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TUX1 ||
+	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TQx1 ||
+	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TRX1 ||
+	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TQxx ||
+	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx ||
+	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Pxxx) {
 		ret = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
 		if (ret) {
 			pr_err("Reading keyboard backlight status failed.\n");
@@ -238,6 +239,7 @@ int uniwill_leds_init_early(struct platform_device *dev)
 		}
 		if (data & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB) {
 			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
+			uniwill_kbl_brightness_ec_controlled = true;
 		}
 	}
 	else {
@@ -248,12 +250,16 @@ int uniwill_leds_init_early(struct platform_device *dev)
 		}
 		if (data & UW_EC_REG_FEATURES_1_BIT_1_ZONE_RGB_KB) {
 			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB;
+			if (uniwill_barebone_id != UW_EC_REG_BAREBONE_ID_VALUE_GKxxxxx)
+				uniwill_kbl_brightness_ec_controlled = true;
 		}
 	}
 	pr_debug("Keyboard backlight type: 0x%02x\n", uniwill_kb_backlight_type);
 
 	if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
 		pr_debug("Registering fixed color leds interface\n");
+		if (uniwill_kbl_brightness_ec_controlled)
+			uniwill_led_cdev.flags = LED_BRIGHT_HW_CHANGED;
 		ret = led_classdev_register(&dev->dev, &uniwill_led_cdev);
 		if (ret) {
 			pr_err("Registering fixed color leds interface failed\n");
@@ -262,6 +268,8 @@ int uniwill_leds_init_early(struct platform_device *dev)
 	}
 	else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
 		pr_debug("Registering single zone rgb leds interface\n");
+		if (uniwill_kbl_brightness_ec_controlled)
+			uniwill_mcled_cdev.led_cdev.flags = LED_BRIGHT_HW_CHANGED;
 		ret = devm_led_classdev_multicolor_register(&dev->dev, &uniwill_mcled_cdev);
 		if (ret) {
 			pr_err("Registering single zone rgb leds interface failed\n");
@@ -317,7 +325,7 @@ int uniwill_leds_notify_brightness_change_extern(void) {
 	u8 data = 0;
 
 	if (uw_leds_initialized) {
-		if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
+		if (uniwill_kbl_brightness_ec_controlled) {
 			uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
 			data = (data >> 5) & 0x3;
 			uniwill_led_cdev.brightness = data;
