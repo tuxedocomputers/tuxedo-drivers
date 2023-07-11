@@ -341,7 +341,7 @@ int uniwill_leds_notify_brightness_change_extern(void) {
 	if (uw_leds_initialized) {
 		if (uniwill_kbl_brightness_ec_controlled) {
 			uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
-			data = (data >> 5) & 0x3;
+			data = (data >> 5) & 0x7;
 			uniwill_led_cdev.brightness = data;
 			if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
 				led_classdev_notify_brightness_hw_changed(&uniwill_led_cdev, data);
