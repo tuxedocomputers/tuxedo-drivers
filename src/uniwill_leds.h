@@ -338,13 +338,14 @@ bool uniwill_leds_notify_brightness_change_extern(void) {
 	if (uw_leds_initialized) {
 		if (uniwill_kbl_brightness_ec_controlled) {
 			uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
-			uniwill_led_cdev.brightness = (data >> 5) & 0x7;
 			if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
-				led_classdev_notify_brightness_hw_changed(&uniwill_led_cdev, data);
+				uniwill_led_cdev.brightness = (data >> 5) & 0x7;
+				led_classdev_notify_brightness_hw_changed(&uniwill_led_cdev, uniwill_led_cdev.brightness);
 				return true;
 			}
 			else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
-				led_classdev_notify_brightness_hw_changed(&uniwill_mcled_cdev.led_cdev, data);
+				uniwill_mcled_cdev.led_cdev.brightness = (data >> 5) & 0x7;
+				led_classdev_notify_brightness_hw_changed(&uniwill_mcled_cdev.led_cdev, uniwill_mcled_cdev.led_cdev.brightness);
 				return true;
 			}
 		}
