@@ -1,0 +1,11 @@
+Package: module-name
+Version: x.x.x
+Section: admin
+Priority: optional
+Depends: dkms (>= 1.95)
+Maintainer: TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+Homepage: https://www.tuxedocomputers.com
+Architecture: all
+Description: Keyboard back-light driver for ITE devices
+ USB HID driver for ITE devices on TUXEDO laptops.
+ This module provides back-light control for ITE Device(829x).
