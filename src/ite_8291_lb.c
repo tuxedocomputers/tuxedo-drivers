@@ -519,19 +519,25 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 {
 	int result;
 	struct ite8291_driver_data_t *ite8291_driver_data;
+	bool exclude_device = false;
 
-	// Apparently unused device on Stellaris Gen5, avoid binding to it
+	// Unused devices in Stellaris Gen5 models
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
 	if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") &&
 	    !dmi_match(DMI_PRODUCT_FAMILY, "STELLARIS17I05") &&
 	    hdev->product == 0x6010)
-		return -ENODEV;
+		exclude_device = true;
 
 	if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") &&
 	    dmi_string_in(DMI_PRODUCT_SERIAL, "GM6PX") &&
 	    hdev->product == 0x6010)
-		return -ENODEV;
+		exclude_device = true;
 #endif
+
+	if (exclude_device) {
+		pr_info("Note: device excluded, not binding to device %0#6x\n", hdev->product);
+		return -ENODEV;
+	}
 
 	result = hid_parse(hdev);
 	if (result) {
