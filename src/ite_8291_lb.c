@@ -523,6 +523,11 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	// Apparently unused device on Stellaris Gen5, avoid binding to it
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
 	if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") &&
+	    !dmi_match(DMI_PRODUCT_FAMILY, "STELLARIS17I05") &&
+	    hdev->product == 0x6010)
+		return -ENODEV;
+
+	if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") &&
 	    dmi_string_in(DMI_PRODUCT_SERIAL, "GM6PX") &&
 	    hdev->product == 0x6010)
 		return -ENODEV;
