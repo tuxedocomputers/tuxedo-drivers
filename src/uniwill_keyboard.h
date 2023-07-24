@@ -1095,8 +1095,6 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 	uniwill_leds_init(dev);
 	uniwill_write_kbd_bl_enable(1);
 
-	return 0;
-
 	status = uw_lightbar_init(dev);
 	uw_lightbar_loaded = (status >= 0);
 
