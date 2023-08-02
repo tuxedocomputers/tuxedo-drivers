@@ -527,11 +527,6 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 	    !dmi_match(DMI_PRODUCT_FAMILY, "STELLARIS17I05") &&
 	    hdev->product == 0x6010)
 		exclude_device = true;
-
-	if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") &&
-	    dmi_string_in(DMI_PRODUCT_SERIAL, "GM6PX") &&
-	    hdev->product == 0x6010)
-		exclude_device = true;
 #endif
 
 	if (exclude_device) {
