@@ -581,6 +581,94 @@ static int clevo_legacy_flexicharger_write(const u8 *param_start, const u8 *para
 	return 0;
 }
 
+static int clevo_cc4_flexicharger_read(u8 *start, u8 *end, u8 *status)
+{
+	int result;
+	union acpi_object *out_obj;
+
+	result = clevo_evaluate_method2(0x04, 0x1e, &out_obj);
+	if (result)
+		return -EIO;
+
+	if (out_obj->type != ACPI_TYPE_BUFFER ||
+	    out_obj->buffer.length < 3) {
+		ACPI_FREE(out_obj);
+		return -EIO;
+	}
+
+	if (end != NULL)
+		*end = out_obj->buffer.pointer[2];
+	if (start != NULL)
+		*start = out_obj->buffer.pointer[1];
+	if (status != NULL)
+		*status = out_obj->buffer.pointer[0];
+
+	ACPI_FREE(out_obj);
+
+	return result;
+}
+
+static int clevo_has_cc4_flexicharger(bool *status)
+{
+	if (clevo_cc4_flexicharger_read(NULL, NULL, NULL))
+		*status = false;
+	else
+		*status = true;
+
+	return 0;
+}
+
+static int clevo_cc4_flexicharger_write(const u8 *param_start,
+					const u8 *param_end,
+					const u8 *param_status)
+{
+	union acpi_object *dummy_out;
+	u8 previous_start, previous_end, previous_status;
+	u8 set_start, set_end, set_status;
+	u8 buffer_set[0xff] = { 0x1f };
+
+	if (clevo_cc4_flexicharger_read(&previous_start, &previous_end, &previous_status))
+		return -EIO;
+
+	// Set choosen parameters, leave nulled ones with previous value
+	set_start = param_start != NULL ? *param_start : previous_start;
+	set_end = param_end != NULL ? *param_end : previous_end;
+	set_status = param_status != NULL ? *param_status : previous_status;
+
+	buffer_set[1] = set_status;
+	buffer_set[2] = set_start;
+	buffer_set[3] = set_end;
+
+	if (clevo_evaluate_method_pkgbuf(0x04, buffer_set, ARRAY_SIZE(buffer_set), &dummy_out))
+		return -EIO;
+
+	ACPI_FREE(dummy_out);
+
+	return 0;
+}
+
+static int clevo_flexicharger_read(u8 *start, u8 *end, u8 *status)
+{
+	bool has_cc4_flexicharger;
+	clevo_has_cc4_flexicharger(&has_cc4_flexicharger);
+	if (has_cc4_flexicharger)
+		return clevo_cc4_flexicharger_read(start, end, status);
+	else
+		return clevo_legacy_flexicharger_read(start, end, status);
+}
+
+static int clevo_flexicharger_write(const u8 *param_start,
+				    const u8 *param_end,
+				    const u8 *param_status)
+{
+	bool has_cc4_flexicharger;
+	clevo_has_cc4_flexicharger(&has_cc4_flexicharger);
+	if (has_cc4_flexicharger)
+		return clevo_cc4_flexicharger_write(param_start, param_end, param_status);
+	else
+		return clevo_legacy_flexicharger_write(param_start, param_end, param_status);
+}
+
 static ssize_t charge_type_show(struct device *device,
 				struct device_attribute *attr,
 				char *buf)
@@ -588,7 +676,7 @@ static ssize_t charge_type_show(struct device *device,
 	int result;
 	u8 status;
 
-	result = clevo_legacy_flexicharger_read(NULL, NULL, &status);
+	result = clevo_flexicharger_read(NULL, NULL, &status);
 
 	if (result != 0)
 		return result;
@@ -615,7 +703,7 @@ static ssize_t charge_type_store(struct device *dev,
 	else
 		return -EINVAL;
 
-	result = clevo_legacy_flexicharger_write(NULL, NULL, &write_status);
+	result = clevo_flexicharger_write(NULL, NULL, &write_status);
 
 	if (result < 0)
 		return result;
@@ -630,7 +718,7 @@ static ssize_t charge_control_start_threshold_show(struct device *device,
 	int result;
 	u8 start_threshold;
 
-	result = clevo_legacy_flexicharger_read(&start_threshold, NULL, NULL);
+	result = clevo_flexicharger_read(&start_threshold, NULL, NULL);
 
 	if (result != 0)
 		return result;
@@ -656,7 +744,7 @@ static ssize_t charge_control_start_threshold_store(struct device *dev,
 	write_value = array_find_closest_u8(value,
 					    clevo_legacy_flexicharger_start_values,
 					    ARRAY_SIZE(clevo_legacy_flexicharger_start_values));
-	result = clevo_legacy_flexicharger_write(&write_value, NULL, NULL);
+	result = clevo_flexicharger_write(&write_value, NULL, NULL);
 
 	if (result < 0)
 		return result;
@@ -671,7 +759,7 @@ static ssize_t charge_control_end_threshold_show(struct device *device,
 	int result;
 	u8 end_threshold;
 
-	result = clevo_legacy_flexicharger_read(NULL, &end_threshold, NULL);
+	result = clevo_flexicharger_read(NULL, &end_threshold, NULL);
 
 	if (result != 0)
 		return result;
@@ -697,7 +785,7 @@ static ssize_t charge_control_end_threshold_store(struct device *dev,
 	write_value = array_find_closest_u8(value,
 					    clevo_legacy_flexicharger_end_values,
 					    ARRAY_SIZE(clevo_legacy_flexicharger_end_values));
-	result = clevo_legacy_flexicharger_write(NULL, &write_value, NULL);
+	result = clevo_flexicharger_write(NULL, &write_value, NULL);
 
 
 	if (result < 0)
@@ -766,13 +854,22 @@ ATTRIBUTE_GROUPS(clevo_battery);
 
 static int clevo_battery_add(struct power_supply *battery, struct acpi_battery_hook *hook)
 {
-	bool has_legacy_flexi_charger;
-	int result;
+	bool has_legacy_flexicharger;
+	bool has_cc4_flexicharger;
 
-	result = clevo_has_legacy_flexicharger(&has_legacy_flexi_charger);
+	clevo_has_legacy_flexicharger(&has_legacy_flexicharger);
+	clevo_has_cc4_flexicharger(&has_cc4_flexicharger);
+
+	if (has_cc4_flexicharger) {
+		pr_debug("cc4 flexicharger identified\n");
+	}
+
+	if (has_legacy_flexicharger) {
+		pr_debug("legacy flexicharger identified\n");
+	}
 
 	// Check support and type
-	if (!has_legacy_flexi_charger)
+	if (!has_legacy_flexicharger && !has_cc4_flexicharger)
 		return -ENODEV;
 
 	if (device_add_groups(&battery->dev, clevo_battery_groups))
