@@ -332,19 +332,34 @@ void uniwill_leds_restore_state_extern(void) {
 EXPORT_SYMBOL(uniwill_leds_restore_state_extern);
 
 bool uniwill_leds_notify_brightness_change_extern(void) {
-	u8 data = 0;
+	int result = 0;
+	u8 data = 0, brightness = 0;
 
 	if (uw_leds_initialized) {
 		if (uniwill_kbl_brightness_ec_controlled) {
 			uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
+			brightness = (data >> 5) & 0x07;
 			if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
-				uniwill_led_cdev.brightness = (data >> 5) & 0x7;
+				uniwill_led_cdev.brightness = brightness;
 				led_classdev_notify_brightness_hw_changed(&uniwill_led_cdev, uniwill_led_cdev.brightness);
 				return true;
 			}
 			else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
-				uniwill_mcled_cdev.led_cdev.brightness = (data >> 5) & 0x7;
-				led_classdev_notify_brightness_hw_changed(&uniwill_mcled_cdev.led_cdev, uniwill_mcled_cdev.led_cdev.brightness);
+				result = 0;
+				if (uniwill_mcled_cdev.led_cdev.brightness == brightness) {
+					// Workaround for devices where EC does not react to FN+space in manual mode (know device: Polaris Gen2)
+					result = uniwill_write_kbd_bl_brightness((brightness + 1) % 5);
+					if (result) {
+						pr_debug("uniwill_leds_set_brightness_mc(): uniwill_write_kbd_bl_brightness() failed\n");
+					}
+					else {
+						brightness = (brightness + 1) % 5;
+					}
+				}
+				if (!result) {
+					uniwill_mcled_cdev.led_cdev.brightness = brightness;
+					led_classdev_notify_brightness_hw_changed(&uniwill_mcled_cdev.led_cdev, uniwill_mcled_cdev.led_cdev.brightness);
+				}
 				return true;
 			}
 		}
