@@ -322,6 +322,8 @@ static int uniwill_wmi_probe(struct wmi_device *wdev, const void *dummy_context)
 
 	pr_info("interface initialized\n");
 
+	request_module("tuxedo_nb02_nvidia_power_ctrl");
+
 	return 0;
 }
 
