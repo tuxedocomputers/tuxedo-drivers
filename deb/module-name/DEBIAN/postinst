@@ -57,6 +57,7 @@ case "$1" in
         fi
 
         echo "(Re)load modules if possible"
+        rmmod tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
         rmmod tuxedo_io > /dev/null 2>&1 || true
         rmmod uniwill_wmi > /dev/null 2>&1 || true
         rmmod clevo_wmi > /dev/null 2>&1 || true
@@ -68,6 +69,7 @@ case "$1" in
         modprobe clevo_wmi > /dev/null 2>&1 || true
         modprobe clevo_acpi > /dev/null 2>&1 || true
         modprobe tuxedo_io > /dev/null 2>&1 || true
+        modprobe tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
 
         # Restart tccd after reload if it was running
         if $TCCD_RUNNING; then

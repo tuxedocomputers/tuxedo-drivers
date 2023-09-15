@@ -1,0 +1,1 @@
+obj-m := tuxedo_nb02_nvidia_power_ctrl.o

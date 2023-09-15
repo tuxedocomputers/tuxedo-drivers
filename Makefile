@@ -20,7 +20,9 @@ obj-m :=	./src/tuxedo_keyboard.o \
 		./src/clevo_wmi.o \
 		./src/clevo_acpi.o \
 		./src/tuxedo_io/tuxedo_io.o \
-		./src/uniwill_wmi.o
+		./src/uniwill_wmi.o \
+
+obj-m +=	src/tuxedo_nb02_nvidia_power_ctrl/
 
 PWD := $(shell pwd)
 KDIR := /lib/modules/$(shell uname -r)/build
