@@ -296,9 +296,7 @@ static int __init tuxedo_nb02_nvidia_power_ctrl_probe(struct platform_device *pd
 	u8 data = 0;
 	char **uniwill_active_interface = NULL;
 
-	// TODO this function is actually implemented in tuxedo_keyboard (via uniwill_keyboard.h)
-	// and not in uniwill_wmi. This results in this module not depending on uniwill_wmi when
-	// loading with modprobe.
+	// TODO Retry with wait
 	result = uniwill_get_active_interface_id(uniwill_active_interface);
 	if (result < 0)
 		return result;
@@ -332,6 +330,7 @@ static struct platform_driver tuxedo_nb02_nvidia_power_ctrl_driver = {
 
 static int __init tuxedo_nb02_nvidia_power_ctrl_init(void)
 {
+	// TODO check if device already exsists to prevent crash
 	tuxedo_nb02_nvidia_power_ctrl_device =
 		platform_create_bundle(&tuxedo_nb02_nvidia_power_ctrl_driver,
 				       tuxedo_nb02_nvidia_power_ctrl_probe, NULL, 0, NULL, 0);
