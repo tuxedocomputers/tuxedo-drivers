@@ -1,9 +1,71 @@
 #include <linux/platform_device.h>
+#include <linux/delay.h>
+#include <linux/pci.h>
 
 #include "../uniwill_interfaces.h"
 
 #define __unused __attribute__((unused))
 
+static ssize_t ctgp_offset_show(struct device *__unused, struct device_attribute *__unused,
+				char *buf)
+{
+	int result = 0;
+	u8 data = 0;
+
+	result = uniwill_read_ec_ram(UW_EC_REG_CTGP_DB_CTGP_OFFSET, &data);
+	if (result < 0)
+		return result;
+
+	return sysfs_emit(buf, "%u\n", data);
+}
+static ssize_t ctgp_offset_store(struct device *__unused, struct device_attribute *__unused,
+				 const char *buf, size_t count)
+{
+	int result = 0;
+	u8 data = 0;
+
+	result = kstrtou8(buf, 0, &data);
+	if (result < 0)
+		return result;
+
+	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_CTGP_OFFSET, data);
+	if (result < 0)
+		return result;
+
+	return count;
+}
+DEVICE_ATTR_RW(ctgp_offset);
+
+static ssize_t db_offset_show(struct device *__unused, struct device_attribute *__unused, char *buf)
+{
+	int result = 0;
+	u8 data = 0;
+
+	result = uniwill_read_ec_ram(UW_EC_REG_CTGP_DB_DB_OFFSET, &data);
+	if (result < 0)
+		return result;
+
+	return sysfs_emit(buf, "%u\n", data);
+}
+static ssize_t db_offset_store(struct device *__unused, struct device_attribute *__unused,
+			       const char *buf, size_t count)
+{
+	int result = 0;
+	u8 data = 0;
+
+	result = kstrtou8(buf, 0, &data);
+	if (result < 0)
+		return result;
+
+	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_DB_OFFSET, data);
+	if (result < 0)
+		return result;
+
+	return count;
+}
+DEVICE_ATTR_RW(db_offset);
+
+#ifdef DEBUG
 static ssize_t ctgp_enable_show(struct device *__unused, struct device_attribute *__unused,
 				char *buf)
 {
@@ -57,44 +119,6 @@ static ssize_t ctgp_enable_store(struct device *__unused, struct device_attribut
 	return count;
 }
 DEVICE_ATTR_RW(ctgp_enable);
-
-static ssize_t ctgp_offset_show(struct device *__unused, struct device_attribute *__unused,
-				char *buf)
-{
-	int result = 0;
-	u8 data = 0;
-
-	result = uniwill_read_ec_ram(UW_EC_REG_CTGP_DB_CTGP_OFFSET, &data);
-	if (result < 0)
-		return result;
-
-	return sysfs_emit(buf, "%u\n", data);
-}
-static ssize_t ctgp_offset_store(struct device *__unused, struct device_attribute *__unused,
-				 const char *buf, size_t count)
-{
-	int result = 0;
-	u8 data = 0;
-
-	result = kstrtou8(buf, 0, &data);
-	if (result < 0)
-		return result;
-
-	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_CTGP_OFFSET, data);
-	if (result < 0)
-		return result;
-
-	return count;
-}
-DEVICE_ATTR_RW(ctgp_offset);
-
-static u8 max_ctgp_offset = 25;
-static ssize_t max_ctgp_offset_show(struct device *__unused, struct device_attribute *__unused,
-				    char *buf)
-{
-	return sysfs_emit(buf, "%u\n", max_ctgp_offset);
-}
-DEVICE_ATTR_RO(max_ctgp_offset);
 
 static ssize_t db_enable_show(struct device *__unused, struct device_attribute *__unused,
 				char *buf)
@@ -150,43 +174,6 @@ static ssize_t db_enable_store(struct device *__unused, struct device_attribute 
 }
 DEVICE_ATTR_RW(db_enable);
 
-static ssize_t db_offset_show(struct device *__unused, struct device_attribute *__unused, char *buf)
-{
-	int result = 0;
-	u8 data = 0;
-
-	result = uniwill_read_ec_ram(UW_EC_REG_CTGP_DB_DB_OFFSET, &data);
-	if (result < 0)
-		return result;
-
-	return sysfs_emit(buf, "%u\n", data);
-}
-static ssize_t db_offset_store(struct device *__unused, struct device_attribute *__unused,
-			       const char *buf, size_t count)
-{
-	int result = 0;
-	u8 data = 0;
-
-	result = kstrtou8(buf, 0, &data);
-	if (result < 0)
-		return result;
-
-	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_DB_OFFSET, data);
-	if (result < 0)
-		return result;
-
-	return count;
-}
-DEVICE_ATTR_RW(db_offset);
-
-static u8 max_db_offset = 25;
-static ssize_t max_db_offset_show(struct device *__unused, struct device_attribute *__unused,
-				  char *buf)
-{
-	return sysfs_emit(buf, "%u\n", max_db_offset);
-}
-DEVICE_ATTR_RO(max_db_offset);
-
 static ssize_t db_target_offset_show(struct device *__unused, struct device_attribute *__unused, char *buf)
 {
 	int result = 0;
@@ -215,20 +202,11 @@ static ssize_t db_target_offset_store(struct device *__unused, struct device_att
 	return count;
 }
 DEVICE_ATTR_RW(db_target_offset);
-
-static u8 max_combined_offset = 50;
-static ssize_t max_combined_offset_show(struct device *__unused, struct device_attribute *__unused,
-				  char *buf)
-{
-	return sysfs_emit(buf, "%u\n", max_combined_offset);
-}
-DEVICE_ATTR_RO(max_combined_offset);
+#endif // DEBUG
 
 static int __init init_db_and_ctgp(void)
 {
 	int result = 0;
-
-	// TODO Get max cTGP and DB offsets
 
 	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_ENABLE,
 				      UW_EC_REG_CTGP_DB_ENABLE_BIT_GENERAL_ENABLE |
@@ -241,7 +219,7 @@ static int __init init_db_and_ctgp(void)
 	if (result < 0)
 		return result;
 
-	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_DB_TARGET_OFFSET, 35);
+	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_DB_TARGET_OFFSET, 255);
 	if (result < 0)
 		return result;
 
@@ -256,19 +234,7 @@ static int __init init_sysfs_attrs(struct platform_device *pdev)
 {
 	int result = 0;
 
-	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_ctgp_enable.attr);
-	if (result)
-		return result;
-
 	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_ctgp_offset.attr);
-	if (result)
-		return result;
-
-	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_max_ctgp_offset.attr);
-	if (result)
-		return result;
-
-	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_db_enable.attr);
 	if (result)
 		return result;
 
@@ -276,37 +242,51 @@ static int __init init_sysfs_attrs(struct platform_device *pdev)
 	if (result)
 		return result;
 
-	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_max_db_offset.attr);
+#ifdef DEBUG
+	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_ctgp_enable.attr);
+	if (result)
+		return result;
+
+	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_db_enable.attr);
 	if (result)
 		return result;
 
 	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_db_target_offset.attr);
 	if (result)
 		return result;
-
-	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_max_combined_offset.attr);
-	if (result)
-		return result;
+#endif // DEBUG
 
 	return 0;
 }
 
+static int interface_probe_retries = 5;
+
 static int __init tuxedo_nb02_nvidia_power_ctrl_probe(struct platform_device *pdev) {
 	int result = 0;
-	u8 data = 0;
 	char **uniwill_active_interface = NULL;
+	struct pci_dev *gpu_dev = NULL;
 
-	// TODO Retry with wait
-	result = uniwill_get_active_interface_id(uniwill_active_interface);
+	while (interface_probe_retries) {
+		result = uniwill_get_active_interface_id(uniwill_active_interface);
+		if (result == 0)
+			break;
+		msleep(20);
+		--interface_probe_retries;
+	}
 	if (result < 0)
 		return result;
 
-	// TODO Replace by check for NVIDIA 3000 series or newer
-	result = uniwill_read_ec_ram(UW_EC_REG_FAN_CTRL_STATUS, &data);
+	// Check for NVIDIA 3000 series or higher
+	result = -ENODEV;
+	while ((gpu_dev = pci_get_device(0x10de, PCI_ANY_ID, gpu_dev)) != NULL) {
+		if (gpu_dev->device >= 0x2200) {
+			result = 0;
+			pci_dev_put(gpu_dev);
+			break;
+		}
+	}
 	if (result < 0)
 		return result;
-	if (!(data & UW_EC_REG_FAN_CTRL_STATUS_BIT_HAS_UW_FAN_CTRL))
-		return -ENODEV;
 
 	result = init_db_and_ctgp();
 	if (result < 0)
@@ -330,7 +310,17 @@ static struct platform_driver tuxedo_nb02_nvidia_power_ctrl_driver = {
 
 static int __init tuxedo_nb02_nvidia_power_ctrl_init(void)
 {
-	// TODO check if device already exsists to prevent crash
+	struct device *dev = NULL;
+
+	dev = bus_find_device_by_name(&platform_bus_type, NULL,
+				      tuxedo_nb02_nvidia_power_ctrl_driver.driver.name);
+	if (IS_ERR(dev))
+		return PTR_ERR(dev);
+	if (dev != NULL) {
+		put_device(dev);
+		return -EEXIST;
+	}
+
 	tuxedo_nb02_nvidia_power_ctrl_device =
 		platform_create_bundle(&tuxedo_nb02_nvidia_power_ctrl_driver,
 				       tuxedo_nb02_nvidia_power_ctrl_probe, NULL, 0, NULL, 0);
