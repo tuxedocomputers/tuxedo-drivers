@@ -325,7 +325,7 @@ static int __init tuxedo_nb02_nvidia_power_ctrl_probe(struct platform_device *pd
 
 static struct platform_device *tuxedo_nb02_nvidia_power_ctrl_device;
 static struct platform_driver tuxedo_nb02_nvidia_power_ctrl_driver = {
-	.driver.name = "tuxedo_nb02_nvidia_power_ctrl",
+	.driver.name = "tuxedo_nvidia_power_ctrl",
 };
 
 static int __init tuxedo_nb02_nvidia_power_ctrl_init(void)
