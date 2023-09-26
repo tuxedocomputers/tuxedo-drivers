@@ -428,6 +428,11 @@ bool clevo_fn_lock_available(void){
 	union acpi_object *out_obj;
 	u8 fnlock;
 
+	// no sysfs device for Aura Gen3 due to Fn Lock interference (via keyboard)
+	if (dmi_match(DMI_PRODUCT_SKU, "AURA14GEN3") ||
+	    dmi_match(DMI_PRODUCT_SKU, "AURA15GEN3"))
+			return 0;
+
 	// check Fn lock for WMI
 	if( strcmp(active_clevo_interface->string_id, CLEVO_INTERFACE_WMI_STRID) == 0) {
 		pr_debug("FnLock test: WMI is not supported\n");
