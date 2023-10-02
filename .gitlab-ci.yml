@@ -22,7 +22,7 @@ packaging:
     - mv *.deb $PACKAGES_FOLDER_NAME/
     - mv *.rpm $PACKAGES_FOLDER_NAME/
   artifacts:
-    name: tuxedo-keyboard-${CI_COMMIT_REF_SLUG}
+    name: tuxedo-drivers-${CI_COMMIT_REF_SLUG}
     when: on_success
     paths:
       - $PACKAGES_FOLDER_NAME/*

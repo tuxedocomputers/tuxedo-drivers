@@ -19,6 +19,10 @@ Modules included in this package
 - clevo-wmi
 - clevo-acpi
 - uniwill-wmi
+- ite_8291
+- ite_8291_lb
+- ite_8297
+- ite_829x
 
 # Building and Install <a name="building"></a>
 
@@ -39,9 +43,9 @@ For convenience, on platforms where DKMS is in use, skip to the DKMS section dir
 ## Clone the Git Repo:
 
 ```sh
-git clone https://github.com/tuxedocomputers/tuxedo-keyboard.git
+git clone https://github.com/tuxedocomputers/tuxedo-drivers.git
 
-cd tuxedo-keyboard
+cd tuxedo-drivers
 
 git checkout release
 ```

@@ -1,9 +1,9 @@
 /*!
  * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
- * This file is part of tuxedo-keyboard-ite.
+ * This file is part of tuxedo-drivers.
  *
- * tuxedo-keyboard-ite is free software: you can redistribute it and/or modify
+ * tuxedo-drivers is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.

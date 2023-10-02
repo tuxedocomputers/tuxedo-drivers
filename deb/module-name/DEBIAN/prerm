@@ -12,6 +12,10 @@ case "$1" in
             dkms remove -m $module -v $version --all
             # Attempt to remove module, fail silently if module is already unloaded
             rmmod -s $module > /dev/null 2>&1 || true
+            rmmod -s ite_8297 > /dev/null 2>&1 || true
+            rmmod -s ite_8291 > /dev/null 2>&1 || true
+            rmmod -s ite_8291_lb > /dev/null 2>&1 || true
+            rmmod -s ite_829x > /dev/null 2>&1 || true
         fi
         rm -f /etc/modprobe.d/tuxedo_keyboard.conf || true
     ;;
@@ -22,6 +26,10 @@ case "$1" in
             dkms remove -m $module -v $version --all
             # Attempt to remove module, fail silently if module is already unloaded
             rmmod -s $module > /dev/null 2>&1 || true
+            rmmod -s ite_8297 > /dev/null 2>&1 || true
+            rmmod -s ite_8291 > /dev/null 2>&1 || true
+            rmmod -s ite_8291_lb > /dev/null 2>&1 || true
+            rmmod -s ite_829x > /dev/null 2>&1 || true
         fi
     ;;
 

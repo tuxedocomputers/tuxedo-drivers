@@ -69,6 +69,15 @@ case "$1" in
         modprobe clevo_acpi > /dev/null 2>&1 || true
         modprobe tuxedo_io > /dev/null 2>&1 || true
 
+        rmmod ite_829x > /dev/null 2>&1 || true
+        modprobe ite_829x > /dev/null 2>&1 || true
+        rmmod ite_8297 > /dev/null 2>&1 || true
+        modprobe ite_8297 > /dev/null 2>&1 || true
+        rmmod ite_8291 > /dev/null 2>&1 || true
+        modprobe ite_8291 > /dev/null 2>&1 || true
+        rmmod ite_8291_lb > /dev/null 2>&1 || true
+        modprobe ite_8291_lb > /dev/null 2>&1 || true
+
         # Restart tccd after reload if it was running
         if $TCCD_RUNNING; then
             echo "Start tccd again"
@@ -77,7 +86,7 @@ case "$1" in
 
         # Install default config if none exist already
         if [ ! -f "/etc/modprobe.d/tuxedo_keyboard.conf" ]; then
-            cp -f /usr/share/tuxedo-keyboard/tuxedo_keyboard.conf /etc/modprobe.d/tuxedo_keyboard.conf
+            cp -f /usr/share/tuxedo-drivers/tuxedo_keyboard.conf /etc/modprobe.d/tuxedo_keyboard.conf
         fi
 
     ;;
