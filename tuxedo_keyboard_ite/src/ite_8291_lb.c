@@ -103,6 +103,9 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 	if (dmi_match(DMI_PRODUCT_SKU, "STEPOL1XA04") && hdev->product == 0x6010) {
 		*green = (100 * *green) / 255;
 		*blue = (100 * *blue) / 255;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") && hdev->product == 0x6010) {
+		*green = (100 * *green) / 255;
+		*blue = (100 * *blue) / 255;
 	}
 #endif
 }
@@ -519,14 +522,20 @@ static int driver_probe_callb(struct hid_device *hdev, const struct hid_device_i
 {
 	int result;
 	struct ite8291_driver_data_t *ite8291_driver_data;
+	bool exclude_device = false;
 
-	// Apparently unused device on Stellaris Gen5, avoid binding to it
+	// Unused devices in Stellaris Gen5 models
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
 	if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") &&
-	    dmi_string_in(DMI_PRODUCT_SERIAL, "GM6PX") &&
+	    !dmi_match(DMI_PRODUCT_FAMILY, "STELLARIS17I05") &&
 	    hdev->product == 0x6010)
-		return -ENODEV;
+		exclude_device = true;
 #endif
+
+	if (exclude_device) {
+		pr_info("Note: device excluded, not binding to device %0#6x\n", hdev->product);
+		return -ENODEV;
+	}
 
 	result = hid_parse(hdev);
 	if (result) {
@@ -616,5 +625,5 @@ module_hid_driver(ite8291_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for ITE RGB lightbars");
-MODULE_VERSION("0.0.1");
+MODULE_VERSION("0.0.2");
 MODULE_LICENSE("GPL");

@@ -99,6 +99,10 @@ exit 0
 
 
 %changelog
+* Thu Aug 03 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.3-1
+- Adjusted lightbar USB product exclusion (prevents driver binding to unused 
+  devices) for Stellaris Gen5 and allows proper binding of relevant ones.
+- Lightbar color scaling for Stellaris 17 Gen5
 * Thu May 04 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.1-1
 - Four zone backlight support for Stellaris Gen5
 - Experimental buffered writes for Stellaris/Fusion per-key variants
