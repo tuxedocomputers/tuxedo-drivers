@@ -174,18 +174,18 @@ static ssize_t db_enable_store(struct device *__unused, struct device_attribute 
 }
 DEVICE_ATTR_RW(db_enable);
 
-static ssize_t db_target_offset_show(struct device *__unused, struct device_attribute *__unused, char *buf)
+static ssize_t tpp_offset_show(struct device *__unused, struct device_attribute *__unused, char *buf)
 {
 	int result = 0;
 	u8 data = 0;
 
-	result = uniwill_read_ec_ram(UW_EC_REG_CTGP_DB_DB_TARGET_OFFSET, &data);
+	result = uniwill_read_ec_ram(UW_EC_REG_CTGP_DB_TPP_OFFSET, &data);
 	if (result < 0)
 		return result;
 
 	return sysfs_emit(buf, "%u\n", data);
 }
-static ssize_t db_target_offset_store(struct device *__unused, struct device_attribute *__unused,
+static ssize_t tpp_offset_store(struct device *__unused, struct device_attribute *__unused,
 			       const char *buf, size_t count)
 {
 	int result = 0;
@@ -195,13 +195,13 @@ static ssize_t db_target_offset_store(struct device *__unused, struct device_att
 	if (result < 0)
 		return result;
 
-	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_DB_TARGET_OFFSET, data);
+	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_TPP_OFFSET, data);
 	if (result < 0)
 		return result;
 
 	return count;
 }
-DEVICE_ATTR_RW(db_target_offset);
+DEVICE_ATTR_RW(tpp_offset);
 #endif // DEBUG
 
 static int __init init_db_and_ctgp(void)
@@ -219,7 +219,7 @@ static int __init init_db_and_ctgp(void)
 	if (result < 0)
 		return result;
 
-	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_DB_TARGET_OFFSET, 255);
+	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_TPP_OFFSET, 255);
 	if (result < 0)
 		return result;
 
@@ -251,7 +251,7 @@ static int __init init_sysfs_attrs(struct platform_device *pdev)
 	if (result)
 		return result;
 
-	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_db_target_offset.attr);
+	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_tpp_offset.attr);
 	if (result)
 		return result;
 #endif // DEBUG
