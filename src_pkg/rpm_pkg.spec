@@ -1,7 +1,7 @@
 %define module module-name
 
 #
-# spec file for package tuxedo-keyboard
+# spec file for package tuxedo-drivers
 #
 # Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
 #
@@ -18,7 +18,7 @@
 #
 
 
-Summary:        Kernel module for TUXEDO keyboards
+Summary:        Kernel modules for TUXEDO devices
 Name:           %{module}
 Version:        x.x.x
 Release:        x
@@ -27,18 +27,21 @@ Group:          Hardware/Other
 BuildArch:      noarch
 Url:            https://www.tuxedocomputers.com
 Source:         %{module}-%{version}.tar.bz2
-Provides:       tuxedo_keyboard = %{version}-%{release}
-Obsoletes:      tuxedo_keyboard < %{version}-%{release}
+Provides:       tuxedo_drivers = %{version}-%{release}
+Obsoletes:      tuxedo_drivers < %{version}-%{release}
+Obsoletes:      tuxedo_keyboard
+Obsoletes:      tuxedo-keyboard
+Obsoletes:      tuxedo-keyboard-ite
 Obsoletes:      tuxedo-xp-xc-touchpad-key-fix
-Obsoletes:      tuxedo-touchpad-fix <= 1.0.1
+Obsoletes:      tuxedo-touchpad-fix
 Obsoletes:      tuxedo-cc-wmi
 Requires:       dkms >= 1.95
 BuildRoot:      %{_tmppath}
 Packager:       TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 
 %description
-Keyboard & keyboard backlight driver for TUXEDO notebooks
-meant for DKMS framework.
+Drivers for several platform devices for TUXEDO notebooks meant for DKMS
+framework.
 
 %prep
 %setup -n %{module}-%{version} -q
@@ -64,6 +67,14 @@ rm -rf %{buildroot}
 %attr(0644,root,root) /usr/src/%{module}-%{version}/src/*
 %attr(0755,root,root) /usr/src/%{module}-%{version}/src/tuxedo_io/
 %attr(0644,root,root) /usr/src/%{module}-%{version}/src/tuxedo_io/*
+%attr(0755,root,root) /usr/src/%{module}-%{version}/src/ite_8291/
+%attr(0644,root,root) /usr/src/%{module}-%{version}/src/ite_8291/*
+%attr(0755,root,root) /usr/src/%{module}-%{version}/src/ite_8291_lb/
+%attr(0644,root,root) /usr/src/%{module}-%{version}/src/ite_8291_lb/*
+%attr(0755,root,root) /usr/src/%{module}-%{version}/src/ite_8297/
+%attr(0644,root,root) /usr/src/%{module}-%{version}/src/ite_8297/*
+%attr(0755,root,root) /usr/src/%{module}-%{version}/src/ite_829x/
+%attr(0644,root,root) /usr/src/%{module}-%{version}/src/ite_829x/*
 %attr(0755,root,root) /usr/share/%{module}/
 %attr(0755,root,root) /usr/share/%{module}/postinst
 %attr(0644,root,root) /usr/share/%{module}/tuxedo_keyboard.conf
@@ -107,9 +118,18 @@ for POSTINST in /usr/lib/dkms/common.postinst /usr/share/%{module}/postinst; do
         modprobe clevo_acpi > /dev/null 2>&1 || true
         modprobe tuxedo_io > /dev/null 2>&1 || true
 
+        rmmod ite_829x > /dev/null 2>&1 || true
+        modprobe ite_829x > /dev/null 2>&1 || true
+        rmmod ite_8297 > /dev/null 2>&1 || true
+        modprobe ite_8297 > /dev/null 2>&1 || true
+        rmmod ite_8291 > /dev/null 2>&1 || true
+        modprobe ite_8291 > /dev/null 2>&1 || true
+        rmmod ite_8291_lb > /dev/null 2>&1 || true
+        modprobe ite_8291_lb > /dev/null 2>&1 || true
+
         # Install default config if none exist already
         if [ ! -f "/etc/modprobe.d/tuxedo_keyboard.conf" ]; then
-            cp -f /usr/share/tuxedo-keyboard/tuxedo_keyboard.conf /etc/modprobe.d/tuxedo_keyboard.conf
+            cp -f /usr/share/tuxedo-drivers/tuxedo_keyboard.conf /etc/modprobe.d/tuxedo_keyboard.conf
         fi
 
         # Restart tccd after reload if it was running
@@ -137,11 +157,17 @@ dkms remove -m %{module} -v %{version} --all --rpm_safe_upgrade
 if [ $1 != 1 ];then
     /usr/sbin/rmmod %{module} > /dev/null 2>&1 || true
     rm -f /etc/modprobe.d/tuxedo_keyboard.conf || true
+    /usr/sbin/rmmod ite_829x > /dev/null 2>&1 || true
+    /usr/sbin/rmmod ite_8297 > /dev/null 2>&1 || true
+    /usr/sbin/rmmod ite_8291 > /dev/null 2>&1 || true
+    /usr/sbin/rmmod ite_8291_lb > /dev/null 2>&1 || true
 fi
 exit 0
 
 
 %changelog
+* Thu Sep 21 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.11-1
+- Aura Gen3 support
 * Thu Aug 10 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.10-1
 - Fix build on certain systems
 * Tue Aug 01 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.9-1

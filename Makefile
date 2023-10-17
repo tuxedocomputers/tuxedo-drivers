@@ -1,9 +1,9 @@
 #
 # Copyright (c) 2018-2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 #
-# This file is part of tuxedo-keyboard.
+# This file is part of tuxedo-drivers.
 #
-# tuxedo-keyboard is free software: you can redistribute it and/or modify
+# tuxedo-drivers. is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -16,14 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this software.  If not, see <https://www.gnu.org/licenses/>.
 #
-obj-m :=	./src/tuxedo_keyboard.o \
-		./src/clevo_wmi.o \
-		./src/clevo_acpi.o \
-		./src/tuxedo_io/tuxedo_io.o \
-		./src/uniwill_wmi.o \
-
-obj-m +=	src/tuxedo_nb02_nvidia_power_ctrl/
-
 PWD := $(shell pwd)
 KDIR := /lib/modules/$(shell uname -r)/build
 
@@ -81,6 +73,7 @@ package-deb:
 	# Copy source
 	cp -rf dkms.conf $(DEB_PACKAGE_SRC)
 	cp -rf Makefile $(DEB_PACKAGE_SRC)
+	cp -rf Kbuild $(DEB_PACKAGE_SRC)
 	cp -rf src $(DEB_PACKAGE_SRC)
 	cp -rf src_pkg/dkms_postinst $(DEB_PACKAGE_BASE)/usr/share/$(MODULE_NAME)/postinst
 	cp -rf tuxedo_keyboard.conf $(DEB_PACKAGE_BASE)/usr/share/$(MODULE_NAME)/tuxedo_keyboard.conf
@@ -121,6 +114,7 @@ package-rpm:
 	# Copy source
 	cp -rf dkms.conf $(RPM_PACKAGE_SRC)
 	cp -rf Makefile $(RPM_PACKAGE_SRC)
+	cp -rf Kbuild $(RPM_PACKAGE_SRC)
 	cp -rf src $(RPM_PACKAGE_SRC)
 	cp -rf LICENSE $(RPM_PACKAGE_SRC)
 	cp -rf src_pkg/dkms_postinst $(RPM_PACKAGE_SRC)/postinst

@@ -3,11 +3,11 @@ Version: x.x.x
 Section: admin
 Priority: optional
 Depends: dkms (>= 1.95)
-Conflicts: tuxedo-keyboard-dkms (<= 2.0.0), tuxedo-wmi-dkms (<= 1.5.1), tuxedo-xp-xc-touchpad-key-fix, tuxedo-touchpad-fix (<= 1.0.8), tuxedo-xp-xc-airplane-mode-fix (<= 0.6), tuxedo-cc-wmi
-Replaces: tuxedo-keyboard-dkms (<= 2.0.0), tuxedo-wmi-dkms (<= 1.5.1), tuxedo-xp-xc-touchpad-key-fix, tuxedo-touchpad-fix (<= 1.0.8), tuxedo-xp-xc-airplane-mode-fix (<= 0.6), tuxedo-cc-wmi
+Conflicts: tuxedo-keyboard-dkms, tuxedo-wmi-dkms, tuxedo-xp-xc-touchpad-key-fix, tuxedo-touchpad-fix, tuxedo-xp-xc-airplane-mode-fix, tuxedo-cc-wmi, tuxedo-keyboard, tuxedo-keyboard-ite
+Replaces: tuxedo-keyboard-dkms, tuxedo-wmi-dkms, tuxedo-xp-xc-touchpad-key-fix, tuxedo-touchpad-fix, tuxedo-xp-xc-airplane-mode-fix, tuxedo-cc-wmi, tuxedo-keyboard, tuxedo-keyboard-ite
 Maintainer: TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 Homepage: https://www.tuxedocomputers.com
 Architecture: all
-Description: Keyboard driver for TUXEDO notebooks.
- Keyboard & keyboard backlight driver for TUXEDO notebooks.
- Meant for DKMS framework.
+Description: Kernel modules for TUXEDO devices
+ Drivers for several platform devices for TUXEDO notebooks meant for DKMS
+ framework.

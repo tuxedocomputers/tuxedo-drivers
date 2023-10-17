@@ -22,6 +22,6 @@ Mkfile.old
 
 # Packaging
 rpm
-deb/tuxedo-keyboard-*
+deb/tuxedo-drivers-*
 *.deb
 *.rpm
