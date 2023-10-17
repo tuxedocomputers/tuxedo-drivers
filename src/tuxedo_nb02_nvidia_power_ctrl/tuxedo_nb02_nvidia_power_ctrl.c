@@ -36,6 +36,7 @@ static ssize_t ctgp_offset_store(struct device *__unused, struct device_attribut
 }
 DEVICE_ATTR_RW(ctgp_offset);
 
+#ifdef DEBUG
 static ssize_t db_offset_show(struct device *__unused, struct device_attribute *__unused, char *buf)
 {
 	int result = 0;
@@ -65,7 +66,6 @@ static ssize_t db_offset_store(struct device *__unused, struct device_attribute 
 }
 DEVICE_ATTR_RW(db_offset);
 
-#ifdef DEBUG
 static ssize_t ctgp_enable_show(struct device *__unused, struct device_attribute *__unused,
 				char *buf)
 {
@@ -238,11 +238,11 @@ static int __init init_sysfs_attrs(struct platform_device *pdev)
 	if (result)
 		return result;
 
+#ifdef DEBUG
 	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_db_offset.attr);
 	if (result)
 		return result;
 
-#ifdef DEBUG
 	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_ctgp_enable.attr);
 	if (result)
 		return result;
