@@ -103,8 +103,8 @@ for POSTINST in /usr/lib/dkms/common.postinst /usr/share/%{module}/postinst; do
         
         modprobe tuxedo_keyboard > /dev/null 2>&1 || true
         modprobe uniwill_wmi > /dev/null 2>&1 || true
-        modprobe clevo_wmi > /dev/null 2>&1 || true
         modprobe clevo_acpi > /dev/null 2>&1 || true
+        modprobe clevo_wmi > /dev/null 2>&1 || true
         modprobe tuxedo_io > /dev/null 2>&1 || true
 
         # Install default config if none exist already

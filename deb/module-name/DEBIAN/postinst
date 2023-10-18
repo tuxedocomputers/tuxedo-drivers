@@ -65,8 +65,8 @@ case "$1" in
         
         modprobe tuxedo_keyboard > /dev/null 2>&1 || true
         modprobe uniwill_wmi > /dev/null 2>&1 || true
-        modprobe clevo_wmi > /dev/null 2>&1 || true
         modprobe clevo_acpi > /dev/null 2>&1 || true
+        modprobe clevo_wmi > /dev/null 2>&1 || true
         modprobe tuxedo_io > /dev/null 2>&1 || true
 
         # Restart tccd after reload if it was running
