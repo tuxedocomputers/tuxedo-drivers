@@ -3,8 +3,8 @@ Version: x.x.x
 Section: admin
 Priority: optional
 Depends: dkms (>= 1.95)
-Conflicts: tuxedo-keyboard-dkms, tuxedo-wmi-dkms, tuxedo-xp-xc-touchpad-key-fix, tuxedo-touchpad-fix, tuxedo-xp-xc-airplane-mode-fix, tuxedo-cc-wmi, tuxedo-keyboard, tuxedo-keyboard-ite
-Replaces: tuxedo-keyboard-dkms, tuxedo-wmi-dkms, tuxedo-xp-xc-touchpad-key-fix, tuxedo-touchpad-fix, tuxedo-xp-xc-airplane-mode-fix, tuxedo-cc-wmi, tuxedo-keyboard, tuxedo-keyboard-ite
+Conflicts: tuxedo-keyboard-dkms, tuxedo-wmi-dkms, tuxedo-xp-xc-touchpad-key-fix, tuxedo-touchpad-fix, tuxedo-xp-xc-airplane-mode-fix, tuxedo-cc-wmi, tuxedo-keyboard, tuxedo_keyboard, tuxedo-keyboard-ite
+Replaces: tuxedo-keyboard-dkms, tuxedo-wmi-dkms, tuxedo-xp-xc-touchpad-key-fix, tuxedo-touchpad-fix, tuxedo-xp-xc-airplane-mode-fix, tuxedo-cc-wmi, tuxedo-keyboard, tuxedo_keyboard, tuxedo-keyboard-ite
 Maintainer: TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 Homepage: https://www.tuxedocomputers.com
 Architecture: all
