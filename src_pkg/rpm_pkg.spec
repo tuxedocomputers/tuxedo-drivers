@@ -34,6 +34,7 @@ Obsoletes:      tuxedo-touchpad-fix
 Obsoletes:      tuxedo-xp-xc-airplane-mode-fix
 Obsoletes:      tuxedo-cc-wmi
 Obsoletes:      tuxedo-keyboard
+Obsoletes:      tuxedo_keyboard
 Obsoletes:      tuxedo-keyboard-ite
 Requires:       dkms >= 1.95
 BuildRoot:      %{_tmppath}
