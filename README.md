@@ -102,7 +102,7 @@ sudo su
 echo tuxedo_keyboard >> /etc/modules
 ```
 
-## configuration file
+## Configuration file
 
 Starting with version 3.2.0, the the following options in the configuration file `tuxedo_keyboard.conf`will no longer work due to complete interface rewrite. \
 - `color_left`
