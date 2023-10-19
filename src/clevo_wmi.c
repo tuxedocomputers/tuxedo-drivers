@@ -60,9 +60,17 @@ int clevo_wmi_interface_method_call(u8 cmd, u32 arg, union acpi_object **result_
 	return clevo_wmi_evaluate(cmd, arg, result_value);
 }
 
+int clevo_wmi_interface_method_call_pkgbuf(u8 cmd, u8 *arg, u32 length, union acpi_object **result_value)
+{
+	pr_info("%s: unsupported wmi method call; ignoring cmd 0x%02x; please use acpi interface\n",
+			__func__, cmd);
+	return 0;
+}
+
 struct clevo_interface_t clevo_wmi_interface = {
 	.string_id = CLEVO_INTERFACE_WMI_STRID,
 	.method_call = clevo_wmi_interface_method_call,
+	.method_call_pkgbuf = clevo_wmi_interface_method_call_pkgbuf,
 };
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0)

@@ -46,9 +46,12 @@
 #define UNIWILL_KEY_RFKILL			0x0A4
 #define UNIWILL_KEY_KBDILLUMDOWN		0x0B1
 #define UNIWILL_KEY_KBDILLUMUP			0x0B2
+#define UNIWILL_KEY_FN_LOCK			0x0B8
 #define UNIWILL_KEY_KBDILLUMTOGGLE		0x0B9
 
 #define UNIWILL_OSD_TOUCHPADWORKAROUND		0xFFF
+
+#define UNIWILL_FN_LOCK_MASK			0x10
 
 static void uw_charging_priority_write_state(void);
 static void uw_charging_profile_write_state(void);
@@ -77,6 +80,8 @@ static struct key_entry uniwill_wmi_keymap[] = {
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL2,	{ KEY_KBDILLUMTOGGLE } },
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL3,	{ KEY_KBDILLUMTOGGLE } },
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL4,	{ KEY_KBDILLUMTOGGLE } },
+	// Send FN_ESC to user space as input-event-codes.h does not define Fn-Lock
+	{ KE_KEY,	UNIWILL_KEY_FN_LOCK,		{ KEY_FN_ESC } },
 	// Only used to put ev bits
 	{ KE_KEY,	0xffff,				{ KEY_F6 } },
 	{ KE_KEY,	0xffff,				{ KEY_LEFTALT } },
@@ -879,13 +884,31 @@ static ssize_t uw_charging_prio_store(struct device *child,
 }
 
 static const u8 uw_romid_PH4PxX[14] = {0x0C, 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+static const u8 uw_romid_PH6PxX[14] = {0x0C, 0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 static const struct dmi_system_id uw_sku_romid_table[] = {
+	// IBPG8 mk1
+	// Logic: If product serial matches 16inch use that, else default to 14inch
+	{
+		.matches = {
+			DMI_MATCH(DMI_PRODUCT_SKU, "IBP1XI08MK1"),
+			DMI_MATCH(DMI_PRODUCT_SERIAL, "PH6PRX"),
+		},
+		.driver_data = (void *)&uw_romid_PH6PxX
+	},
 	{
 		.matches = {
 			DMI_MATCH(DMI_PRODUCT_SKU, "IBP1XI08MK1"),
 		},
 		.driver_data = (void *)&uw_romid_PH4PxX
+	},
+	// IBP16G8 mk2
+	{
+		.matches = {
+			DMI_MATCH(DMI_PRODUCT_SKU, "IBP1XI08MK2"),
+			DMI_MATCH(DMI_PRODUCT_SERIAL, "PH6"),
+		},
+		.driver_data = (void *)&uw_romid_PH6PxX
 	},
 	{}
 };
@@ -1048,6 +1071,94 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 }
 EXPORT_SYMBOL(uniwill_get_device_features);
 
+// Fn lock
+
+static int uniwill_wmi_fn_lock_get(int *on)
+{
+	u8 data;
+	int err;
+
+	err = uniwill_read_ec_ram(UW_EC_REG_KBD_FN_LOCK_STATUS_BIT, &data);
+	if (err)
+		return err;
+
+	if (on)
+		*on = (data & UNIWILL_FN_LOCK_MASK) >> 4;
+
+	return 0;
+}
+
+static int uniwill_wmi_fn_lock_set(int on)
+{
+	u8 data;
+	int err;
+
+	// possible race condition
+	err = uniwill_read_ec_ram(UW_EC_REG_KBD_FN_LOCK_STATUS_BIT, &data);
+	if (err)
+		return err;
+
+	if (on)
+		data = data | UNIWILL_FN_LOCK_MASK;
+	else
+		data = data & ~UNIWILL_FN_LOCK_MASK;
+
+	err = uniwill_write_ec_ram(UW_EC_REG_KBD_FN_LOCK_STATUS_BIT, data);
+	if (err)
+		return err;
+
+	return 0;
+}
+
+static ssize_t uniwill_fn_lock_show(struct device *dev,
+		struct device_attribute *attr,
+		char *buf)
+{
+	int err, on;
+
+	err = uniwill_wmi_fn_lock_get(&on);
+	if (err)
+		return err;
+
+	return sprintf(buf, "%d\n", on);
+}
+
+static ssize_t uniwill_fn_lock_store(struct device *dev,
+		struct device_attribute *attr,
+		const char *buf, size_t size)
+{
+	int on, err;
+
+	if (kstrtoint(buf, 10, &on) ||
+			on < 0 || on > 1)
+		return -EINVAL;
+
+	err = uniwill_wmi_fn_lock_set(on);
+	if (err)
+		return err;
+
+	return size;
+}
+
+bool uniwill_fn_lock_available(void){
+	int err, on;
+
+	// Fn lock does not work for XMG Fusion
+	// exclude all versions
+	if (dmi_match(DMI_BOARD_NAME, "LAPQC71A")
+	    || dmi_match(DMI_BOARD_NAME, "LAPQC71B")
+	    || dmi_match(DMI_PRODUCT_NAME, "A60 MUV")) {
+		return 0;
+	}
+
+	// do a read for test (this may not produce an error)
+	err = uniwill_wmi_fn_lock_get(&on);
+	if (err)
+		return 0;
+	else
+		return 1;
+}
+
 static int uniwill_keyboard_probe(struct platform_device *dev)
 {
 	u32 i;
@@ -1158,6 +1269,9 @@ struct tuxedo_keyboard_driver uniwill_keyboard_driver = {
 	.platform_driver = &platform_driver_uniwill,
 	.probe = uniwill_keyboard_probe,
 	.key_map = uniwill_wmi_keymap,
+	.fn_lock_available = uniwill_fn_lock_available,
+	.fn_lock_show = uniwill_fn_lock_show,
+	.fn_lock_store = uniwill_fn_lock_store,
 };
 
 #endif // UNIWILL_KEYBOARD_H
