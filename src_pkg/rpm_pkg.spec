@@ -96,11 +96,13 @@ for POSTINST in /usr/lib/dkms/common.postinst /usr/share/%{module}/postinst; do
         echo "(Re)load modules if possible"
 
         rmmod tuxedo_io > /dev/null 2>&1 || true
+        rmmod uniwill_wmi > /dev/null 2>&1 || true
         rmmod clevo_wmi > /dev/null 2>&1 || true
         rmmod clevo_acpi > /dev/null 2>&1 || true
         rmmod tuxedo_keyboard > /dev/null 2>&1 || true
         
         modprobe tuxedo_keyboard > /dev/null 2>&1 || true
+        modprobe uniwill_wmi > /dev/null 2>&1 || true
         modprobe clevo_wmi > /dev/null 2>&1 || true
         modprobe clevo_acpi > /dev/null 2>&1 || true
         modprobe tuxedo_io > /dev/null 2>&1 || true
@@ -140,6 +142,80 @@ exit 0
 
 
 %changelog
+* Thu Aug 10 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.10-1
+- Fix build on certain systems
+* Tue Aug 01 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.9-1
+- Quirks for setting missing IBP16Gen8 keyboard layouts
+- Fix IBP 16 Gen8 mk1 layout set to 14inch variant layout
+* Fri Jul 21 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.8-1
+- Keyboard backlight support for IBS17Gen8 (white-only)
+- Fn backlight key support for IBS17Gen8
+* Wed Jun 28 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.7-1
+- Fix for certain white kbd bl identification on boot (XA15)
+- General white-only kbd bl rework to use firmware set on Fn+brightness
+  switch
+- Kernel 6.4 build compatibility fix
+* Tue Jun 13 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.6-1
+- Fallback ROM ID set quirk support
+* Mon May 19 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.5-1
+- IBP Gen8 keyboard backlight support
+- IBP Gen8 TDP support
+- Color scaling for certain one-zone RGB keyboards
+- Fix for certain white kbd bl devices (like Pulse) not setting brightness
+  to zero on init
+* Thu Apr 20 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.3-1
+- Fix missing state write on resume for some devices which woke up with "default blue" keyboard backlight
+- Add TDP device definitions for Stellaris Intel Gen5
+- Add device check on newer cpu gens
+* Mon Mar 27 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.1-1
+- Fix "lost fan control" in some circumstances (on eg. IBPGen7)
+* Wed Mar 22 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.0-1
+- KBD BL: Interface rewrite, now generally exported through /sys/class/leds :kbd_backlight
+- KBD BL: New interface impl. for white backlight keyboards (also :kbd_backlight)
+- Note: Old interface is hereby deprecated (and removed)
+* Fri Feb 17 2023 C Sandberg <tux@tuxedocomputers.com> 3.1.4-1
+- Fix upcoming 6.2 kernel build issue (from github Buddy-Matt)
+- Re-write last set charging priority on barrel plug connect
+- UW interface performance tweaks (should help with lagging keyboard issues on certain devices)
+* Wed Jan 11 2023 C Sandberg <tux@tuxedocomputers.com> 3.1.3-1
+- Fix IBP14Gen6 second fan not spinning (alternative fan ctl approach)
+- Fix some error-lookalike messages in kernel log (aka prevent uw feature
+  id when interface not available)
+* Mon Dec 19 2022 C Sandberg <tux@tuxedocomputers.com> 3.1.2-1
+- Enables dynamic boost (max offset) for certain devices needing sw ctl
+- Adds charging profile interface for devices supporting charging profiles
+- Adds charging priority interface for devices supporting USB-C PD charging
+  priority setting
+* Mon Oct 17 2022 C Sandberg <tux@tuxedocomputers.com> 3.1.1-1
+- Reenable fans-off for some devices that got it turned of as a temporary workaround
+- Fix default fan curve not being reenabled when tccd is stopped
+* Mon Oct 10 2022 C Sandberg <tux@tuxedocomputers.com> 3.1.0-1
+- Add power profiles and tdp functionality (uw)
+* Thu Oct 06 2022 C Sandberg <tux@tuxedocomputers.com> 3.0.11-1
+- Introduce alternative fan control (uw)
+- Fan control parameters from driver "has fan off" and "min fan speed"
+- Fixes missing/broken fan control on newer devices
+* Thu Apr 28 2022 C Sandberg <tux@tuxedocomputers.com> 3.0.10-1
+- Add Stellaris Intel gen 4 lightbar support
+- Default lightbar to off
+* Mon Oct 10 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.9-1
+- Add IBS15v6 & IBS17v6 new module name to perf. prof workaround
+- Interface modularization (uw)
+- Fix Pulse14/15 gen 1 keyboard backlight ctrl dissapearing
+* Fri Jul 9 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.8-1
+- Add IBS14v6 to perf. prof workaround
+* Thu Jun 24 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.7-1
+- Add new Polaris devices gen 2 & gen 3 keyb bl support
+- Add Stellaris (gen3) lightbar support
+- Fix kernel 5.13 build issue (from github BlackIkeEagle)
+- Add another Fusion lightbar ID (from github ArlindoFNeto)
+* Mon Jun 07 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.6-1
+- Add tuxedo-io performance profile set (cl)
+* Fri Apr 23 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.5-1
+- Add NS50MU to perf. profile workaround
+- Add EDUBOOK1502 to perf. profile workaround
+- Add XP gen 11 & 12 to perf. profile workaround
+- Clean-up cl driver state init (should fix some init color issues)
 * Fri Mar 19 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.4-1
 - Fixed various possible race conditions on driver init
 - Added IBS14v5 to perf. profile workaround
