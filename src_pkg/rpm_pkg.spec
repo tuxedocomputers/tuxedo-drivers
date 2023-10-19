@@ -27,7 +27,7 @@ Group:          Hardware/Other
 BuildArch:      noarch
 Url:            https://www.tuxedocomputers.com
 Source:         %{module}-%{version}.tar.bz2
-Provides:       tuxedo-keyboard
+Provides:       tuxedo-keyboard = %{version}-%{release}
 Obsoletes:      tuxedo-keyboard-dkms
 Obsoletes:      tuxedo-wmi-dkms
 Obsoletes:      tuxedo-xp-xc-touchpad-key-fix
