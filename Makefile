@@ -66,6 +66,7 @@ package-deb:
 	# Replace name/version numbers in control/script files
 	sed -i 's/^Version:[^\n]*/Version: $(VER)/g' $(DEB_PACKAGE_CTRL)/control
 	sed -i 's/^Package:[^\n]*/Package: $(MODULE_NAME)/g' $(DEB_PACKAGE_CTRL)/control
+	sed -i 's/^Provides: tuxedo-keyboard[^\n]*/Provides: tuxedo-keyboard (= $(VER))/g' $(DEB_PACKAGE_CTRL)/control
 	sed -i 's/^version=[^\n]*/version=$(VER)/g' $(DEB_PACKAGE_CTRL)/postinst
 	sed -i 's/^module=[^\n]*/module=$(MODULE_NAME)/g' $(DEB_PACKAGE_CTRL)/postinst
 	sed -i 's/^version=[^\n]*/version=$(VER)/g' $(DEB_PACKAGE_CTRL)/prerm
