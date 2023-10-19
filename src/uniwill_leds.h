@@ -219,10 +219,20 @@ static struct led_classdev_mc uniwill_mcled_cdev = {
 
 int uniwill_leds_init(struct platform_device *dev)
 {
-	int result = 0;
+	int result = 0, i = 0;
 	u8 data = 0;
 
-	result = uniwill_read_ec_ram(UW_EC_REG_BAREBONE_ID, &uniwill_barebone_id);
+	for (i = 0; i < 3; ++i) {
+		if (i) {
+			pr_err("Reading barebone ID failed. Retrying ...\n");
+		}
+
+		result = uniwill_read_ec_ram(UW_EC_REG_BAREBONE_ID, &uniwill_barebone_id);
+		if (!result && uniwill_barebone_id) {
+			break;
+		}
+		msleep(200);
+	}
 	if (result || !uniwill_barebone_id) {
 		pr_err("Reading barebone ID failed.\n");
 		return result;
