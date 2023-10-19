@@ -30,6 +30,10 @@
 #define CLEVO_EVENT_KB_LEDS_CYCLE_BRIGHTNESS	0x8A
 #define CLEVO_EVENT_KB_LEDS_TOGGLE		0x9F
 
+#define CLEVO_EVENT_KB_LEDS_DECREASE2		0x20
+#define CLEVO_EVENT_KB_LEDS_INCREASE2		0x21
+#define CLEVO_EVENT_KB_LEDS_TOGGLE2		0x3f
+
 #define CLEVO_EVENT_TOUCHPAD_TOGGLE		0x5D
 #define CLEVO_EVENT_TOUCHPAD_OFF		0xFC
 #define CLEVO_EVENT_TOUCHPAD_ON			0xFD
@@ -46,6 +50,8 @@ static struct clevo_interfaces_t {
 
 static struct clevo_interface_t *active_clevo_interface;
 
+static struct tuxedo_keyboard_driver clevo_keyboard_driver;
+
 static DEFINE_MUTEX(clevo_keyboard_interface_modification_lock);
 
 static struct key_entry clevo_keymap[] = {
@@ -54,8 +60,13 @@ static struct key_entry clevo_keymap[] = {
 	{ KE_KEY, CLEVO_EVENT_KB_LEDS_INCREASE, { KEY_KBDILLUMUP } },
 	{ KE_KEY, CLEVO_EVENT_KB_LEDS_TOGGLE, { KEY_KBDILLUMTOGGLE } },
 	{ KE_KEY, CLEVO_EVENT_KB_LEDS_CYCLE_MODE, { KEY_LIGHTS_TOGGLE } },
-	// Single cycle key (white only versions)
-	{ KE_KEY, CLEVO_EVENT_KB_LEDS_CYCLE_BRIGHTNESS, { KEY_KBDILLUMTOGGLE } },
+	// Single cycle key (white only versions) (currently handled in driver)
+	// { KE_KEY, CLEVO_EVENT_KB_LEDS_CYCLE_BRIGHTNESS, { KEY_KBDILLUMTOGGLE } },
+
+	// Alternative events (ex. 6 step white kbd)
+	{ KE_KEY, CLEVO_EVENT_KB_LEDS_DECREASE2, { KEY_KBDILLUMDOWN } },
+	{ KE_KEY, CLEVO_EVENT_KB_LEDS_INCREASE2, { KEY_KBDILLUMUP } },
+	{ KE_KEY, CLEVO_EVENT_KB_LEDS_TOGGLE2, { KEY_KBDILLUMTOGGLE } },
 
 	// Touchpad
 	// The weirdly named touchpad toggle key that is implemented as KEY_F21 "everywhere"
@@ -76,6 +87,11 @@ static struct key_entry clevo_keymap[] = {
 	// Note: Volume events need to be ignored as to not interfere with built-in functionality
 	{ KE_IGNORE, 0xfa, { KEY_UNKNOWN } }, // Appears by volume up/down
 	{ KE_IGNORE, 0xfb, { KEY_UNKNOWN } }, // Appears by mute toggle
+
+	// Only used to put ev bits
+	{ KE_KEY,	0xffff,				{ KEY_F6 } },
+	{ KE_KEY,	0xffff,				{ KEY_LEFTALT } },
+	{ KE_KEY,	0xffff,				{ KEY_LEFTMETA } },
 
 	{ KE_END, 0 }
 };
@@ -106,7 +122,7 @@ static struct kbd_backlight_mode_t {
         { .key = 7, .value = 0xB0000000, .name = "WAVE"}
 };
 
-u32 clevo_evaluate_method2(u8 cmd, u32 arg, union acpi_object **result)
+int clevo_evaluate_method2(u8 cmd, u32 arg, union acpi_object **result)
 {
 	if (IS_ERR_OR_NULL(active_clevo_interface)) {
 		pr_err("clevo_keyboard: no active interface while attempting cmd %02x arg %08x\n", cmd, arg);
@@ -116,9 +132,19 @@ u32 clevo_evaluate_method2(u8 cmd, u32 arg, union acpi_object **result)
 }
 EXPORT_SYMBOL(clevo_evaluate_method2);
 
-u32 clevo_evaluate_method(u8 cmd, u32 arg, u32 *result)
+int clevo_evaluate_method_pkgbuf(u8 cmd, u8 *arg, u32 length, union acpi_object **result)
 {
-	u32 status = 0;
+	if (IS_ERR_OR_NULL(active_clevo_interface)) {
+		pr_err("clevo_keyboard: no active interface while attempting cmd %02x\n", cmd);
+		return -ENODEV;
+	}
+	return active_clevo_interface->method_call_pkgbuf(cmd, arg, length, result);
+}
+EXPORT_SYMBOL(clevo_evaluate_method_pkgbuf);
+
+int clevo_evaluate_method(u8 cmd, u32 arg, u32 *result)
+{
+	int status = 0;
 	union acpi_object *out_obj;
 
 	status = clevo_evaluate_method2(cmd, arg, &out_obj);
@@ -140,7 +166,7 @@ u32 clevo_evaluate_method(u8 cmd, u32 arg, u32 *result)
 }
 EXPORT_SYMBOL(clevo_evaluate_method);
 
-u32 clevo_get_active_interface_id(char **id_str)
+int clevo_get_active_interface_id(char **id_str)
 {
 	if (IS_ERR_OR_NULL(active_clevo_interface))
 		return -ENODEV;
@@ -151,20 +177,6 @@ u32 clevo_get_active_interface_id(char **id_str)
 	return 0;
 }
 EXPORT_SYMBOL(clevo_get_active_interface_id);
-
-static int set_enabled_cmd(u8 state)
-{
-	u32 cmd = 0xE0000000;
-	TUXEDO_INFO("Set keyboard enabled to: %d\n", state);
-
-	if (state == 0) {
-		cmd |= 0x003001;
-	} else {
-		cmd |= 0x07F001;
-	}
-
-	return clevo_evaluate_method(CLEVO_CMD_SET_KB_RGB_LEDS, cmd, NULL);
-}
 
 static void set_next_color_whole_kb(void)
 {
@@ -254,7 +266,22 @@ static void clevo_keyboard_event_callb(u32 event)
 
 	switch (key_event) {
 		case CLEVO_EVENT_KB_LEDS_CYCLE_MODE:
+		if (clevo_leds_get_backlight_type() == CLEVO_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
+			// Special key combination. Opens TCC by default when installed.
+			input_report_key(clevo_keyboard_driver.input_device, KEY_LEFTMETA, 1);
+			input_report_key(clevo_keyboard_driver.input_device, KEY_LEFTALT, 1);
+			input_report_key(clevo_keyboard_driver.input_device, KEY_F6, 1);
+			input_sync(clevo_keyboard_driver.input_device);
+			input_report_key(clevo_keyboard_driver.input_device, KEY_F6, 0);
+			input_report_key(clevo_keyboard_driver.input_device, KEY_LEFTALT, 0);
+			input_report_key(clevo_keyboard_driver.input_device, KEY_LEFTMETA, 0);
+			input_sync(clevo_keyboard_driver.input_device);
+		} else {
 			set_next_color_whole_kb();
+		}
+			break;
+		case CLEVO_EVENT_KB_LEDS_CYCLE_BRIGHTNESS:
+			clevo_leds_notify_brightness_change_extern();
 			break;
 		default:
 			break;
@@ -293,6 +320,155 @@ static bool dmi_string_in(enum dmi_field f, const char *str)
 	return strstr(info, str) != NULL;
 }
 
+// Fn lock
+
+static int clevo_acpi_fn_get(u8 *on, u8 *kbstatus1, u8 *kbstatus2)
+{
+	int status = 0;
+	union acpi_object *out_obj;
+	u8 fnlock;
+
+	status = clevo_evaluate_method2(0x4, 0x18, &out_obj);
+	if (status) {
+		return status;
+	}
+
+	if (out_obj->type == ACPI_TYPE_BUFFER ) {
+		if (out_obj->buffer.length >= 3) {
+			// use buffer
+			fnlock = out_obj->buffer.pointer[0];
+			if (fnlock == 1) {
+				pr_debug("FnLock is set: kbstatus[1]: %08x  kbstatus[2]: %08x\n", (u32) out_obj->buffer.pointer[1], (u32)out_obj->buffer.pointer[2]);
+				*on = 1;
+			}
+			if (fnlock == 2) {
+				pr_debug("FnLock is not set: kbstatus[1]: %08x  kbstatus[2]: %08x\n", (u32) out_obj->buffer.pointer[1], (u32)out_obj->buffer.pointer[2]);
+				*on = 0;
+			}
+			if (fnlock != 1 && fnlock != 2) {
+				pr_err("FnLock undefined: 0x%x\n", fnlock);
+				status = -ENODATA;
+			}
+			*kbstatus1 = out_obj->buffer.pointer[1];
+			*kbstatus2 = out_obj->buffer.pointer[2];
+		}
+		else {
+			pr_err("unexpected buffer size %d\n", out_obj->buffer.length);
+		}
+		ACPI_FREE(out_obj);
+	}
+
+	return status;
+}
+
+static int clevo_acpi_fn_lock_set(int on)
+{
+	int status = 0;
+	union acpi_object *out_obj;
+	u8 fnlock_on, kbstatus1, kbstatus2;
+
+	// cmd 0x19; fnlock_off = 0x02, fnlock_on = 0x01
+	u8 args[] = {0x19, 0x02, 0x00, 0x00};
+
+	if (on)
+		args[1] = 0x01;
+
+	// read keyboard status first
+	status = clevo_acpi_fn_get(&fnlock_on, &kbstatus1, &kbstatus2);
+	if (status)
+		return status;
+
+	args[2] = kbstatus1;
+	args[3] = kbstatus2;
+
+	// set Fn lock
+	status = clevo_evaluate_method_pkgbuf(0x4, args, 4, &out_obj);
+
+	if (status)
+		pr_err("set/unset FnLock failed\n");
+	else
+		ACPI_FREE(out_obj);
+
+	return status;
+}
+
+static ssize_t clevo_fn_lock_show(struct device *dev,
+		struct device_attribute *attr,
+		char *buf)
+{
+	int err;
+	u8 on, kbstatus1, kbstatus2;
+
+	err = clevo_acpi_fn_get(&on, &kbstatus1, &kbstatus2);
+	if (err)
+		return err;
+
+	return sprintf(buf, "%d\n", on);
+}
+
+static ssize_t clevo_fn_lock_store(struct device *dev,
+		struct device_attribute *attr,
+		const char *buf, size_t size)
+{
+	int on, err;
+
+	if (kstrtoint(buf, 10, &on) ||
+			on < 0 || on > 1)
+		return -EINVAL;
+
+	err = clevo_acpi_fn_lock_set(on);
+	if (err)
+		return err;
+
+	return size;
+}
+
+bool clevo_fn_lock_available(void){
+	int err;
+	union acpi_object *out_obj;
+	u8 fnlock;
+
+	// no sysfs device for Aura Gen3 due to Fn Lock interference (via keyboard)
+	if (dmi_match(DMI_PRODUCT_SKU, "AURA14GEN3") ||
+	    dmi_match(DMI_PRODUCT_SKU, "AURA15GEN3"))
+			return 0;
+
+	// check Fn lock for WMI
+	if( strcmp(active_clevo_interface->string_id, CLEVO_INTERFACE_WMI_STRID) == 0) {
+		pr_debug("FnLock test: WMI is not supported\n");
+		return 0;
+	}
+
+	// check Fn Lock for ACPI
+	if( strcmp(active_clevo_interface->string_id, CLEVO_INTERFACE_ACPI_STRID) == 0) {
+		err = clevo_evaluate_method2(0x4, 0x18, &out_obj);
+		if (err) {
+			pr_debug("FnLock test: ACPI evaluate returned an error\n");
+			return 0;
+		}
+
+		if (out_obj->type != ACPI_TYPE_BUFFER ) {
+			pr_debug("FnLock test: no ACPI buffer\n");
+			return 0;
+		}
+		if (out_obj->buffer.length < 3) {
+			pr_debug("FnLock test: ACPI buffer too small\n");
+			ACPI_FREE(out_obj);
+			return 0;
+		}
+		fnlock = out_obj->buffer.pointer[0];
+		if (fnlock != 1 && fnlock != 2) {
+			pr_debug("FnLock test: unexpected FnLock value 0x%02x\n", fnlock);
+			ACPI_FREE(out_obj);
+			return 0;
+		}
+		ACPI_FREE(out_obj);
+		return 1;
+	}
+
+	return 0;
+}
+
 static void clevo_keyboard_init(void)
 {
 	bool performance_profile_set_workaround;
@@ -301,7 +477,6 @@ static void clevo_keyboard_init(void)
 	set_kbd_backlight_mode(kbd_led_state.mode);
 
 	clevo_evaluate_method(CLEVO_CMD_SET_EVENTS_ENABLED, 0, NULL);
-	set_enabled_cmd(1);
 
 	// Workaround for firmware issue not setting selected performance profile.
 	// Explicitly set "performance" perf. profile on init regardless of what is chosen
@@ -351,8 +526,7 @@ static int clevo_keyboard_remove(struct platform_device *dev)
 
 static int clevo_keyboard_suspend(struct platform_device *dev, pm_message_t state)
 {
-	// turning the keyboard off prevents default colours showing on resume
-	set_enabled_cmd(0);
+	clevo_leds_suspend(dev);
 	return 0;
 }
 
@@ -361,7 +535,7 @@ static int clevo_keyboard_resume(struct platform_device *dev)
 	clevo_evaluate_method(CLEVO_CMD_SET_EVENTS_ENABLED, 0, NULL);
 	clevo_leds_restore_state_extern(); // Sometimes clevo devices forget their last state after
 					   // suspend, so let the kernel ensure it.
-	set_enabled_cmd(1);
+	clevo_leds_resume(dev);
 	return 0;
 }
 
@@ -380,9 +554,12 @@ static struct tuxedo_keyboard_driver clevo_keyboard_driver = {
 	.platform_driver = &platform_driver_clevo,
 	.probe = clevo_keyboard_probe,
 	.key_map = clevo_keymap,
+	.fn_lock_available = clevo_fn_lock_available,
+	.fn_lock_show = clevo_fn_lock_show,
+	.fn_lock_store = clevo_fn_lock_store,
 };
 
-u32 clevo_keyboard_add_interface(struct clevo_interface_t *new_interface)
+int clevo_keyboard_add_interface(struct clevo_interface_t *new_interface)
 {
 	mutex_lock(&clevo_keyboard_interface_modification_lock);
 
@@ -420,7 +597,7 @@ u32 clevo_keyboard_add_interface(struct clevo_interface_t *new_interface)
 }
 EXPORT_SYMBOL(clevo_keyboard_add_interface);
 
-u32 clevo_keyboard_remove_interface(struct clevo_interface_t *interface)
+int clevo_keyboard_remove_interface(struct clevo_interface_t *interface)
 {
 	mutex_lock(&clevo_keyboard_interface_modification_lock);
 

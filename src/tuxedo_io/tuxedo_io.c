@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2019-2022 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2019-2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-io.
  *
@@ -34,7 +34,7 @@
 
 MODULE_DESCRIPTION("Hardware interface for TUXEDO laptops");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_VERSION("0.3.4");
+MODULE_VERSION("0.3.6");
 MODULE_LICENSE("GPL");
 
 MODULE_ALIAS_CLEVO_INTERFACES();
@@ -52,7 +52,7 @@ static struct uniwill_device_features_t *uw_feats;
 /**
  * strstr version of dmi_match
  */
-static bool dmi_string_in(enum dmi_field f, const char *str)
+static bool __attribute__ ((unused)) dmi_string_in(enum dmi_field f, const char *str)
 {
 	const char *info = dmi_get_system_info(f);
 
@@ -82,6 +82,9 @@ static int tdp_max_ph4tqx[] = { 0x32, 0x32, 0x00 };
 static int tdp_min_ph4axx[] = { 0x05, 0x05, 0x00 };
 static int tdp_max_ph4axx[] = { 0x2d, 0x3c, 0x00 };
 
+static int tdp_min_phxpxx[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_phxpxx[] = { 0x2a, 0x32, 0x5a };
+
 static int tdp_min_pfxluxg[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_pfxluxg[] = { 0x23, 0x23, 0x28 };
 
@@ -103,6 +106,9 @@ static int tdp_max_gmxagxx[] = { 0x78, 0x78, 0xd7 };
 static int tdp_min_gmxrgxx[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxrgxx[] = { 0x64, 0x64, 0x6e };
 
+static int tdp_min_gmxpxxx[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxpxxx[] = { 0x82, 0x82, 0xc8 };
+
 static int *tdp_min_defs = NULL;
 static int *tdp_max_defs = NULL;
 
@@ -121,6 +127,9 @@ void uw_id_tdp(void)
 		tdp_min_defs = tdp_min_ph4axx;
 		tdp_max_defs = tdp_max_ph4axx;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+	} else if (dmi_match(DMI_PRODUCT_SKU, "IBP1XI08MK1")) {
+		tdp_min_defs = tdp_min_phxpxx;
+		tdp_max_defs = tdp_max_phxpxx;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "PULSE1502")) {
 		tdp_min_defs = tdp_min_pfxluxg;
 		tdp_max_defs = tdp_max_pfxluxg;
@@ -144,6 +153,9 @@ void uw_id_tdp(void)
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STEPOL1XA04")) {
 		tdp_min_defs = tdp_min_gmxrgxx;
 		tdp_max_defs = tdp_max_gmxrgxx;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05")) {
+		tdp_min_defs = tdp_min_gmxpxxx;
+		tdp_max_defs = tdp_max_gmxpxxx;
 #endif
 	} else {
 		tdp_min_defs = NULL;
@@ -811,7 +823,13 @@ static int __init tuxedo_io_init(void)
 		pr_err("Failed to add cdev\n");
 		unregister_chrdev_region(tuxedo_io_device_handle, 1);
 	}
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 4, 0)
 	tuxedo_io_device_class = class_create(THIS_MODULE, "tuxedo_io");
+#else
+	tuxedo_io_device_class = class_create("tuxedo_io");
+#endif
+
 	device_create(tuxedo_io_device_class, NULL, tuxedo_io_device_handle, NULL, "tuxedo_io");
 	pr_debug("Module init successful\n");
 	
