@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2019-2022 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2019-2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-io.
  *
@@ -34,7 +34,7 @@
 
 MODULE_DESCRIPTION("Hardware interface for TUXEDO laptops");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_VERSION("0.3.3");
+MODULE_VERSION("0.3.6");
 MODULE_LICENSE("GPL");
 
 MODULE_ALIAS_CLEVO_INTERFACES();
@@ -52,7 +52,7 @@ static struct uniwill_device_features_t *uw_feats;
 /**
  * strstr version of dmi_match
  */
-static bool dmi_string_in(enum dmi_field f, const char *str)
+static bool __attribute__ ((unused)) dmi_string_in(enum dmi_field f, const char *str)
 {
 	const char *info = dmi_get_system_info(f);
 
@@ -82,6 +82,9 @@ static int tdp_max_ph4tqx[] = { 0x32, 0x32, 0x00 };
 static int tdp_min_ph4axx[] = { 0x05, 0x05, 0x00 };
 static int tdp_max_ph4axx[] = { 0x2d, 0x3c, 0x00 };
 
+static int tdp_min_phxpxx[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_phxpxx[] = { 0x2a, 0x32, 0x5a };
+
 static int tdp_min_pfxluxg[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_pfxluxg[] = { 0x23, 0x23, 0x28 };
 
@@ -103,6 +106,9 @@ static int tdp_max_gmxagxx[] = { 0x78, 0x78, 0xd7 };
 static int tdp_min_gmxrgxx[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxrgxx[] = { 0x64, 0x64, 0x6e };
 
+static int tdp_min_gmxpxxx[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxpxxx[] = { 0x82, 0x82, 0xc8 };
+
 static int *tdp_min_defs = NULL;
 static int *tdp_max_defs = NULL;
 
@@ -121,6 +127,9 @@ void uw_id_tdp(void)
 		tdp_min_defs = tdp_min_ph4axx;
 		tdp_max_defs = tdp_max_ph4axx;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+	} else if (dmi_match(DMI_PRODUCT_SKU, "IBP1XI08MK1")) {
+		tdp_min_defs = tdp_min_phxpxx;
+		tdp_max_defs = tdp_max_phxpxx;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "PULSE1502")) {
 		tdp_min_defs = tdp_min_pfxluxg;
 		tdp_max_defs = tdp_max_pfxluxg;
@@ -144,6 +153,9 @@ void uw_id_tdp(void)
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STEPOL1XA04")) {
 		tdp_min_defs = tdp_min_gmxrgxx;
 		tdp_max_defs = tdp_max_gmxrgxx;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05")) {
+		tdp_min_defs = tdp_min_gmxpxxx;
+		tdp_max_defs = tdp_max_gmxpxxx;
 #endif
 	} else {
 		tdp_min_defs = NULL;
@@ -262,24 +274,6 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
 	return 0;
 }
 
-static int has_universal_ec_fan_control(void) {
-	int ret;
-	u8 data;
-
-	if (uw_feats->model == UW_MODEL_PH4TRX) {
-		// For some reason, on this particular device, the 2nd fan is not controlled via the
-		// "GPU" fan curve when the bit to separate both fancurves is set, but the old fan
-		// control works just fine.
-		return 0;
-	}
-
-	ret = uniwill_read_ec_ram(0x078e, &data);
-	if (ret < 0) {
-		return ret;
-	}
-	return (data >> 6) & 1;
-}
-
 static int set_full_fan_mode(bool enable) {
 	u8 mode_data;
 
@@ -315,7 +309,7 @@ static int uw_init_fan(void) {
 	u16 addr_gpu_custom_fan_table_start_temp = 0x0f40;
 	u16 addr_gpu_custom_fan_table_fan_speed = 0x0f50;
 
-	if (!fans_initialized && (has_universal_ec_fan_control() == 1)) {
+	if (!fans_initialized && uw_feats->uniwill_has_universal_ec_fan_control) {
 		set_full_fan_mode(false);
 
 		uniwill_read_ec_ram(addr_use_custom_fan_table_0, &value_use_custom_fan_table_0);
@@ -360,7 +354,7 @@ static u32 uw_set_fan(u32 fan_index, u8 fan_speed)
 	u16 addr_cpu_custom_fan_table_fan_speed = 0x0f20;
 	u16 addr_gpu_custom_fan_table_fan_speed = 0x0f50;
 
-	if (has_universal_ec_fan_control() == 1) {
+	if (uw_feats->uniwill_has_universal_ec_fan_control) {
 		uw_init_fan();
 
 		if (fan_index == 0)
@@ -416,7 +410,7 @@ static u32 uw_set_fan_auto(void)
 {
 	u8 mode_data;
 
-	if (has_universal_ec_fan_control() == 1) {
+	if (uw_feats->uniwill_has_universal_ec_fan_control) {
 		u16 addr_use_custom_fan_table_0 = 0x07c5; // use different tables for both fans (0x0f00-0x0f2f and 0x0f30-0x0f5f respectivly)
 		u16 addr_use_custom_fan_table_1 = 0x07c6; // enable 0x0fxx fantables
 		u8 offset_use_custom_fan_table_0 = 7;
@@ -611,7 +605,7 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
 			copy_result = copy_to_user((void *) arg, &result, sizeof(result));
 			break;
 		case R_UW_FANS_OFF_AVAILABLE:
-			/*result = has_universal_ec_fan_control();
+			/*result = uw_feats->uniwill_has_universal_ec_fan_control ? 1 : 0;
 			if (result == 1) {
 				result = 0;
 			}
@@ -622,7 +616,7 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
 			copy_result = copy_to_user((void *) arg, &result, sizeof(result));
 			break;
 		case R_UW_FANS_MIN_SPEED:
-			/*result = has_universal_ec_fan_control();
+			/*result = uw_feats->uniwill_has_universal_ec_fan_control? 1 : 0;
 			if (result == 1) {
 				result = 20;
 			}
@@ -829,7 +823,13 @@ static int __init tuxedo_io_init(void)
 		pr_err("Failed to add cdev\n");
 		unregister_chrdev_region(tuxedo_io_device_handle, 1);
 	}
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 4, 0)
 	tuxedo_io_device_class = class_create(THIS_MODULE, "tuxedo_io");
+#else
+	tuxedo_io_device_class = class_create("tuxedo_io");
+#endif
+
 	device_create(tuxedo_io_device_class, NULL, tuxedo_io_device_handle, NULL, "tuxedo_io");
 	pr_debug("Module init successful\n");
 	

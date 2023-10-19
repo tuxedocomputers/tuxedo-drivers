@@ -142,6 +142,37 @@ exit 0
 
 
 %changelog
+* Thu Aug 10 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.10-1
+- Fix build on certain systems
+* Tue Aug 01 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.9-1
+- Quirks for setting missing IBP16Gen8 keyboard layouts
+- Fix IBP 16 Gen8 mk1 layout set to 14inch variant layout
+* Fri Jul 21 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.8-1
+- Keyboard backlight support for IBS17Gen8 (white-only)
+- Fn backlight key support for IBS17Gen8
+* Wed Jun 28 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.7-1
+- Fix for certain white kbd bl identification on boot (XA15)
+- General white-only kbd bl rework to use firmware set on Fn+brightness
+  switch
+- Kernel 6.4 build compatibility fix
+* Tue Jun 13 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.6-1
+- Fallback ROM ID set quirk support
+* Mon May 19 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.5-1
+- IBP Gen8 keyboard backlight support
+- IBP Gen8 TDP support
+- Color scaling for certain one-zone RGB keyboards
+- Fix for certain white kbd bl devices (like Pulse) not setting brightness
+  to zero on init
+* Thu Apr 20 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.3-1
+- Fix missing state write on resume for some devices which woke up with "default blue" keyboard backlight
+- Add TDP device definitions for Stellaris Intel Gen5
+- Add device check on newer cpu gens
+* Mon Mar 27 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.1-1
+- Fix "lost fan control" in some circumstances (on eg. IBPGen7)
+* Wed Mar 22 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.0-1
+- KBD BL: Interface rewrite, now generally exported through /sys/class/leds :kbd_backlight
+- KBD BL: New interface impl. for white backlight keyboards (also :kbd_backlight)
+- Note: Old interface is hereby deprecated (and removed)
 * Fri Feb 17 2023 C Sandberg <tux@tuxedocomputers.com> 3.1.4-1
 - Fix upcoming 6.2 kernel build issue (from github Buddy-Matt)
 - Re-write last set charging priority on barrel plug connect
