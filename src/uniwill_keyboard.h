@@ -46,9 +46,12 @@
 #define UNIWILL_KEY_RFKILL			0x0A4
 #define UNIWILL_KEY_KBDILLUMDOWN		0x0B1
 #define UNIWILL_KEY_KBDILLUMUP			0x0B2
+#define UNIWILL_KEY_FN_LOCK			0x0B8
 #define UNIWILL_KEY_KBDILLUMTOGGLE		0x0B9
 
 #define UNIWILL_OSD_TOUCHPADWORKAROUND		0xFFF
+
+#define UNIWILL_FN_LOCK_MASK			0x10
 
 static void uw_charging_priority_write_state(void);
 static void uw_charging_profile_write_state(void);
@@ -77,6 +80,8 @@ static struct key_entry uniwill_wmi_keymap[] = {
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL2,	{ KEY_KBDILLUMTOGGLE } },
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL3,	{ KEY_KBDILLUMTOGGLE } },
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL4,	{ KEY_KBDILLUMTOGGLE } },
+	// Send FN_ESC to user space as input-event-codes.h does not define Fn-Lock
+	{ KE_KEY,	UNIWILL_KEY_FN_LOCK,		{ KEY_FN_ESC } },
 	// Only used to put ev bits
 	{ KE_KEY,	0xffff,				{ KEY_F6 } },
 	{ KE_KEY,	0xffff,				{ KEY_LEFTALT } },
@@ -105,6 +110,22 @@ int uniwill_read_ec_ram(u16 address, u8 *data)
 }
 EXPORT_SYMBOL(uniwill_read_ec_ram);
 
+int uniwill_read_ec_ram_with_retry(u16 address, u8 *data, int retries)
+{
+	int status, i;
+
+	for (i = 0; i < retries; ++i) {
+		status = uniwill_read_ec_ram(address, data);
+		if (status != 0)
+			pr_debug("uniwill_read_ec_ram(...) failed.\n");
+		else
+			break;
+	}
+
+	return status;
+}
+EXPORT_SYMBOL(uniwill_read_ec_ram_with_retry);
+
 int uniwill_write_ec_ram(u16 address, u8 data)
 {
 	int status;
@@ -122,8 +143,7 @@ EXPORT_SYMBOL(uniwill_write_ec_ram);
 
 int uniwill_write_ec_ram_with_retry(u16 address, u8 data, int retries)
 {
-	u32 status;
-	int i;
+	int status, i;
 	u8 control_data;
 
 	for (i = 0; i < retries; ++i) {
@@ -222,13 +242,12 @@ static int keyboard_notifier_callb(struct notifier_block *nb, unsigned long code
 	int ret = NOTIFY_OK;
 
 	if (!param->down) {
-
 		if (code == KBD_KEYCODE) {
 			switch (param->value) {
-			case 125:
+			case KEY_LEFTMETA:
 				// If the last keys up were 85 -> 29 -> 125
 				// manually report KEY_F21
-				if (prevprev_key == 85 && prev_key == 29) {
+				if (prevprev_key == KEY_ZENKAKUHANKAKU && prev_key == KEY_LEFTCTRL) {
 					TUXEDO_DEBUG("Touchpad Toggle\n");
 					schedule_work(&uniwill_key_event_work);
 					ret = NOTIFY_OK;
@@ -260,29 +279,41 @@ static void uniwill_write_kbd_bl_enable(u8 enable)
 
 void uniwill_event_callb(u32 code)
 {
-	if (uniwill_keyboard_driver.input_device != NULL)
-		if (!sparse_keymap_report_known_event(uniwill_keyboard_driver.input_device, code, 1, true)) {
-			TUXEDO_DEBUG("Unknown code - %d (%0#6x)\n", code, code);
-		}
-
-	// Special key combination when mode change key is pressed
-	if (code == UNIWILL_OSD_MODE_CHANGE_KEY_EVENT) {
-		input_report_key(uniwill_keyboard_driver.input_device, KEY_LEFTMETA, 1);
-		input_report_key(uniwill_keyboard_driver.input_device, KEY_LEFTALT, 1);
-		input_report_key(uniwill_keyboard_driver.input_device, KEY_F6, 1);
-		input_sync(uniwill_keyboard_driver.input_device);
-		input_report_key(uniwill_keyboard_driver.input_device, KEY_F6, 0);
-		input_report_key(uniwill_keyboard_driver.input_device, KEY_LEFTALT, 0);
-		input_report_key(uniwill_keyboard_driver.input_device, KEY_LEFTMETA, 0);
-		input_sync(uniwill_keyboard_driver.input_device);
-	}
-
-	// Refresh keyboard state and charging prio on cable switch event
-	if (code == UNIWILL_OSD_DC_ADAPTER_CHANGE) {
-		uniwill_leds_restore_state_extern();
-
-		msleep(50);
-		uw_charging_priority_write_state();
+	switch (code) {
+		case UNIWILL_OSD_MODE_CHANGE_KEY_EVENT:
+			// Special key combination when mode change key is pressed (the one next to
+			// the power key). Opens TCC by default when installed.
+			input_report_key(uniwill_keyboard_driver.input_device, KEY_LEFTMETA, 1);
+			input_report_key(uniwill_keyboard_driver.input_device, KEY_LEFTALT, 1);
+			input_report_key(uniwill_keyboard_driver.input_device, KEY_F6, 1);
+			input_sync(uniwill_keyboard_driver.input_device);
+			input_report_key(uniwill_keyboard_driver.input_device, KEY_F6, 0);
+			input_report_key(uniwill_keyboard_driver.input_device, KEY_LEFTALT, 0);
+			input_report_key(uniwill_keyboard_driver.input_device, KEY_LEFTMETA, 0);
+			input_sync(uniwill_keyboard_driver.input_device);
+			break;
+		case UNIWILL_OSD_DC_ADAPTER_CHANGE:
+			// Refresh keyboard state and charging prio on cable switch event
+			uniwill_leds_restore_state_extern();
+			msleep(50);
+			uw_charging_priority_write_state();
+			break;
+		case UNIWILL_KEY_KBDILLUMTOGGLE:
+		case UNIWILL_OSD_KB_LED_LEVEL0:
+		case UNIWILL_OSD_KB_LED_LEVEL1:
+		case UNIWILL_OSD_KB_LED_LEVEL2:
+		case UNIWILL_OSD_KB_LED_LEVEL3:
+		case UNIWILL_OSD_KB_LED_LEVEL4:
+			// Notify userspace/UPower that the firmware changed the keyboard backlight
+			// brightness on white only keyboards. Fallthrough on other keyboards to
+			// emit KEY_KBDILLUMTOGGLE.
+			if (uniwill_leds_notify_brightness_change_extern())
+				return;
+			fallthrough;
+		default:
+			if (uniwill_keyboard_driver.input_device != NULL)
+				if (!sparse_keymap_report_known_event(uniwill_keyboard_driver.input_device, code, 1, true))
+					TUXEDO_DEBUG("Unknown code - %d (%0#6x)\n", code, code);
 	}
 }
 
@@ -771,7 +802,7 @@ static int uw_has_charging_profile(bool *status)
 	return 0;
 }
 
-static void uw_charging_profile_write_state(void)
+static void __attribute__ ((unused)) uw_charging_profile_write_state(void)
 {
 	if (uw_charging_profile_loaded)
 		uw_set_charging_profile(uw_charging_profile_last_written_value);
@@ -950,6 +981,91 @@ static ssize_t uw_charging_prio_store(struct device *child,
 		return -EINVAL;
 }
 
+static const u8 uw_romid_PH4PxX[14] = {0x0C, 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+static const u8 uw_romid_PH6PxX[14] = {0x0C, 0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+static const struct dmi_system_id uw_sku_romid_table[] = {
+	// IBPG8 mk1
+	// Logic: If product serial matches 16inch use that, else default to 14inch
+	{
+		.matches = {
+			DMI_MATCH(DMI_PRODUCT_SKU, "IBP1XI08MK1"),
+			DMI_MATCH(DMI_PRODUCT_SERIAL, "PH6PRX"),
+		},
+		.driver_data = (void *)&uw_romid_PH6PxX
+	},
+	{
+		.matches = {
+			DMI_MATCH(DMI_PRODUCT_SKU, "IBP1XI08MK1"),
+		},
+		.driver_data = (void *)&uw_romid_PH4PxX
+	},
+	// IBP16G8 mk2
+	{
+		.matches = {
+			DMI_MATCH(DMI_PRODUCT_SKU, "IBP1XI08MK2"),
+			DMI_MATCH(DMI_PRODUCT_SERIAL, "PH6"),
+		},
+		.driver_data = (void *)&uw_romid_PH6PxX
+	},
+	{}
+};
+
+static int set_rom_id(void) {
+	int i, ret;
+	const struct dmi_system_id *uw_sku_romid;
+	const u8 *romid;
+	u8 data;
+	bool romid_false = false;
+
+	uw_sku_romid = dmi_first_match(uw_sku_romid_table);
+	if (!uw_sku_romid)
+		return 0;
+
+	romid = (const u8 *)uw_sku_romid->driver_data;
+	pr_debug("ROMID 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X\n",
+		 romid[0], romid[1], romid[2], romid[3], romid[4], romid[5], romid[6], romid[7],
+		 romid[8], romid[9], romid[10], romid[11], romid[12], romid[13]);
+
+	for (i = 0; i < 14; ++i) {
+		ret = uniwill_read_ec_ram_with_retry(UW_EC_REG_ROMID_START + i, &data, 3);
+		if (ret) {
+			pr_debug("uniwill_read_ec_ram_with_retry(...) failed.\n");
+			return ret;
+		}
+		pr_debug("ROMID index: %d, expected value: 0x%02X, actual value: 0x%02X\n", i, romid[i], data);
+		if (data != romid[i]) {
+			pr_debug("ROMID is false. Correcting...\n");
+			romid_false = true;
+			break;
+		}
+	}
+
+	if (romid_false) {
+		ret = uniwill_write_ec_ram_with_retry(UW_EC_REG_ROMID_SPECIAL_1, 0xA5, 3);
+		if (ret) {
+			pr_debug("uniwill_write_ec_ram_with_retry(...) failed.\n");
+			return ret;
+		}
+		ret = uniwill_write_ec_ram_with_retry(UW_EC_REG_ROMID_SPECIAL_2, 0x78, 3);
+		if (ret) {
+			pr_debug("uniwill_write_ec_ram_with_retry(...) failed.\n");
+			return ret;
+		}
+		for (i = 0; i < 14; ++i) {
+			ret = uniwill_write_ec_ram_with_retry(UW_EC_REG_ROMID_START + i, romid[i], 3);
+			if (ret) {
+				pr_debug("uniwill_write_ec_ram_with_retry(...) failed.\n");
+				return ret;
+			}
+		}
+	}
+	else
+		pr_debug("ROMID is correct.\n");
+
+	return 0;
+}
+
 static int has_universal_ec_fan_control(void) {
 	int ret;
 	u8 data;
@@ -1053,13 +1169,104 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 }
 EXPORT_SYMBOL(uniwill_get_device_features);
 
+// Fn lock
+
+static int uniwill_wmi_fn_lock_get(int *on)
+{
+	u8 data;
+	int err;
+
+	err = uniwill_read_ec_ram(UW_EC_REG_KBD_FN_LOCK_STATUS_BIT, &data);
+	if (err)
+		return err;
+
+	if (on)
+		*on = (data & UNIWILL_FN_LOCK_MASK) >> 4;
+
+	return 0;
+}
+
+static int uniwill_wmi_fn_lock_set(int on)
+{
+	u8 data;
+	int err;
+
+	// possible race condition
+	err = uniwill_read_ec_ram(UW_EC_REG_KBD_FN_LOCK_STATUS_BIT, &data);
+	if (err)
+		return err;
+
+	if (on)
+		data = data | UNIWILL_FN_LOCK_MASK;
+	else
+		data = data & ~UNIWILL_FN_LOCK_MASK;
+
+	err = uniwill_write_ec_ram(UW_EC_REG_KBD_FN_LOCK_STATUS_BIT, data);
+	if (err)
+		return err;
+
+	return 0;
+}
+
+static ssize_t uniwill_fn_lock_show(struct device *dev,
+		struct device_attribute *attr,
+		char *buf)
+{
+	int err, on;
+
+	err = uniwill_wmi_fn_lock_get(&on);
+	if (err)
+		return err;
+
+	return sprintf(buf, "%d\n", on);
+}
+
+static ssize_t uniwill_fn_lock_store(struct device *dev,
+		struct device_attribute *attr,
+		const char *buf, size_t size)
+{
+	int on, err;
+
+	if (kstrtoint(buf, 10, &on) ||
+			on < 0 || on > 1)
+		return -EINVAL;
+
+	err = uniwill_wmi_fn_lock_set(on);
+	if (err)
+		return err;
+
+	return size;
+}
+
+bool uniwill_fn_lock_available(void){
+	int err, on;
+
+	// Fn lock does not work for XMG Fusion
+	// exclude all versions
+	if (dmi_match(DMI_BOARD_NAME, "LAPQC71A")
+	    || dmi_match(DMI_BOARD_NAME, "LAPQC71B")
+	    || dmi_match(DMI_PRODUCT_NAME, "A60 MUV")) {
+		return 0;
+	}
+
+	// do a read for test (this may not produce an error)
+	err = uniwill_wmi_fn_lock_get(&on);
+	if (err)
+		return 0;
+	else
+		return 1;
+}
+
 static int uniwill_keyboard_probe(struct platform_device *dev)
 {
 	u32 i;
 	u8 data;
 	int status;
+	struct uniwill_device_features_t *uw_feats;
 
-	struct uniwill_device_features_t *uw_feats = uniwill_get_device_features();
+	set_rom_id();
+
+	uw_feats = uniwill_get_device_features();
 
 	// FIXME Hard set balanced profile until we have implemented a way to
 	// switch it while tuxedo_io is loaded
@@ -1156,6 +1363,9 @@ struct tuxedo_keyboard_driver uniwill_keyboard_driver = {
 	.platform_driver = &platform_driver_uniwill,
 	.probe = uniwill_keyboard_probe,
 	.key_map = uniwill_wmi_keymap,
+	.fn_lock_available = uniwill_fn_lock_available,
+	.fn_lock_show = uniwill_fn_lock_show,
+	.fn_lock_store = uniwill_fn_lock_store,
 };
 
 #endif // UNIWILL_KEYBOARD_H

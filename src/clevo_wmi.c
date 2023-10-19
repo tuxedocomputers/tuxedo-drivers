@@ -30,7 +30,7 @@ static int clevo_wmi_evaluate(u32 wmi_method_id, u32 wmi_arg, union acpi_object 
 	struct acpi_buffer acpi_buffer_out = { ACPI_ALLOCATE_BUFFER, NULL };
 	union acpi_object *acpi_result;
 	acpi_status status_acpi;
-	u32 return_status = 0;
+	int return_status = 0;
 
 	status_acpi =
 		wmi_evaluate_method(CLEVO_WMI_METHOD_GUID, 0x00, wmi_method_id,
@@ -55,14 +55,22 @@ static int clevo_wmi_evaluate(u32 wmi_method_id, u32 wmi_arg, union acpi_object 
 	return return_status;
 }
 
-u32 clevo_wmi_interface_method_call(u8 cmd, u32 arg, union acpi_object **result_value)
+int clevo_wmi_interface_method_call(u8 cmd, u32 arg, union acpi_object **result_value)
 {
 	return clevo_wmi_evaluate(cmd, arg, result_value);
+}
+
+int clevo_wmi_interface_method_call_pkgbuf(u8 cmd, u8 *arg, u32 length, union acpi_object **result_value)
+{
+	pr_info("%s: unsupported wmi method call; ignoring cmd 0x%02x; please use acpi interface\n",
+			__func__, cmd);
+	return 0;
 }
 
 struct clevo_interface_t clevo_wmi_interface = {
 	.string_id = CLEVO_INTERFACE_WMI_STRID,
 	.method_call = clevo_wmi_interface_method_call,
+	.method_call_pkgbuf = clevo_wmi_interface_method_call_pkgbuf,
 };
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0)
@@ -71,7 +79,7 @@ static int clevo_wmi_probe(struct wmi_device *wdev)
 static int clevo_wmi_probe(struct wmi_device *wdev, const void *dummy_context)
 #endif
 {
-	u32 status;
+	int status;
 	union acpi_object *out_obj;
 
 	pr_debug("clevo_wmi driver probe\n");
@@ -126,7 +134,7 @@ static void clevo_wmi_notify(struct wmi_device *wdev, union acpi_object *dummy)
 {
 	u32 event_value;
 	union acpi_object *out_obj;
-	u32 status;
+	int status;
 
 	status = clevo_wmi_evaluate(0x01, 0, &out_obj);
 	if (!status) {
@@ -166,7 +174,7 @@ module_wmi_driver(clevo_wmi_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for Clevo WMI interface");
-MODULE_VERSION("0.1.0");
+MODULE_VERSION("0.1.1");
 MODULE_LICENSE("GPL");
 
 MODULE_DEVICE_TABLE(wmi, clevo_wmi_device_ids);

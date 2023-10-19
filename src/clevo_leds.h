@@ -34,7 +34,11 @@ enum clevo_kb_backlight_types {
 
 int clevo_leds_init(struct platform_device *dev);
 int clevo_leds_remove(struct platform_device *dev);
+int clevo_leds_suspend(struct platform_device *dev);
+int clevo_leds_resume(struct platform_device *dev);
 enum clevo_kb_backlight_types clevo_leds_get_backlight_type(void);
+void clevo_leds_restore_state_extern(void);
+void clevo_leds_notify_brightness_change_extern(void);
 void clevo_leds_set_brightness_extern(enum led_brightness brightness);
 void clevo_leds_set_color_extern(u32 color);
 
@@ -45,6 +49,7 @@ void clevo_leds_set_color_extern(u32 color);
 #include "clevo_interfaces.h"
 
 #include <linux/led-class-multicolor.h>
+#include <linux/delay.h>
 
 #define CLEVO_KBD_BRIGHTNESS_MAX			0xff
 #define CLEVO_KBD_BRIGHTNESS_DEFAULT			0x00
@@ -63,16 +68,27 @@ void clevo_leds_set_color_extern(u32 color);
 static enum clevo_kb_backlight_types clevo_kb_backlight_type = CLEVO_KB_BACKLIGHT_TYPE_NONE;
 static bool leds_initialized = false;
 
+/**
+ * Color scaling quirk list
+ */
+static void color_scaling(enum clevo_kb_backlight_types *type, u8 *red, u8 *green, u8 *blue)
+{
+	if (*type == CLEVO_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
+		*red = (180 * *red) / 255;
+		*blue = (200 * *blue) / 255;
+	}
+}
+
 static int clevo_evaluate_set_white_brightness(u8 brightness)
 {
-	pr_debug("Set white brightness on %d\n", brightness);
+	pr_debug("Set white brightness to %d\n", brightness);
 
 	return clevo_evaluate_method (CLEVO_CMD_SET_KB_WHITE_LEDS, brightness, NULL);
 }
 
 static int clevo_evaluate_set_rgb_brightness(u8 brightness)
 {
-	pr_debug("Set RGB brightness on %d\n", brightness);
+	pr_debug("Set RGB brightness to %d\n", brightness);
 
 	return clevo_evaluate_method (CLEVO_CMD_SET_KB_RGB_LEDS, CLEVO_CMD_SET_KB_LEDS_SUB_RGB_BRIGHTNESS | brightness, NULL);
 }
@@ -85,6 +101,20 @@ static int clevo_evaluate_set_rgb_color(u32 zone, u32 color)
 	pr_debug("Set Color 0x%08x for region 0x%08x\n", color, zone);
 
 	return clevo_evaluate_method(CLEVO_CMD_SET_KB_RGB_LEDS, clevo_submethod_arg, NULL);
+}
+
+static int clevo_evaluate_set_keyboard_status(u8 state)
+{
+	u32 cmd = 0xE0000000;
+	TUXEDO_INFO("Set keyboard enabled to: %d\n", state);
+
+	if (state == 0) {
+		cmd |= 0x003001;
+	} else {
+		cmd |= 0x07F001;
+	}
+
+	return clevo_evaluate_method(CLEVO_CMD_SET_KB_RGB_LEDS, cmd, NULL);
 }
 
 static void clevo_leds_set_brightness(struct led_classdev *led_cdev __always_unused, enum led_brightness brightness) {
@@ -133,6 +163,7 @@ static struct led_classdev_mc clevo_mcled_cdevs[3]; // forward declaration
 static void clevo_leds_set_brightness_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
 	int ret;
 	u32 zone, color;
+	u8 red, green, blue;
 	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
 
 	ret = clevo_evaluate_set_rgb_brightness(brightness);
@@ -146,9 +177,15 @@ static void clevo_leds_set_brightness_mc(struct led_classdev *led_cdev, enum led
 
 	zone = mcled_cdev->subled_info[0].channel;
 
-	color = (mcled_cdev->subled_info[0].intensity << 16) +
-		(mcled_cdev->subled_info[1].intensity << 8) +
-		mcled_cdev->subled_info[2].intensity;
+	red = mcled_cdev->subled_info[0].intensity;
+	green = mcled_cdev->subled_info[1].intensity;
+	blue = mcled_cdev->subled_info[2].intensity;
+
+	color_scaling(&clevo_kb_backlight_type, &red, &green, &blue);
+
+	color = (red << 16) +
+		(green << 8) +
+		blue;
 
 	ret = clevo_evaluate_set_rgb_color(zone, color);
 	if (ret) {
@@ -160,7 +197,8 @@ static struct led_classdev clevo_led_cdev = {
 	.name = "white:" LED_FUNCTION_KBD_BACKLIGHT,
 	.max_brightness = CLEVO_KBD_BRIGHTNESS_WHITE_MAX,
 	.brightness_set = &clevo_leds_set_brightness,
-	.brightness = CLEVO_KBD_BRIGHTNESS_WHITE_DEFAULT
+	.brightness = CLEVO_KBD_BRIGHTNESS_WHITE_DEFAULT,
+	.flags = LED_BRIGHT_HW_CHANGED
 };
 
 static struct mc_subled clevo_mcled_cdevs_subleds[3][3] = {
@@ -255,25 +293,41 @@ static struct led_classdev_mc clevo_mcled_cdevs[3] = {
 
 int clevo_leds_init(struct platform_device *dev)
 {
-	int ret;
-	u32 status;
+	int ret, i;
+	int status;
 	union acpi_object *result;
 	u32 result_fallback;
 
-	status = clevo_evaluate_method2(CLEVO_CMD_GET_SPECS, 0, &result);
-	if (!status) {
-		if (result->type == ACPI_TYPE_BUFFER) {
-			pr_debug("CLEVO_CMD_GET_SPECS result->buffer.pointer[0x0f]: 0x%02x\n", result->buffer.pointer[0x0f]);
-			clevo_kb_backlight_type = result->buffer.pointer[0x0f];
+	for (i = 0; i < 3; ++i) {
+		status = clevo_evaluate_method2(CLEVO_CMD_GET_SPECS, 0, &result);
+		if (!status) {
+			if (result->type == ACPI_TYPE_BUFFER) {
+				pr_debug("CLEVO_CMD_GET_SPECS result->buffer.pointer[0x0f]: 0x%02x\n", result->buffer.pointer[0x0f]);
+				clevo_kb_backlight_type = result->buffer.pointer[0x0f];
+				if (clevo_kb_backlight_type) {
+					status = clevo_evaluate_method(CLEVO_CMD_GET_BIOS_FEATURES_2, 0, &result_fallback);
+					if (!status) {
+						pr_debug("CLEVO_CMD_GET_BIOS_FEATURES_2 result_fallback: 0x%08x\n", result_fallback);
+						if (result_fallback & CLEVO_CMD_GET_BIOS_FEATURES_2_SUB_WHITE_ONLY_KB_MAX_5) {
+							clevo_led_cdev.max_brightness = CLEVO_KBD_BRIGHTNESS_WHITE_MAX_5;
+							clevo_led_cdev.brightness = CLEVO_KBD_BRIGHTNESS_WHITE_MAX_5_DEFAULT;
+						}
+					}
+					break;
+				} else {
+					pr_debug("clevo_kb_backlight_type 0x00 probably wrong, retrying...\n");
+					msleep(50);
+				}
+			}
+			else {
+				pr_err("CLEVO_CMD_GET_SPECS does not exist on this device or return value has wrong type, trying CLEVO_CMD_GET_BIOS_FEATURES\n");
+				status = -EINVAL;
+			}
+			ACPI_FREE(result);
 		}
 		else {
-			pr_err("CLEVO_CMD_GET_SPECS does not exist on this device or return value has wrong type, trying CLEVO_CMD_GET_BIOS_FEATURES\n");
-			status = -EINVAL;
+			pr_notice("CLEVO_CMD_GET_SPECS does not exist on this device or failed, trying CLEVO_CMD_GET_BIOS_FEATURES_1\n");
 		}
-		ACPI_FREE(result);
-	}
-	else {
-		pr_notice("CLEVO_CMD_GET_SPECS does not exist on this device or failed, trying CLEVO_CMD_GET_BIOS_FEATURES_1\n");
 	}
 
 	if (status || clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_NONE) {
@@ -320,6 +374,7 @@ int clevo_leds_init(struct platform_device *dev)
 		}
 	}
 	else if (clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
+		clevo_evaluate_set_keyboard_status(1);
 		pr_debug("Registering single zone rgb leds interface\n");
 		ret = devm_led_classdev_multicolor_register(&dev->dev, &clevo_mcled_cdevs[0]);
 		if (ret) {
@@ -328,6 +383,7 @@ int clevo_leds_init(struct platform_device *dev)
 		}
 	}
 	else if (clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_3_ZONE_RGB) {
+		clevo_evaluate_set_keyboard_status(1);
 		pr_debug("Registering three zone rgb leds interface\n");
 		ret = devm_led_classdev_multicolor_register(&dev->dev, &clevo_mcled_cdevs[0]);
 		if (ret) {
@@ -354,6 +410,34 @@ int clevo_leds_init(struct platform_device *dev)
 }
 EXPORT_SYMBOL(clevo_leds_init);
 
+int clevo_leds_suspend(struct platform_device *dev)
+{
+	switch (clevo_kb_backlight_type) {
+	case CLEVO_KB_BACKLIGHT_TYPE_1_ZONE_RGB:
+	case CLEVO_KB_BACKLIGHT_TYPE_3_ZONE_RGB:
+		clevo_evaluate_set_keyboard_status(0);
+		break;
+	default:
+		break;
+	}
+	return 0;
+}
+EXPORT_SYMBOL(clevo_leds_suspend);
+
+int clevo_leds_resume(struct platform_device *dev)
+{
+	switch (clevo_kb_backlight_type) {
+	case CLEVO_KB_BACKLIGHT_TYPE_1_ZONE_RGB:
+	case CLEVO_KB_BACKLIGHT_TYPE_3_ZONE_RGB:
+		clevo_evaluate_set_keyboard_status(1);
+		break;
+	default:
+		break;
+	}
+	return 0;
+}
+EXPORT_SYMBOL(clevo_leds_resume);
+
 int clevo_leds_remove(struct platform_device *dev) {
 	if (leds_initialized) {
 		if (clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
@@ -375,11 +459,43 @@ int clevo_leds_remove(struct platform_device *dev) {
 }
 EXPORT_SYMBOL(clevo_leds_remove);
 
-enum clevo_kb_backlight_types clevo_leds_get_backlight_type() {
+enum clevo_kb_backlight_types clevo_leds_get_backlight_type(void) {
 	return clevo_kb_backlight_type;
 }
 EXPORT_SYMBOL(clevo_leds_get_backlight_type);
 
+// TODO Don't reuse brightness_set as it is writing back the same brightness which could lead to race conditions.
+// Reimplement brightness_set instead without writing back brightness value like in uniwill_leds.h.
+void clevo_leds_restore_state_extern(void) {
+	if (clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
+		clevo_led_cdev.brightness_set(&clevo_led_cdev, clevo_led_cdev.brightness);
+	}
+	else if (clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
+		clevo_mcled_cdevs[0].led_cdev.brightness_set(&clevo_mcled_cdevs[0].led_cdev, clevo_mcled_cdevs[0].led_cdev.brightness);
+	}
+	else if (clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_3_ZONE_RGB) {
+		clevo_mcled_cdevs[0].led_cdev.brightness_set(&clevo_mcled_cdevs[0].led_cdev, clevo_mcled_cdevs[0].led_cdev.brightness);
+		clevo_mcled_cdevs[1].led_cdev.brightness_set(&clevo_mcled_cdevs[1].led_cdev, clevo_mcled_cdevs[1].led_cdev.brightness);
+		clevo_mcled_cdevs[2].led_cdev.brightness_set(&clevo_mcled_cdevs[2].led_cdev, clevo_mcled_cdevs[2].led_cdev.brightness);
+	}
+}
+EXPORT_SYMBOL(clevo_leds_restore_state_extern);
+
+void clevo_leds_notify_brightness_change_extern(void) {
+	int status;
+	u32 result;
+
+	if (clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
+		status = clevo_evaluate_method(CLEVO_CMD_GET_KB_WHITE_LEDS, 0, &result);
+		pr_debug("Firmware set brightness: %u\n", result);
+		clevo_led_cdev.brightness = result;
+		led_classdev_notify_brightness_hw_changed(&clevo_led_cdev, result);
+	}
+}
+EXPORT_SYMBOL(clevo_leds_notify_brightness_change_extern);
+
+// TODO Not used externaly, but only on init. Should not be exposed because it would require a correct
+// led_classdev_notify_brightness_hw_changed implementation when used outside of init.
 void clevo_leds_set_brightness_extern(enum led_brightness brightness) {
 	if (clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
 		clevo_led_cdev.brightness_set(&clevo_led_cdev, brightness);
@@ -395,6 +511,8 @@ void clevo_leds_set_brightness_extern(enum led_brightness brightness) {
 }
 EXPORT_SYMBOL(clevo_leds_set_brightness_extern);
 
+// TODO Not used externaly, but only on init. Should not be exposed because it would require a correct
+// led_classdev_notify_brightness_hw_changed equivalent for color implementation when used outside of init.
 void clevo_leds_set_color_extern(u32 color) {
 	if (clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
 		clevo_mcled_cdevs[0].subled_info[0].intensity = (color >> 16) & 0xff;
