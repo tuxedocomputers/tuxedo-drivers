@@ -28,15 +28,15 @@ BuildArch:      noarch
 Url:            https://www.tuxedocomputers.com
 Source:         %{module}-%{version}.tar.bz2
 Provides:       tuxedo-keyboard = %{version}-%{release}
-Obsoletes:      tuxedo-keyboard-dkms
-Obsoletes:      tuxedo-wmi-dkms
-Obsoletes:      tuxedo-xp-xc-touchpad-key-fix
-Obsoletes:      tuxedo-touchpad-fix
-Obsoletes:      tuxedo-xp-xc-airplane-mode-fix
 Obsoletes:      tuxedo-cc-wmi
-Obsoletes:      tuxedo-keyboard
+Obsoletes:      tuxedo-keyboard < 4.0.0~
 Obsoletes:      tuxedo_keyboard
-Obsoletes:      tuxedo-keyboard-ite
+Obsoletes:      tuxedo-keyboard-dkms
+Obsoletes:      tuxedo-keyboard-ite < 4.0.0~
+Obsoletes:      tuxedo-touchpad-fix
+Obsoletes:      tuxedo-wmi-dkms
+Obsoletes:      tuxedo-xp-xc-airplane-mode-fix
+Obsoletes:      tuxedo-xp-xc-touchpad-key-fix
 Requires:       dkms >= 1.95
 BuildRoot:      %{_tmppath}
 Packager:       TUXEDO Computers GmbH <tux@tuxedocomputers.com>
