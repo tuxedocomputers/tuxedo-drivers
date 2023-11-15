@@ -498,6 +498,25 @@ static int clevo_has_legacy_flexicharger(bool *status)
 	u32 write_data = 0x06000000;
 	int result;
 
+	// Known exclude list
+	bool excluded_device = false
+		|| dmi_string_in(DMI_BOARD_NAME, "N24_25BU")
+		|| dmi_string_in(DMI_BOARD_NAME, "L14xMU")
+		|| dmi_string_in(DMI_BOARD_NAME, "N141CU")
+		|| dmi_string_in(DMI_BOARD_NAME, "NH5xAx")
+		|| dmi_string_in(DMI_BOARD_NAME, "NL5xNU")
+		|| dmi_string_in(DMI_BOARD_NAME, "NS5x_7xPU")
+		|| dmi_string_in(DMI_BOARD_NAME, "P95xER")
+		|| dmi_string_in(DMI_BOARD_NAME, "PCX0DX")
+		|| dmi_string_in(DMI_BOARD_NAME, "PD5x_7xPNP_PNR_PNN_PNT")
+		|| dmi_string_in(DMI_BOARD_NAME, "X170SM")
+		;
+
+	if (excluded_device) {
+		*status = false;
+		return 0;
+	}
+
 	// Use a combination of read and write read values to identify legacy flexicharger
 	// Using set command should read the command back as result if existing
 	result = clevo_evaluate_method(0x77, 0, &read_data);
