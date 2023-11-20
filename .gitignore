@@ -1,27 +1,28 @@
-# Prerequisites
-*.d
-
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
-
-# Kernel Module Compile Results
-*.mod*
+# make artifacts
 *.cmd
-.tmp_versions/
+*.d
+*.ko
+*.mod
+*.mod.c
+*.o
 modules.order
-Module.symvers
-Mkfile.old
+/Module.symvers
 
-*.mk
+# debuild artifacts
+/debian/*.debhelper
+/debian/*.debhelper.log
+/debian/*.substvars
+/debian/debhelper-build-stamp
+/debian/files
+/debian/tuxedo-drivers
+/debian/tuxedo-keyboard
+/debian/tuxedo-keyboard-ite
 
-.vscode/
-*.kdev4
+# rpmbuild artifacts
+/src/dkms.conf
+/tuxedo-drivers.spec
 
-# Packaging
-rpm
-deb/tuxedo-drivers-*
-*.deb
-*.rpm
+# IDE artifacts
+*.kate-swp
+/*.kdev4
+/.vscode

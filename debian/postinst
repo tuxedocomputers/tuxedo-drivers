@@ -1,0 +1,46 @@
+#!/bin/sh
+
+set -e
+
+#DEBHELPER#
+
+case "$1" in
+    configure)
+        # Attempt to (re-)load modules and tccd, fail silently if not possible
+
+        # Stop tccd service if it was running before
+        echo "Check tccd running status"
+        if systemctl is-active --quiet tccd.service; then
+            TCCD_RUNNING=true
+            echo "Stop tccd temporarily"
+            systemctl stop tccd 2>&1 || true
+        fi
+
+        # (Re-)load modules
+        echo "(Re)load modules if possible"
+        rmmod tuxedo_io > /dev/null 2>&1 || true
+        rmmod uniwill_wmi > /dev/null 2>&1 || true
+        rmmod clevo_wmi > /dev/null 2>&1 || true
+        rmmod clevo_acpi > /dev/null 2>&1 || true
+        rmmod tuxedo_keyboard > /dev/null 2>&1 || true
+        modprobe tuxedo_keyboard > /dev/null 2>&1 || true
+        modprobe clevo_acpi > /dev/null 2>&1 || true
+        modprobe clevo_wmi > /dev/null 2>&1 || true
+        modprobe uniwill_wmi > /dev/null 2>&1 || true
+        modprobe tuxedo_io > /dev/null 2>&1 || true
+        rmmod ite_8291 > /dev/null 2>&1 || true
+        modprobe ite_8291 > /dev/null 2>&1 || true
+        rmmod ite_8291_lb > /dev/null 2>&1 || true
+        modprobe ite_8291_lb > /dev/null 2>&1 || true
+        rmmod ite_8297 > /dev/null 2>&1 || true
+        modprobe ite_8297 > /dev/null 2>&1 || true
+        rmmod ite_829x > /dev/null 2>&1 || true
+        modprobe ite_829x > /dev/null 2>&1 || true
+
+        # Restart tccd after reload if it was running before
+        if $TCCD_RUNNING; then
+            echo "Start tccd again"
+            systemctl start tccd 2>&1 || true
+        fi
+    ;;
+esac
