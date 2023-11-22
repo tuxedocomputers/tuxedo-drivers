@@ -34,7 +34,7 @@
 
 MODULE_DESCRIPTION("Hardware interface for TUXEDO laptops");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_VERSION("0.3.6");
+MODULE_VERSION("0.3.9");
 MODULE_LICENSE("GPL");
 
 MODULE_ALIAS_CLEVO_INTERFACES();
@@ -83,7 +83,7 @@ static int tdp_min_ph4axx[] = { 0x05, 0x05, 0x00 };
 static int tdp_max_ph4axx[] = { 0x2d, 0x3c, 0x00 };
 
 static int tdp_min_phxpxx[] = { 0x05, 0x05, 0x05 };
-static int tdp_max_phxpxx[] = { 0x2a, 0x32, 0x5a };
+static int tdp_max_phxpxx[] = { 0x2d, 0x3c, 0x6e };
 
 static int tdp_min_pfxluxg[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_pfxluxg[] = { 0x23, 0x23, 0x28 };
@@ -109,6 +109,9 @@ static int tdp_max_gmxrgxx[] = { 0x64, 0x64, 0x6e };
 static int tdp_min_gmxpxxx[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxpxxx[] = { 0x82, 0x82, 0xc8 };
 
+static int tdp_min_gmxxgxx[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxxgxx[] = { 0x50, 0x50, 0x64 };
+
 static int *tdp_min_defs = NULL;
 static int *tdp_max_defs = NULL;
 
@@ -127,7 +130,11 @@ void uw_id_tdp(void)
 		tdp_min_defs = tdp_min_ph4axx;
 		tdp_max_defs = tdp_max_ph4axx;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
-	} else if (dmi_match(DMI_PRODUCT_SKU, "IBP1XI08MK1")) {
+	} else if (dmi_match(DMI_PRODUCT_SKU, "IBP1XI08MK1") ||
+		   dmi_match(DMI_PRODUCT_SKU, "IBP1XI08MK2") ||
+		   dmi_match(DMI_PRODUCT_SKU, "IBP14I08MK2") ||
+		   dmi_match(DMI_PRODUCT_SKU, "IBP16I08MK2") ||
+		   dmi_match(DMI_PRODUCT_SKU, "OMNIA08IMK2")) {
 		tdp_min_defs = tdp_min_phxpxx;
 		tdp_max_defs = tdp_max_phxpxx;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "PULSE1502")) {
@@ -156,6 +163,12 @@ void uw_id_tdp(void)
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05")) {
 		tdp_min_defs = tdp_min_gmxpxxx;
 		tdp_max_defs = tdp_max_gmxpxxx;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "POLARIS1XA05")) {
+		tdp_min_defs = tdp_min_gmxxgxx;
+		tdp_max_defs = tdp_max_gmxxgxx;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XA05")) {
+		tdp_min_defs = tdp_min_gmxxgxx;
+		tdp_max_defs = tdp_max_gmxxgxx;
 #endif
 	} else {
 		tdp_min_defs = NULL;
@@ -219,6 +232,9 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
 			copy_to_user((int32_t *) arg, &result, sizeof(result));
 			break;*/
 		case R_CL_WEBCAM_SW:
+			if (dmi_match(DMI_PRODUCT_SKU, "AURA14GEN3") ||
+			    dmi_match(DMI_PRODUCT_SKU, "AURA15GEN3"))
+				return -ENODEV;
 			status = clevo_evaluate_method(CLEVO_CMD_GET_WEBCAM_SW, 0, &result);
 			copy_result = copy_to_user((int32_t *) arg, &result, sizeof(result));
 			break;
@@ -248,6 +264,9 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
 			clevo_evaluate_method(CLEVO_CMD_SET_FANSPEED_AUTO, argument, &result);
 			break;
 		case W_CL_WEBCAM_SW:
+			if (dmi_match(DMI_PRODUCT_SKU, "AURA14GEN3") ||
+			    dmi_match(DMI_PRODUCT_SKU, "AURA15GEN3"))
+				return -ENODEV;
 			copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
 			status = clevo_evaluate_method(CLEVO_CMD_GET_WEBCAM_SW, 0, &result);
 			// Only set status if it isn't already the right value
