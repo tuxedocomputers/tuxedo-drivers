@@ -260,7 +260,7 @@ int uniwill_leds_init(struct platform_device *dev)
 		 * check since we don't have IBP 16 Gen7 devices without keyboard backlight anyway.
 		 */
 		if (data & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB
-		    || uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PHxAxxx) {
+		    || uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx) {
 			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
 			uniwill_kbl_brightness_ec_controlled = true;
 		}
