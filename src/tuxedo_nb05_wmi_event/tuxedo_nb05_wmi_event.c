@@ -63,8 +63,10 @@ static struct key_entry driver_keymap[] = {
 /**
  * Basically a copy of the existing report event but doesn't report unknown events
  */
-static bool sparse_keymap_report_known_event(struct input_dev *dev, unsigned int code,
-					unsigned int value, bool autorelease)
+static bool sparse_keymap_report_known_event(struct input_dev *dev,
+					     unsigned int code,
+					     unsigned int value,
+					     bool autorelease)
 {
 	const struct key_entry *ke =
 		sparse_keymap_entry_from_scancode(dev, code);
