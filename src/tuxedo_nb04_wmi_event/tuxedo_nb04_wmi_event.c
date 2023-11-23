@@ -58,6 +58,25 @@ static struct key_entry driver_keymap[] = {
 	{ KE_END,	0 }
 };
 
+/**
+ * Basically a copy of the existing report event but doesn't report unknown events
+ */
+static bool sparse_keymap_report_known_event(struct input_dev *dev,
+					     unsigned int code,
+					     unsigned int value,
+					     bool autorelease)
+{
+	const struct key_entry *ke =
+		sparse_keymap_entry_from_scancode(dev, code);
+
+	if (ke) {
+		sparse_keymap_report_entry(dev, ke, value, autorelease);
+		return true;
+	}
+
+	return false;
+}
+
 static int input_device_init(struct input_dev **input_dev_pp, const struct key_entry key_map[])
 {
 	struct input_dev *input_dev;
@@ -151,7 +170,7 @@ static void tuxedo_nb04_wmi_event_notify(struct wmi_device *wdev, union acpi_obj
 		event_code = obj->buffer.pointer[1];
 		pr_debug("event value: %d (%0#4x)\n",
 			 event_code, event_code);
-		sparse_keymap_report_event(driver_data->input_dev,
+		sparse_keymap_report_known_event(driver_data->input_dev,
 						 event_code,
 						 1,
 						 true);
