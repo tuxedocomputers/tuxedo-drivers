@@ -27,6 +27,9 @@
 #define NB04_WMI_AB_GUID	"80C9BAA6-AC48-4538-9234-9F81A55E7C85"
 #define NB04_WMI_BB_GUID	"B8BED7BB-3F3D-4C71-953D-6D4172F27A63"
 
+#define AB_INPUT_BUFFER_LENGTH_NORMAL	8
+#define AB_INPUT_BUFFER_LENGTH_EXTENDED	496
+
 #define KEYBOARD_MAX_BRIGHTNESS		0x09
 #define KEYBOARD_DEFAULT_BRIGHTNESS	0x00
 #define KEYBOARD_DEFAULT_COLOR_RED	0xff
@@ -37,6 +40,64 @@ struct driver_data_t {
 	struct led_classdev_mc mcled_cdev_keyboard;
 	struct mc_subled mcled_cdev_subleds_keyboard[3];
 };
+
+/**
+ * Normal method interface 8 bytes in 80 bytes out
+ */
+static int nb04_wmi_ab_method(struct wmi_device *wdev, u32 wmi_method_id,
+			      uint8_t *in, uint8_t *out)
+{
+	struct acpi_buffer acpi_buffer_in = { (acpi_size)AB_INPUT_BUFFER_LENGTH_NORMAL, in };
+	struct acpi_buffer acpi_buffer_out = { ACPI_ALLOCATE_BUFFER, NULL };
+	acpi_status status;
+
+	status = wmidev_evaluate_method(wdev, 0, wmi_method_id,
+					&acpi_buffer_in, &acpi_buffer_out);
+
+	if (ACPI_FAILURE(status)) {
+		pr_err("failed to evaluate wmi method\n");
+		return -EIO;
+	}
+
+	if (acpi_buffer_out.length != AB_INPUT_BUFFER_LENGTH_NORMAL) {
+		pr_err("Unexpected buffer length");
+		return -EIO;
+	}
+
+	memcpy(out, acpi_buffer_out.pointer, AB_INPUT_BUFFER_LENGTH_NORMAL);
+	kfree(acpi_buffer_out.pointer);
+
+	return 0;
+}
+
+/**
+ * Normal method interface 496 bytes in 80 bytes out
+ */
+static int nb04_wmi_ab_method_extended(struct wmi_device *wdev, u32 wmi_method_id,
+			      uint8_t *in, uint8_t *out)
+{
+	struct acpi_buffer acpi_buffer_in = { (acpi_size)AB_INPUT_BUFFER_LENGTH_EXTENDED, in };
+	struct acpi_buffer acpi_buffer_out = { ACPI_ALLOCATE_BUFFER, NULL };
+	acpi_status status;
+
+	status = wmidev_evaluate_method(wdev, 0, wmi_method_id,
+					&acpi_buffer_in, &acpi_buffer_out);
+
+	if (ACPI_FAILURE(status)) {
+		pr_err("failed to evaluate wmi method\n");
+		return -EIO;
+	}
+
+	if (acpi_buffer_out.length != AB_INPUT_BUFFER_LENGTH_EXTENDED) {
+		pr_err("Unexpected buffer length");
+		return -EIO;
+	}
+
+	memcpy(out, acpi_buffer_out.pointer, AB_INPUT_BUFFER_LENGTH_EXTENDED);
+	kfree(acpi_buffer_out.pointer);
+
+	return 0;
+}
 
 void leds_set_brightness_mc_keyboard(struct led_classdev *led_cdev, enum led_brightness brightness) {
 
