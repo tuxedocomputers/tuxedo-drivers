@@ -74,7 +74,7 @@ static int nb04_wmi_ab_method(struct wmi_device *wdev, u32 wmi_method_id,
  * Normal method interface 496 bytes in 80 bytes out
  */
 static int nb04_wmi_ab_method_extended(struct wmi_device *wdev, u32 wmi_method_id,
-			      uint8_t *in, uint8_t *out)
+				       uint8_t *in, uint8_t *out)
 {
 	struct acpi_buffer acpi_buffer_in = { (acpi_size)AB_INPUT_BUFFER_LENGTH_EXTENDED, in };
 	struct acpi_buffer acpi_buffer_out = { ACPI_ALLOCATE_BUFFER, NULL };
