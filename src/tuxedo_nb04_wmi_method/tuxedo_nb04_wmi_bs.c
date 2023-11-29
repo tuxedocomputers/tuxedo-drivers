@@ -32,8 +32,8 @@
 #define NB04_WMI_BS_GUID	"1F174999-3A4E-4311-900D-7BE7166D5055"
 
 static const char * const temp_labels[] = {
-	"cpu-fan",
-	"gpu-fan"
+	"cpu0",
+	"gpu0"
 };
 
 static const char * const fan_labels[] = {
