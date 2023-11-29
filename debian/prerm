@@ -6,6 +6,7 @@ case "$1" in
     remove|upgrade|deconfigure)
         # Attempt to unload modules, fail silently if not possible
         echo "Unload modules if possible"
+        rmmod tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
         rmmod tuxedo_io > /dev/null 2>&1 || true
         rmmod uniwill_wmi > /dev/null 2>&1 || true
         rmmod clevo_wmi > /dev/null 2>&1 || true

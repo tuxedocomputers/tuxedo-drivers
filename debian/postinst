@@ -19,6 +19,7 @@ case "$1" in
 
         # (Re-)load modules
         echo "(Re)load modules if possible"
+        rmmod tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
         rmmod tuxedo_io > /dev/null 2>&1 || true
         rmmod uniwill_wmi > /dev/null 2>&1 || true
         rmmod clevo_wmi > /dev/null 2>&1 || true
@@ -29,6 +30,7 @@ case "$1" in
         modprobe clevo_wmi > /dev/null 2>&1 || true
         modprobe uniwill_wmi > /dev/null 2>&1 || true
         modprobe tuxedo_io > /dev/null 2>&1 || true
+        modprobe tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
         rmmod ite_8291 > /dev/null 2>&1 || true
         modprobe ite_8291 > /dev/null 2>&1 || true
         rmmod ite_8291_lb > /dev/null 2>&1 || true
