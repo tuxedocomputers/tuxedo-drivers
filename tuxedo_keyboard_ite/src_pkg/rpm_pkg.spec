@@ -99,6 +99,8 @@ exit 0
 
 
 %changelog
+* Thu Nov 16 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.4-1
+- Add color scaling for Stellaris Gen5 AMD devices
 * Thu Aug 03 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.3-1
 - Adjusted lightbar USB product exclusion (prevents driver binding to unused 
   devices) for Stellaris Gen5 and allows proper binding of relevant ones.
