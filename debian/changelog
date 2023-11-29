@@ -4,7 +4,7 @@ tuxedo-drivers (4.0.0) jammy; urgency=medium
   * Rename package
   * Rework packaging process
 
- -- C Sandberg <tux@tuxedocomputers.com>  Mon, 20 Nov 2023 20:22:38 +0100
+ -- Werner Sembach <tux@tuxedocomputers.com>  Mon, 20 Nov 2023 20:22:38 +0100
 
 tuxedo-keyboard (3.2.14) jammy; urgency=low
 
