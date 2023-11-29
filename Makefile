@@ -68,5 +68,16 @@ package-rpm:
 	sed 's/#MODULE_VERSION#/$(PACKAGE_VERSION)/' debian/tuxedo-drivers.dkms > src/dkms.conf
 	sed 's/#MODULE_VERSION#/$(PACKAGE_VERSION)/' tuxedo-drivers.spec.in > tuxedo-drivers.spec
 	mkdir -p $(RPMSRCDIR)
-	tar --create --file $(RPMSRCDIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.xz --transform="s/src/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/src\/$(PACKAGE_NAME)-$(PACKAGE_VERSION)/" --transform="s/tuxedo_keyboard.conf/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/etc\/modprobe.d\/tuxedo_keyboard.conf/" --transform="s/debian\/copyright/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/LICENSE/" --exclude=*.cmd --exclude=*.d --exclude=*.ko --exclude=*.mod --exclude=*.mod.c --exclude=*.o --exclude=modules.order src tuxedo_keyboard.conf debian/copyright
+	tar --create --file $(RPMSRCDIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.xz\
+		--transform="s/src/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/src\/$(PACKAGE_NAME)-$(PACKAGE_VERSION)/"\
+		--transform="s/tuxedo_keyboard.conf/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/etc\/modprobe.d\/tuxedo_keyboard.conf/"\
+		--transform="s/debian\/copyright/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/LICENSE/"\
+		--exclude=*.cmd\
+		--exclude=*.d\
+		--exclude=*.ko\
+		--exclude=*.mod\
+		--exclude=*.mod.c\
+		--exclude=*.o\
+		--exclude=modules.order\
+		src tuxedo_keyboard.conf debian/copyright
 	rpmbuild -ba tuxedo-drivers.spec

@@ -10,7 +10,8 @@ case "$1" in
 
         # Stop tccd service if it was running before
         echo "Check tccd running status"
-        if deb-systemd-invoke --quiet is-active tccd; then
+        TCCD_RUNNING=false
+        if deb-systemd-invoke is-active tccd; then
             TCCD_RUNNING=true
             echo "Stop tccd temporarily"
             deb-systemd-invoke stop tccd 2>&1 || true
