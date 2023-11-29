@@ -12,15 +12,15 @@ Requires:       dkms >= 2.1
 BuildArch:      noarch
 
 Provides:       tuxedo-keyboard = 4.0.0-1
-Obsoletes:      tuxedo-cc-wmi
+Obsoletes:      tuxedo-cc-wmi < 4.0.0~
 Obsoletes:      tuxedo-keyboard < 4.0.0~
-Obsoletes:      tuxedo_keyboard
-Obsoletes:      tuxedo-keyboard-dkms
+Obsoletes:      tuxedo_keyboard < 4.0.0~
+Obsoletes:      tuxedo-keyboard-dkms < 4.0.0~
 Obsoletes:      tuxedo-keyboard-ite < 4.0.0~
-Obsoletes:      tuxedo-touchpad-fix
-Obsoletes:      tuxedo-wmi-dkms
-Obsoletes:      tuxedo-xp-xc-airplane-mode-fix
-Obsoletes:      tuxedo-xp-xc-touchpad-key-fix
+Obsoletes:      tuxedo-touchpad-fix < 4.0.0~
+Obsoletes:      tuxedo-wmi-dkms < 4.0.0~
+Obsoletes:      tuxedo-xp-xc-airplane-mode-fix < 4.0.0~
+Obsoletes:      tuxedo-xp-xc-touchpad-key-fix < 4.0.0~
 
 Group:          Hardware/Other
 Packager:       TUXEDO Computers GmbH <tux@tuxedocomputers.com>
@@ -30,16 +30,15 @@ Drivers for several platform devices for TUXEDO notebooks meant for DKMS
 framework.
 
 %prep
-%setup
+%setup -q
 
 %install
 cp -r %{_builddir}/%{name}-%{version}/usr %{buildroot}
 cp -r %{_builddir}/%{name}-%{version}/etc %{buildroot}
 
 %files
-%{_usr}
-%{_sysconfdir}
-%dir %{_usrsrc}/%{name}-%{version}
+%{_usrsrc}/%{name}-%{version}
+%config(noreplace) %{_sysconfdir}/modprobe.d/tuxedo_keyboard.conf
 %license LICENSE
 
 %post
@@ -50,6 +49,7 @@ dkms install -m %{name} -v %{version}
 # Attempt to (re-)load modules and tccd, fail silently if not possible
 # Stop tccd service if it was running before
 echo "Check tccd running status"
+TCCD_RUNNING=false
 if systemctl is-active --quiet tccd.service; then
     TCCD_RUNNING=true
     echo "Stop tccd temporarily"
@@ -101,6 +101,8 @@ dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 - Merge tuxedo-keyboard and tuxedo-keyboard-ite
 - Rename package
 - Rework packaging process
+* Thu Nov 16 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.4-1
+- Add color scaling for Stellaris Gen5 AMD devices
 * Thu Nov 16 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.14-1
 - Tweak IBPG8 tdp limits
 * Fri Nov 10 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.13-1
@@ -111,6 +113,10 @@ dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 - Aura Gen3 support
 * Thu Aug 10 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.10-1
 - Fix build on certain systems
+* Thu Aug 03 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.3-1
+- Adjusted lightbar USB product exclusion (prevents driver binding to unused
+  devices) for Stellaris Gen5 and allows proper binding of relevant ones.
+- Lightbar color scaling for Stellaris 17 Gen5
 * Tue Aug 01 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.9-1
 - Quirks for setting missing IBP16Gen8 keyboard layouts
 - Fix IBP 16 Gen8 mk1 layout set to 14inch variant layout
@@ -124,22 +130,30 @@ dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 - Kernel 6.4 build compatibility fix
 * Tue Jun 13 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.6-1
 - Fallback ROM ID set quirk support
-* Mon May 19 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.5-1
+* Fri May 19 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.5-1
 - IBP Gen8 keyboard backlight support
 - IBP Gen8 TDP support
 - Color scaling for certain one-zone RGB keyboards
 - Fix for certain white kbd bl devices (like Pulse) not setting brightness
   to zero on init
+* Thu May 04 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.1-1
+- Four zone backlight support for Stellaris Gen5
+- Experimental buffered writes for Stellaris/Fusion per-key variants
 * Thu Apr 20 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.3-1
 - Fix missing state write on resume for some devices which woke up with "default blue" keyboard backlight
 - Add TDP device definitions for Stellaris Intel Gen5
 - Add device check on newer cpu gens
+* Mon Apr 17 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.0-1
+- Color scaling for Stellaris Intel Gen5
+- Lightbar impl. for Stellaris Gen4/5
 * Mon Mar 27 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.1-1
 - Fix "lost fan control" in some circumstances (on eg. IBPGen7)
 * Wed Mar 22 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.0-1
 - KBD BL: Interface rewrite, now generally exported through /sys/class/leds :kbd_backlight
 - KBD BL: New interface impl. for white backlight keyboards (also :kbd_backlight)
 - Note: Old interface is hereby deprecated (and removed)
+* Thu Feb 23 2023 C Sandberg <tux@tuxedocomputers.com> 0.3.0-1
+- Leds interface support (/sys/class/leds)
 * Fri Feb 17 2023 C Sandberg <tux@tuxedocomputers.com> 3.1.4-1
 - Fix upcoming 6.2 kernel build issue (from github Buddy-Matt)
 - Re-write last set charging priority on barrel plug connect
@@ -153,6 +167,11 @@ dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 - Adds charging profile interface for devices supporting charging profiles
 - Adds charging priority interface for devices supporting USB-C PD charging
   priority setting
+* Wed Dec 07 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.5-1
+- Add per-device color scaling to ite_8291 driver
+- Add additional scaling setting for Stellaris 17 AMD Gen 4
+* Wed Nov 30 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.4-1
+- Add USB ID for Stellaris 17 Gen 4 keyboard backlight
 * Mon Oct 17 2022 C Sandberg <tux@tuxedocomputers.com> 3.1.1-1
 - Reenable fans-off for some devices that got it turned of as a temporary workaround
 - Fix default fan curve not being reenabled when tccd is stopped
@@ -165,7 +184,7 @@ dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 * Thu Apr 28 2022 C Sandberg <tux@tuxedocomputers.com> 3.0.10-1
 - Add Stellaris Intel gen 4 lightbar support
 - Default lightbar to off
-* Mon Oct 10 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.9-1
+* Sun Oct 10 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.9-1
 - Add IBS15v6 & IBS17v6 new module name to perf. prof workaround
 - Interface modularization (uw)
 - Fix Pulse14/15 gen 1 keyboard backlight ctrl dissapearing
@@ -191,9 +210,15 @@ dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 - Changed default perf. profile to balanced (UW)
 * Fri Mar 5 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.3-1
 - Added XP14 to perf. profile workaround
+* Mon Feb 22 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.3-1
+- Fix broken brightness key reaction for ite_829x
+* Tue Feb 16 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.2-1
+- Attempt to fix ite_829x instability sometimes locking up kernel on keypress
 * Fri Jan 29 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.2-1
 - Fixed clevo keyboard init order
 - Added Aura perf. profile workaround
+* Mon Dec 21 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.1-1
+- Added device 048d:6004 to ite_8291
 * Mon Dec 21 2020 C Sandberg <tux@tuxedocomputers.com> 3.0.1-1
 - Added device support (Trinity)
 - Fixed uw fan ramp up issues to some extent (workaround)
@@ -202,12 +227,21 @@ dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 - Added separate clevo-wmi module with existing functionality
 - Added clevo-acpi module with implementation of the "new" clevo ACPI interface
 - Added tuxedo-io module (former tuxedo-cc-wmi) into package
+* Fri Nov 13 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.0-1
+- Added initial support for ITE Device(8291) ->  048d:ce00
 * Fri Nov 13 2020 C Sandberg <tux@tuxedocomputers.com> 2.1.0-1
 - Added device support (XMG Fusion)
 - Added uniwill lightbar driver (with led_classdev interface)
 - Added uniwill keymapping brightness up/down
 - Fixed uniwill touchpad toggle (some platforms)
 - Fixed module cleanup crash
+* Fri Oct 16 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.0-1
+- Added initial (very basic) support for 048d:8297 LED controller
+* Mon Oct 12 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.3-1
+- Fixed key mapping toggle <=> switch mode
+- Default color to white
+* Tue Sep 29 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.2-1
+- Initial experimental release
 * Fri Sep 25 2020 C Sandberg <tux@tuxedocomputers.com> 2.0.6-1
 - Added uw kbd color backlight support
 * Thu Jun 18 2020 C Sandberg <tux@tuxedocomputers.com> 2.0.5-1
@@ -221,6 +255,9 @@ dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 - General key event mapping support
 - Events added for backlight and touchpad
 - Fix not removing module on rpm update
+* Thu Apr 23 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.1-1
+- First version of the ITE keyboard backlight driver
+- Has support for ITE Device(829x) ->  0x048d:0x8910
 * Tue Apr 14 2020 C Sandberg <tux@tuxedocomputers.com> 2.0.2-0
 - Mark old named packages as conflicting and obsolete
 - Fix not restoring state on resume
@@ -230,40 +267,3 @@ dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 - New packaging
 * Wed Dec 18 2019 Richard Sailer <tux@tuxedocomputers.com> 2.0.0-1
 - Initial DKMS package for back-lit keyboard 2nd generation
-* Thu Nov 16 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.4-1
-- Add color scaling for Stellaris Gen5 AMD devices
-* Thu Aug 03 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.3-1
-- Adjusted lightbar USB product exclusion (prevents driver binding to unused
-  devices) for Stellaris Gen5 and allows proper binding of relevant ones.
-- Lightbar color scaling for Stellaris 17 Gen5
-* Thu May 04 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.1-1
-- Four zone backlight support for Stellaris Gen5
-- Experimental buffered writes for Stellaris/Fusion per-key variants
-* Mon Apr 17 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.0-1
-- Color scaling for Stellaris Intel Gen5
-- Lightbar impl. for Stellaris Gen4/5
-* Thu Feb 23 2023 C Sandberg <tux@tuxedocomputers.com> 0.3.0-1
-- Leds interface support (/sys/class/leds)
-* Wed Dec 07 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.5-1
-- Add per-device color scaling to ite_8291 driver
-- Add additional scaling setting for Stellaris 17 AMD Gen 4
-* Wed Nov 30 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.4-1
-- Add USB ID for Stellaris 17 Gen 4 keyboard backlight
-* Mon Feb 22 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.3-1
-- Fix broken brightness key reaction for ite_829x
-* Tue Feb 16 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.2-1
-- Attempt to fix ite_829x instability sometimes locking up kernel on keypress
-* Mon Dec 21 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.1-1
-- Added device 048d:6004 to ite_8291
-* Fri Nov 13 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.0-1
-- Added initial support for ITE Device(8291) ->  048d:ce00
-* Fri Oct 16 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.0-1
-- Added initial (very basic) support for 048d:8297 LED controller
-* Mon Oct 12 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.3-1
-- Fixed key mapping toggle <=> switch mode
-- Default color to white
-* Tue Sep 29 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.2-1
-- Initial experimental release
-* Thu Apr 23 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.1-1
-- First version of the ITE keyboard backlight driver
-- Has support for ITE Device(829x) ->  0x048d:0x8910
