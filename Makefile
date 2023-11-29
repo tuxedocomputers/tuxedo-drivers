@@ -62,7 +62,7 @@ dkmsremove:
 package: package-deb package-rpm
 
 package-deb:
-	debuild
+	debuild --no-sign
 
 package-rpm:
 	sed 's/#MODULE_VERSION#/$(PACKAGE_VERSION)/' debian/tuxedo-drivers.dkms > src/dkms.conf

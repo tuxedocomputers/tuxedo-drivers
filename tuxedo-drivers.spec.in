@@ -97,7 +97,7 @@ rmmod ite_829x > /dev/null 2>&1 || true
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
-* Mon Nov 20 2023 C Sandberg <tux@tuxedocomputers.com> 4.0.0-1
+* Mon Nov 20 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.0-1
 - Merge tuxedo-keyboard and tuxedo-keyboard-ite
 - Rename package
 - Rework packaging process

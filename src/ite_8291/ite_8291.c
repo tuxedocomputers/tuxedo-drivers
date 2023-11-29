@@ -176,6 +176,8 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") && hdev->product == 0x600a) {
 		*red = (200 * *red) / 255;
 		*blue = (220 * *blue) / 255;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XA05")) {
+		*red = (128 * *red) / 255;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") &&
 		   hdev->product == 0xce00 && driver_data->bcd_device == 0x0002) {
 		*red = (255 * *red) / 255;
@@ -867,5 +869,5 @@ module_hid_driver(ite8291_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for ITE Device(8291) RGB LED keyboard backlight.");
-MODULE_VERSION("0.2.1");
+MODULE_VERSION("0.2.2");
 MODULE_LICENSE("GPL");
