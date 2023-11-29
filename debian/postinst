@@ -10,10 +10,10 @@ case "$1" in
 
         # Stop tccd service if it was running before
         echo "Check tccd running status"
-        if systemctl is-active --quiet tccd.service; then
+        if deb-systemd-invoke --quiet is-active tccd; then
             TCCD_RUNNING=true
             echo "Stop tccd temporarily"
-            systemctl stop tccd 2>&1 || true
+            deb-systemd-invoke stop tccd 2>&1 || true
         fi
 
         # (Re-)load modules
@@ -40,7 +40,7 @@ case "$1" in
         # Restart tccd after reload if it was running before
         if $TCCD_RUNNING; then
             echo "Start tccd again"
-            systemctl start tccd 2>&1 || true
+            deb-systemd-invoke start tccd 2>&1 || true
         fi
     ;;
 esac

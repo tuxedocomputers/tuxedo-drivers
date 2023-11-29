@@ -92,10 +92,8 @@ tuxedo-keyboard (3.2.1) jammy; urgency=low
 
 tuxedo-keyboard (3.2.0) jammy; urgency=low
 
-  * KBD BL: Interface rewrite, now generally exported through /sys/class/leds
-:kbd_backlight
-  * KBD BL: New interface impl. for white backlight keyboards (also
-:kbd_backlight)
+  * KBD BL: Interface rewrite, now generally exported through /sys/class/leds :kbd_backlight
+  * KBD BL: New interface impl. for white backlight keyboards (also :kbd_backlight)
   * Note: Old interface is hereby deprecated (and removed)
 
  -- C Sandberg <tux@tuxedocomputers.com>  Wed, 22 Mar 2023 09:33:00 +0100
