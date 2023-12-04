@@ -1,2 +1,2 @@
-obj-m += tuxedo_nb04_keyboard
-obj-m += tuxedo_nb04_power_profiles
+obj-m += tuxedo_nb05_keyboard.o
+obj-m += tuxedo_nb05_power_profiles.o
