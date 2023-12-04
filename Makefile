@@ -21,7 +21,7 @@ obj-m :=	./src/tuxedo_keyboard.o \
 		./src/clevo_acpi.o \
 		./src/tuxedo_io/tuxedo_io.o \
 		./src/uniwill_wmi.o \
-		./src/tuxedo_nb05_wmi_event/tuxedo_nb05_wmi_event.o
+		./src/tuxedo_nb05/tuxedo_nb05_keyboard.o
 
 PWD := $(shell pwd)
 KDIR := /lib/modules/$(shell uname -r)/build

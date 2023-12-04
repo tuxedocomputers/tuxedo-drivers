@@ -136,9 +136,9 @@ err_free_input_device:
 }
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0)
-static int tuxedo_nb05_wmi_event_probe(struct wmi_device *wdev)
+static int tuxedo_nb05_keyboard_probe(struct wmi_device *wdev)
 #else
-static int tuxedo_nb05_wmi_event_probe(struct wmi_device *wdev, const void *dummy_context)
+static int tuxedo_nb05_keyboard_probe(struct wmi_device *wdev, const void *dummy_context)
 #endif
 {
 	struct driver_data_t *driver_data;
@@ -160,9 +160,9 @@ static int tuxedo_nb05_wmi_event_probe(struct wmi_device *wdev, const void *dumm
 }
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 13, 0)
-static int tuxedo_nb05_wmi_event_remove(struct wmi_device *wdev)
+static int tuxedo_nb05_keyboard_remove(struct wmi_device *wdev)
 #else
-static void tuxedo_nb05_wmi_event_remove(struct wmi_device *wdev)
+static void tuxedo_nb05_keyboard_remove(struct wmi_device *wdev)
 #endif
 {
 	pr_debug("driver remove\n");
@@ -174,7 +174,7 @@ static void tuxedo_nb05_wmi_event_remove(struct wmi_device *wdev)
 #endif
 }
 
-static void tuxedo_nb05_wmi_event_notify(struct wmi_device *wdev, union acpi_object *obj)
+static void tuxedo_nb05_keyboard_notify(struct wmi_device *wdev, union acpi_object *obj)
 {
 	u8 function_number;
 	u8 event_code;
@@ -217,28 +217,28 @@ static void tuxedo_nb05_wmi_event_notify(struct wmi_device *wdev, union acpi_obj
 	}
 }
 
-static const struct wmi_device_id tuxedo_nb05_wmi_event_device_ids[] = {
+static const struct wmi_device_id tuxedo_nb05_keyboard_device_ids[] = {
 	{ .guid_string = NB05_WMI_EVENT_GUID },
 	{ }
 };
 
-static struct wmi_driver tuxedo_nb05_wmi_event_driver = {
+static struct wmi_driver tuxedo_nb05_keyboard_driver = {
 	.driver = {
-		.name = "tuxedo_nb05_wmi_event",
+		.name = "tuxedo_nb05_keyboard",
 		.owner = THIS_MODULE
 	},
-	.id_table = tuxedo_nb05_wmi_event_device_ids,
-	.probe = tuxedo_nb05_wmi_event_probe,
-	.remove = tuxedo_nb05_wmi_event_remove,
-	.notify = tuxedo_nb05_wmi_event_notify,
+	.id_table = tuxedo_nb05_keyboard_device_ids,
+	.probe = tuxedo_nb05_keyboard_probe,
+	.remove = tuxedo_nb05_keyboard_remove,
+	.notify = tuxedo_nb05_keyboard_notify,
 };
 
-module_wmi_driver(tuxedo_nb05_wmi_event_driver);
+module_wmi_driver(tuxedo_nb05_keyboard_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_DESCRIPTION("Driver for NB05 WMI events");
+MODULE_DESCRIPTION("Driver for NB05 keyboard events");
 MODULE_VERSION("0.0.1");
 MODULE_LICENSE("GPL");
 
-MODULE_DEVICE_TABLE(wmi, tuxedo_nb05_wmi_event_device_ids);
+MODULE_DEVICE_TABLE(wmi, tuxedo_nb05_keyboard_device_ids);
 MODULE_ALIAS("wmi:" NB05_WMI_EVENT_GUID);
