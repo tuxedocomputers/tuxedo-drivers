@@ -25,8 +25,6 @@ KDIR := /lib/modules/$(shell uname -r)/build
 PACKAGE_NAME := $(shell grep -Pom1 '.*(?= \(.*\) .*; urgency=.*)' debian/changelog)
 PACKAGE_VERSION := $(shell grep -Pom1 '.* \(\K.*(?=\) .*; urgency=.*)' debian/changelog)
 
-RPMSRCDIR := $(shell rpm --eval "%{_sourcedir}")
-
 all:
 	make -C $(KDIR) M=$(PWD) modules
 
@@ -67,8 +65,8 @@ package-deb:
 package-rpm:
 	sed 's/#MODULE_VERSION#/$(PACKAGE_VERSION)/' debian/tuxedo-drivers.dkms > src/dkms.conf
 	sed 's/#MODULE_VERSION#/$(PACKAGE_VERSION)/' tuxedo-drivers.spec.in > tuxedo-drivers.spec
-	mkdir -p $(RPMSRCDIR)
-	tar --create --file $(RPMSRCDIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.xz\
+	mkdir -p $(shell rpm --eval "%{_sourcedir}")
+	tar --create --file $(shell rpm --eval "%{_sourcedir}")/$(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.xz\
 		--transform="s/src/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/src\/$(PACKAGE_NAME)-$(PACKAGE_VERSION)/"\
 		--transform="s/tuxedo_keyboard.conf/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/etc\/modprobe.d\/tuxedo_keyboard.conf/"\
 		--transform="s/debian\/copyright/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/LICENSE/"\

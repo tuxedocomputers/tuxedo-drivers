@@ -37,3 +37,7 @@ BUILT_MODULE_LOCATION[8]="tuxedo_io"
 DEST_MODULE_LOCATION[9]="/kernel/lib/"
 BUILT_MODULE_NAME[9]="tuxedo_nb02_nvidia_power_ctrl"
 BUILT_MODULE_LOCATION[9]="tuxedo_nb02_nvidia_power_ctrl"
+
+DEST_MODULE_LOCATION[10]="/kernel/lib/"
+BUILT_MODULE_NAME[10]="tuxedo_compatibility_check"
+BUILT_MODULE_LOCATION[10]="tuxedo_compatibility_check"
