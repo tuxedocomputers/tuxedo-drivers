@@ -1,147 +1,110 @@
-%define module module-name
+Name:           tuxedo-drivers
+Version:        #MODULE_VERSION#
+Release:        1%{?dist}
+Summary:        Kernel modules for TUXEDO devices
 
-#
-# spec file for package tuxedo-keyboard
-#
-# Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
-#
-# All modifications and additions to the file contributed by third parties
-# remain the property of their copyright owners, unless otherwise agreed
-# upon. The license for this file, and modifications and additions to the
-# file, is the same license as for the pristine package itself (unless the
-# license for the pristine package is not an Open Source License, in which
-# case the license is the MIT License). An "Open Source License" is a
-# license that conforms to the Open Source Definition (Version 1.9)
-# published by the Open Source Initiative.
-
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
-#
-
-
-Summary:        Kernel module for TUXEDO keyboards
-Name:           %{module}
-Version:        x.x.x
-Release:        x
 License:        GPLv3+
-Group:          Hardware/Other
-BuildArch:      noarch
 Url:            https://www.tuxedocomputers.com
-Source:         %{module}-%{version}.tar.bz2
-Provides:       tuxedo_keyboard = %{version}-%{release}
-Obsoletes:      tuxedo_keyboard < %{version}-%{release}
-Obsoletes:      tuxedo-xp-xc-touchpad-key-fix
-Obsoletes:      tuxedo-touchpad-fix <= 1.0.1
+Source0:        %{name}-%{version}.tar.xz
+
+Requires:       dkms >= 2.1
+
+BuildArch:      noarch
+
+Provides:       tuxedo-keyboard = 4.0.0-1
 Obsoletes:      tuxedo-cc-wmi
-Requires:       dkms >= 1.95
-BuildRoot:      %{_tmppath}
+Obsoletes:      tuxedo-keyboard < 4.0.0~
+Obsoletes:      tuxedo-keyboard-dkms
+Obsoletes:      tuxedo-keyboard-ite < 4.0.0~
+Obsoletes:      tuxedo-touchpad-fix
+Obsoletes:      tuxedo-wmi-dkms
+Obsoletes:      tuxedo-xp-xc-airplane-mode-fix
+Obsoletes:      tuxedo-xp-xc-touchpad-key-fix
+
+Group:          Hardware/Other
 Packager:       TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 
 %description
-Keyboard & keyboard backlight driver for TUXEDO notebooks
-meant for DKMS framework.
+Drivers for several platform devices for TUXEDO notebooks meant for DKMS
+framework.
 
 %prep
-%setup -n %{module}-%{version} -q
+%setup -q
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/src/%{module}-%{version}/
-cp dkms.conf Makefile %{buildroot}/usr/src/%{module}-%{version}
-cp -R src/ %{buildroot}/usr/src/%{module}-%{version}
-mkdir -p %{buildroot}/usr/share/
-mkdir -p %{buildroot}/usr/share/%{module}/
-cp postinst %{buildroot}/usr/share/%{module}
-cp tuxedo_keyboard.conf %{buildroot}/usr/share/%{module}
-
-%clean
-rm -rf %{buildroot}
+cp -r %{_builddir}/%{name}-%{version}/usr %{buildroot}
+cp -r %{_builddir}/%{name}-%{version}/etc %{buildroot}
 
 %files
-%defattr(0644,root,root,0755)
-%attr(0755,root,root) /usr/src/%{module}-%{version}/
-%attr(0644,root,root) /usr/src/%{module}-%{version}/*
-%attr(0755,root,root) /usr/src/%{module}-%{version}/src/
-%attr(0644,root,root) /usr/src/%{module}-%{version}/src/*
-%attr(0755,root,root) /usr/src/%{module}-%{version}/src/tuxedo_io/
-%attr(0644,root,root) /usr/src/%{module}-%{version}/src/tuxedo_io/*
-%attr(0755,root,root) /usr/share/%{module}/
-%attr(0755,root,root) /usr/share/%{module}/postinst
-%attr(0644,root,root) /usr/share/%{module}/tuxedo_keyboard.conf
+%{_usrsrc}/%{name}-%{version}
+%config(noreplace) %{_sysconfdir}/modprobe.d/tuxedo_keyboard.conf
 %license LICENSE
 
 %post
-for POSTINST in /usr/lib/dkms/common.postinst /usr/share/%{module}/postinst; do
-    if [ -f $POSTINST ]; then
-        $POSTINST %{module} %{version} /usr/share/%{module}
-        RET=$?
-
-        # Attempt to (re-)load module immediately, fail silently if not possible at this stage
-
-        # Also stop tccd service if running before
-        echo "Check tccd running status"
-        if systemctl is-active --quiet tccd.service; then
-            TCCD_RUNNING=true
-        else
-            TCCD_RUNNING=false
-        fi
-
-        if $TCCD_RUNNING; then
-            echo "Stop tccd temporarily"
-            systemctl stop tccd 2>&1 || true
-        fi
-
-        % Explicitly unload old tuxedo_cc_wmi if loaded at this point
-        rmmod tuxedo_cc_wmi > /dev/null 2>&1 || true
-
-        echo "(Re)load modules if possible"
-
-        rmmod tuxedo_io > /dev/null 2>&1 || true
-        rmmod uniwill_wmi > /dev/null 2>&1 || true
-        rmmod clevo_wmi > /dev/null 2>&1 || true
-        rmmod clevo_acpi > /dev/null 2>&1 || true
-        rmmod tuxedo_keyboard > /dev/null 2>&1 || true
-        
-        modprobe tuxedo_keyboard > /dev/null 2>&1 || true
-        modprobe uniwill_wmi > /dev/null 2>&1 || true
-        modprobe clevo_acpi > /dev/null 2>&1 || true
-        modprobe clevo_wmi > /dev/null 2>&1 || true
-        modprobe tuxedo_io > /dev/null 2>&1 || true
-
-        # Install default config if none exist already
-        if [ ! -f "/etc/modprobe.d/tuxedo_keyboard.conf" ]; then
-            cp -f /usr/share/tuxedo-keyboard/tuxedo_keyboard.conf /etc/modprobe.d/tuxedo_keyboard.conf
-        fi
-
-        # Restart tccd after reload if it was running
-        if $TCCD_RUNNING; then
-            echo "Start tccd again"
-            systemctl start tccd 2>&1 || true
-        fi
-
-        exit $RET
-    fi
-    echo "WARNING: $POSTINST does not exist."
-done
-
-echo -e "ERROR: DKMS version is too old and %{module} was not"
-echo -e "built with legacy DKMS support."
-echo -e "You must either rebuild %{module} with legacy postinst"
-echo -e "support or upgrade DKMS to a more current version."
-exit 1
-
+# Install modules via DKMS
+dkms add -m %{name} -v %{version} --rpm_safe_upgrade
+dkms build -m %{name} -v %{version}
+dkms install -m %{name} -v %{version}
+# Attempt to (re-)load modules and tccd, fail silently if not possible
+# Stop tccd service if it was running before
+echo "Check tccd running status"
+TCCD_RUNNING=false
+if systemctl is-active --quiet tccd.service; then
+    TCCD_RUNNING=true
+    echo "Stop tccd temporarily"
+    systemctl stop tccd 2>&1 || true
+fi
+# (Re-)load modules
+echo "(Re)load modules if possible"
+rmmod tuxedo_io > /dev/null 2>&1 || true
+rmmod uniwill_wmi > /dev/null 2>&1 || true
+rmmod clevo_wmi > /dev/null 2>&1 || true
+rmmod clevo_acpi > /dev/null 2>&1 || true
+rmmod tuxedo_keyboard > /dev/null 2>&1 || true
+rmmod ite_8291 > /dev/null 2>&1 || true
+rmmod ite_8291_lb > /dev/null 2>&1 || true
+rmmod ite_8297 > /dev/null 2>&1 || true
+rmmod ite_829x > /dev/null 2>&1 || true
+rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
+modprobe tuxedo_compatibility_check > /dev/null 2>&1 || true
+modprobe tuxedo_keyboard > /dev/null 2>&1 || true
+modprobe clevo_acpi > /dev/null 2>&1 || true
+modprobe clevo_wmi > /dev/null 2>&1 || true
+modprobe uniwill_wmi > /dev/null 2>&1 || true
+modprobe tuxedo_io > /dev/null 2>&1 || true
+modprobe ite_8291 > /dev/null 2>&1 || true
+modprobe ite_8291_lb > /dev/null 2>&1 || true
+modprobe ite_8297 > /dev/null 2>&1 || true
+modprobe ite_829x > /dev/null 2>&1 || true
+# Restart tccd after reload if it was running before
+if $TCCD_RUNNING; then
+	echo "Start tccd again"
+	systemctl start tccd 2>&1 || true
+fi
 
 %preun
-echo -e
-echo -e "Uninstall of %{module} module (version %{version}-%{release}) beginning:"
-dkms remove -m %{module} -v %{version} --all --rpm_safe_upgrade
-if [ $1 != 1 ];then
-    /usr/sbin/rmmod %{module} > /dev/null 2>&1 || true
-    rm -f /etc/modprobe.d/tuxedo_keyboard.conf || true
-fi
-exit 0
-
+# Attempt to unload modules, fail silently if not possible
+echo "Unload modules if possible"
+rmmod tuxedo_io > /dev/null 2>&1 || true
+rmmod uniwill_wmi > /dev/null 2>&1 || true
+rmmod clevo_wmi > /dev/null 2>&1 || true
+rmmod clevo_acpi > /dev/null 2>&1 || true
+rmmod tuxedo_keyboard > /dev/null 2>&1 || true
+rmmod ite_8291 > /dev/null 2>&1 || true
+rmmod ite_8291_lb > /dev/null 2>&1 || true
+rmmod ite_8297 > /dev/null 2>&1 || true
+rmmod ite_829x > /dev/null 2>&1 || true
+rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
+# Remove modules via DKMS
+dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
+* Mon Nov 20 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.0-1
+- Merge tuxedo-keyboard and tuxedo-keyboard-ite
+- Rename package
+- Rework packaging process
+* Thu Nov 16 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.4-1
+- Add color scaling for Stellaris Gen5 AMD devices
 * Thu Nov 16 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.14-1
 - Tweak IBPG8 tdp limits
 * Fri Nov 10 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.13-1
@@ -152,6 +115,10 @@ exit 0
 - Aura Gen3 support
 * Thu Aug 10 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.10-1
 - Fix build on certain systems
+* Thu Aug 03 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.3-1
+- Adjusted lightbar USB product exclusion (prevents driver binding to unused
+  devices) for Stellaris Gen5 and allows proper binding of relevant ones.
+- Lightbar color scaling for Stellaris 17 Gen5
 * Tue Aug 01 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.9-1
 - Quirks for setting missing IBP16Gen8 keyboard layouts
 - Fix IBP 16 Gen8 mk1 layout set to 14inch variant layout
@@ -165,22 +132,30 @@ exit 0
 - Kernel 6.4 build compatibility fix
 * Tue Jun 13 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.6-1
 - Fallback ROM ID set quirk support
-* Mon May 19 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.5-1
+* Fri May 19 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.5-1
 - IBP Gen8 keyboard backlight support
 - IBP Gen8 TDP support
 - Color scaling for certain one-zone RGB keyboards
 - Fix for certain white kbd bl devices (like Pulse) not setting brightness
   to zero on init
+* Thu May 04 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.1-1
+- Four zone backlight support for Stellaris Gen5
+- Experimental buffered writes for Stellaris/Fusion per-key variants
 * Thu Apr 20 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.3-1
 - Fix missing state write on resume for some devices which woke up with "default blue" keyboard backlight
 - Add TDP device definitions for Stellaris Intel Gen5
 - Add device check on newer cpu gens
+* Mon Apr 17 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.0-1
+- Color scaling for Stellaris Intel Gen5
+- Lightbar impl. for Stellaris Gen4/5
 * Mon Mar 27 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.1-1
 - Fix "lost fan control" in some circumstances (on eg. IBPGen7)
 * Wed Mar 22 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.0-1
 - KBD BL: Interface rewrite, now generally exported through /sys/class/leds :kbd_backlight
 - KBD BL: New interface impl. for white backlight keyboards (also :kbd_backlight)
 - Note: Old interface is hereby deprecated (and removed)
+* Thu Feb 23 2023 C Sandberg <tux@tuxedocomputers.com> 0.3.0-1
+- Leds interface support (/sys/class/leds)
 * Fri Feb 17 2023 C Sandberg <tux@tuxedocomputers.com> 3.1.4-1
 - Fix upcoming 6.2 kernel build issue (from github Buddy-Matt)
 - Re-write last set charging priority on barrel plug connect
@@ -194,6 +169,11 @@ exit 0
 - Adds charging profile interface for devices supporting charging profiles
 - Adds charging priority interface for devices supporting USB-C PD charging
   priority setting
+* Wed Dec 07 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.5-1
+- Add per-device color scaling to ite_8291 driver
+- Add additional scaling setting for Stellaris 17 AMD Gen 4
+* Wed Nov 30 2022 C Sandberg <tux@tuxedocomputers.com> 0.2.4-1
+- Add USB ID for Stellaris 17 Gen 4 keyboard backlight
 * Mon Oct 17 2022 C Sandberg <tux@tuxedocomputers.com> 3.1.1-1
 - Reenable fans-off for some devices that got it turned of as a temporary workaround
 - Fix default fan curve not being reenabled when tccd is stopped
@@ -206,7 +186,7 @@ exit 0
 * Thu Apr 28 2022 C Sandberg <tux@tuxedocomputers.com> 3.0.10-1
 - Add Stellaris Intel gen 4 lightbar support
 - Default lightbar to off
-* Mon Oct 10 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.9-1
+* Sun Oct 10 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.9-1
 - Add IBS15v6 & IBS17v6 new module name to perf. prof workaround
 - Interface modularization (uw)
 - Fix Pulse14/15 gen 1 keyboard backlight ctrl dissapearing
@@ -232,9 +212,15 @@ exit 0
 - Changed default perf. profile to balanced (UW)
 * Fri Mar 5 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.3-1
 - Added XP14 to perf. profile workaround
+* Mon Feb 22 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.3-1
+- Fix broken brightness key reaction for ite_829x
+* Tue Feb 16 2021 C Sandberg <tux@tuxedocomputers.com> 0.2.2-1
+- Attempt to fix ite_829x instability sometimes locking up kernel on keypress
 * Fri Jan 29 2021 C Sandberg <tux@tuxedocomputers.com> 3.0.2-1
 - Fixed clevo keyboard init order
 - Added Aura perf. profile workaround
+* Mon Dec 21 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.1-1
+- Added device 048d:6004 to ite_8291
 * Mon Dec 21 2020 C Sandberg <tux@tuxedocomputers.com> 3.0.1-1
 - Added device support (Trinity)
 - Fixed uw fan ramp up issues to some extent (workaround)
@@ -243,12 +229,21 @@ exit 0
 - Added separate clevo-wmi module with existing functionality
 - Added clevo-acpi module with implementation of the "new" clevo ACPI interface
 - Added tuxedo-io module (former tuxedo-cc-wmi) into package
+* Fri Nov 13 2020 C Sandberg <tux@tuxedocomputers.com> 0.2.0-1
+- Added initial support for ITE Device(8291) ->  048d:ce00
 * Fri Nov 13 2020 C Sandberg <tux@tuxedocomputers.com> 2.1.0-1
 - Added device support (XMG Fusion)
 - Added uniwill lightbar driver (with led_classdev interface)
 - Added uniwill keymapping brightness up/down
 - Fixed uniwill touchpad toggle (some platforms)
 - Fixed module cleanup crash
+* Fri Oct 16 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.0-1
+- Added initial (very basic) support for 048d:8297 LED controller
+* Mon Oct 12 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.3-1
+- Fixed key mapping toggle <=> switch mode
+- Default color to white
+* Tue Sep 29 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.2-1
+- Initial experimental release
 * Fri Sep 25 2020 C Sandberg <tux@tuxedocomputers.com> 2.0.6-1
 - Added uw kbd color backlight support
 * Thu Jun 18 2020 C Sandberg <tux@tuxedocomputers.com> 2.0.5-1
@@ -262,6 +257,9 @@ exit 0
 - General key event mapping support
 - Events added for backlight and touchpad
 - Fix not removing module on rpm update
+* Thu Apr 23 2020 C Sandberg <tux@tuxedocomputers.com> 0.0.1-1
+- First version of the ITE keyboard backlight driver
+- Has support for ITE Device(829x) ->  0x048d:0x8910
 * Tue Apr 14 2020 C Sandberg <tux@tuxedocomputers.com> 2.0.2-0
 - Mark old named packages as conflicting and obsolete
 - Fix not restoring state on resume
