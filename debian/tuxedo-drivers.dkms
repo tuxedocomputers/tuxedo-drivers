@@ -53,3 +53,14 @@ BUILT_MODULE_LOCATION[12]="tuxedo_nb05"
 DEST_MODULE_LOCATION[13]="/kernel/lib/"
 BUILT_MODULE_NAME[13]="tuxedo_nb05_sensors"
 BUILT_MODULE_LOCATION[13]="tuxedo_nb05"
+
+BUILT_MODULE_NAME[14]="tuxedo_nb04_wmi_event"
+BUILT_MODULE_LOCATION[14]="tuxedo_nb04_wmi_event"
+
+DEST_MODULE_LOCATION[15]="/kernel/lib/"
+BUILT_MODULE_NAME[15]="tuxedo_nb04_wmi_ab"
+BUILT_MODULE_LOCATION[15]="tuxedo_nb04_wmi_ab"
+
+DEST_MODULE_LOCATION[16]="/kernel/lib/"
+BUILT_MODULE_NAME[16]="tuxedo_nb04_wmi_bs"
+BUILT_MODULE_LOCATION[16]="tuxedo_nb04_wmi_bs"
