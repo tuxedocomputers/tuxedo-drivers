@@ -56,8 +56,25 @@ struct driver_data_t {
 static struct key_entry driver_keymap[] = {
 	{ KE_KEY,	NB05_WMI_EVENT_TOUCHPAD_ON,	{ KEY_F22 } },
 	{ KE_KEY,	NB05_WMI_EVENT_TOUCHPAD_OFF,	{ KEY_F23 } },
+	// Only used to put ev bits
+	{ KE_KEY,	0xffff,				{ KEY_F6 } },
+	{ KE_KEY,	0xffff,				{ KEY_LEFTALT } },
+	{ KE_KEY,	0xffff,				{ KEY_LEFTMETA } },
 	{ KE_END,	0 }
 };
+
+static void report_gauge_key_combo(struct input_dev *idev)
+{
+	// Special key combination when mode change key is pressed
+	input_report_key(idev, KEY_LEFTMETA, 1);
+	input_report_key(idev, KEY_LEFTALT, 1);
+	input_report_key(idev, KEY_F6, 1);
+	input_sync(idev);
+	input_report_key(idev, KEY_F6, 0);
+	input_report_key(idev, KEY_LEFTALT, 0);
+	input_report_key(idev, KEY_LEFTMETA, 0);
+	input_sync(idev);
+}
 
 /**
  * Basically a copy of the existing report event but doesn't report unknown events
@@ -174,6 +191,17 @@ static void tuxedo_nb05_wmi_event_notify(struct wmi_device *wdev, union acpi_obj
 				(obj->buffer.pointer[3] << 8);
 		pr_debug("event value: %d (%0#4x), device status %d (%0#6x)\n",
 			 event_code, event_code, device_status, device_status);
+
+		switch (event_code) {
+		case NB05_WMI_EVENT_MODE_POWER_SAVE:
+		case NB05_WMI_EVENT_MODE_BALANCE:
+		case NB05_WMI_EVENT_MODE_HIGH_PERFORMANCE:
+			report_gauge_key_combo(driver_data->input_dev);
+			break;
+		default:
+			break;
+		}
+
 		// Report event_code
 		sparse_keymap_report_known_event(driver_data->input_dev,
 						 event_code,
