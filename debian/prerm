@@ -15,6 +15,8 @@ case "$1" in
         rmmod ite_8291_lb > /dev/null 2>&1 || true
         rmmod ite_8297 > /dev/null 2>&1 || true
         rmmod ite_829x > /dev/null 2>&1 || true
+        rmmod tuxedo_nb04_keyboard > /dev/null 2>&1 || true
+        rmmod tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
         rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
     ;;
 esac
