@@ -214,7 +214,7 @@ static int tuxedo_nb05_power_profiles_probe(struct wmi_device *wdev, const void 
 	dev_set_drvdata(&wdev->dev, driver_data);
 
 	const struct platform_device_info pinfo = {
-		.name = "tuxedo_power_profile",
+		.name = "tuxedo_platform_profile",
 		.id = PLATFORM_DEVID_NONE,
 		.parent = &wdev->dev
 	};
