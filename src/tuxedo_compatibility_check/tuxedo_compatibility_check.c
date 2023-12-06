@@ -33,7 +33,7 @@
 
 // This check was not in place before 2023, so we continue to assume
 // compatibility for devices <= Intel Core i 12th Gen and <= AMD Ryzen 5th Gen
-static const struct x86_cpu_id skip_tuxedo_dmi_string_check_match[] __initconst = {
+static const struct x86_cpu_id skip_tuxedo_dmi_string_check_match[] = {
 	X86_MATCH_INTEL_FAM6_MODEL(CORE_YONAH, NULL),
 	X86_MATCH_INTEL_FAM6_MODEL(CORE2_MEROM, NULL),
 	X86_MATCH_INTEL_FAM6_MODEL(CORE2_MEROM_L, NULL),
@@ -121,12 +121,12 @@ static const struct x86_cpu_id skip_tuxedo_dmi_string_check_match[] __initconst 
 };
 
 // Placeholder for potential future exemptions
-static const struct x86_cpu_id force_tuxedo_dmi_string_check_match[] __initconst = {
+static const struct x86_cpu_id force_tuxedo_dmi_string_check_match[] = {
 	{ }
 };
 
 // Going forward we only run the drivers on in house tested devices
-static const struct dmi_system_id tuxedo_dmi_string_match[] __initconst = {
+static const struct dmi_system_id tuxedo_dmi_string_match[] = {
 	{
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
