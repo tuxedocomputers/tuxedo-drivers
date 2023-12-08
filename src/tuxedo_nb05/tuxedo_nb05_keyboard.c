@@ -25,6 +25,7 @@
 #include <linux/input/sparse-keymap.h>
 #include <linux/version.h>
 #include <linux/delay.h>
+#include "tuxedo_nb05_power_profiles.h"
 
 #define NB05_WMI_EVENT_GUID	"8FAFC061-22DA-46E2-91DB-1FE3D7E5FF3C"
 
@@ -197,6 +198,7 @@ static void tuxedo_nb05_keyboard_notify(struct wmi_device *wdev, union acpi_obje
 		case NB05_WMI_EVENT_MODE_BALANCE:
 		case NB05_WMI_EVENT_MODE_HIGH_PERFORMANCE:
 			report_gauge_key_combo(driver_data->input_dev);
+			rewrite_last_profile();
 			break;
 		default:
 			break;

@@ -26,6 +26,7 @@
 #include <linux/version.h>
 #include <linux/delay.h>
 #include <linux/platform_device.h>
+#include "tuxedo_nb05_power_profiles.h"
 
 #define dev_to_wdev(__dev)	container_of_const(__dev, struct wmi_device, dev)
 
@@ -33,13 +34,16 @@
 
 struct driver_data_t {
 	struct platform_device *pdev;
+	u64 last_chosen_profile;
 };
+
+static struct wmi_device *__wmi_dev;
 
 /**
  * Method interface: int in, int out
  */
-static int nb05_wmi_aa_method(struct wmi_device *wdev, u32 wmi_method_id,
-			      u64 *in, u64 *out)
+static int __nb05_wmi_aa_method(struct wmi_device *wdev, u32 wmi_method_id,
+				u64 *in, u64 *out)
 {
 	struct acpi_buffer acpi_buffer_in = { (acpi_size) sizeof(*in), in };
 	struct acpi_buffer return_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
@@ -70,6 +74,15 @@ static int nb05_wmi_aa_method(struct wmi_device *wdev, u32 wmi_method_id,
 
 	return 0;
 }
+
+int nb05_wmi_aa_method(u32 wmi_method_id, u64 *in, u64 *out)
+{
+	if (__wmi_dev)
+		return __nb05_wmi_aa_method(__wmi_dev, wmi_method_id, in, out);
+	else
+		return -ENODEV;
+}
+EXPORT_SYMBOL(nb05_wmi_aa_method);
 
 static ssize_t platform_profile_choices_show(struct device *dev,
 					     struct device_attribute *attr,
@@ -142,7 +155,7 @@ static ssize_t platform_profile_show(struct device *dev,
 	struct platform_device *pdev = to_platform_device(dev);
 	struct wmi_device *wdev = dev_to_wdev(pdev->dev.parent);
 
-	err = nb05_wmi_aa_method(wdev, 2, &platform_profile_value, &platform_profile_value);
+	err = __nb05_wmi_aa_method(wdev, 2, &platform_profile_value, &platform_profile_value);
 	if (err) {
 		pr_err("Error reading power profile");
 		return -EIO;
@@ -159,12 +172,27 @@ static ssize_t platform_profile_show(struct device *dev,
 	return -EIO;
 }
 
+int rewrite_last_profile(void)
+{
+	struct driver_data_t *driver_data = dev_get_drvdata(&__wmi_dev->dev);
+	u64 out;
+	int err = nb05_wmi_aa_method(1, &driver_data->last_chosen_profile, &out);
+	if (err)
+		return err;
+	else if (out)
+		return -EINVAL;
+	else
+		return 0;
+}
+EXPORT_SYMBOL(rewrite_last_profile);
+
 static ssize_t platform_profile_store(struct device *dev,
 				      struct device_attribute *attr,
 				      const char *buffer, size_t size)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct wmi_device *wdev = dev_to_wdev(pdev->dev.parent);
+	struct driver_data_t *driver_data = dev_get_drvdata(&wdev->dev);
 	u64 platform_profile_value, out;
 	int i, err;
 	char *buffer_copy;
@@ -184,11 +212,13 @@ static ssize_t platform_profile_store(struct device *dev,
 
 	if (i < ARRAY_SIZE(platform_profile_options)) {
 		// Option found try to set
-		if (nb05_wmi_aa_method(wdev, 1, &platform_profile_value, &out))
+		err = __nb05_wmi_aa_method(wdev, 1, &platform_profile_value, &out);
+		if (err)
 			return err;
-		if (out)
+		else if (out)
 			return -EINVAL;
-
+		
+		driver_data->last_chosen_profile = platform_profile_value;
 		return size;
 	} else {
 		// Invalid input, not matched to an option
@@ -207,11 +237,20 @@ static int tuxedo_nb05_power_profiles_probe(struct wmi_device *wdev, const void 
 
 	pr_debug("driver probe\n");
 
+	__wmi_dev = wdev;
+
 	driver_data = devm_kzalloc(&wdev->dev, sizeof(*driver_data), GFP_KERNEL);
 	if (!driver_data)
 		return -ENOMEM;
 
 	dev_set_drvdata(&wdev->dev, driver_data);
+
+	// Initialize last chosen profile
+	err = __nb05_wmi_aa_method(wdev, 2, &driver_data->last_chosen_profile, &driver_data->last_chosen_profile);
+	if (err) {
+		pr_err("Error reading power profile");
+		return -EIO;
+	}
 
 	const struct platform_device_info pinfo = {
 		.name = "tuxedo_platform_profile",
