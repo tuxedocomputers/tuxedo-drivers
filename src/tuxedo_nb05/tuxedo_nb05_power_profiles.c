@@ -124,10 +124,9 @@ struct char_to_value_t {
 };
 
 static struct char_to_value_t platform_profile_options[] = {
-	{ .descriptor = "balanced-performance",	.value = 0 },
-	{ .descriptor = "performance",		.value = 1 },
-	{ .descriptor = "balanced",		.value = 2 }
-	// { .descriptor = "low-power",		.value = 3 }
+	{ .descriptor = "low-power",		.value = 2 },
+	{ .descriptor = "balanced",		.value = 0 },
+	{ .descriptor = "performance",		.value = 1 }
 };
 
 static ssize_t platform_profile_choices_show(struct device *dev,
