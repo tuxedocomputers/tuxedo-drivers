@@ -201,7 +201,6 @@ static void tuxedo_nb05_keyboard_notify(struct wmi_device *wdev, union acpi_obje
 		case NB05_WMI_EVENT_MODE_POWER_SAVE:
 		case NB05_WMI_EVENT_MODE_BALANCE:
 		case NB05_WMI_EVENT_MODE_HIGH_PERFORMANCE:
-			report_gauge_key_combo(driver_data->input_dev);
 			rewrite_last_profile();
 			break;
 		default:
