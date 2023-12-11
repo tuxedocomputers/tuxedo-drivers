@@ -26,6 +26,7 @@
 #include <linux/version.h>
 #include <linux/delay.h>
 #include "tuxedo_nb05_power_profiles.h"
+#include "../tuxedo_compatibility_check/tuxedo_compatibility_check.h"
 
 #define NB05_WMI_EVENT_GUID	"8FAFC061-22DA-46E2-91DB-1FE3D7E5FF3C"
 
@@ -146,6 +147,9 @@ static int tuxedo_nb05_keyboard_probe(struct wmi_device *wdev, const void *dummy
 	int err;
 
 	pr_debug("driver probe\n");
+
+	if (!tuxedo_is_compatible())
+		return -ENODEV;
 
 	driver_data = devm_kzalloc(&wdev->dev, sizeof(*driver_data), GFP_KERNEL);
 	if (!driver_data)

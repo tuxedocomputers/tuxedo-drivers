@@ -26,6 +26,7 @@
 #include <linux/delay.h>
 #include <asm/io.h>
 #include "tuxedo_nb05_ec.h"
+#include "../tuxedo_compatibility_check/tuxedo_compatibility_check.h"
 
 #define EC_PORT_ADDR	0x4e
 #define EC_PORT_DATA	0x4f
@@ -136,6 +137,9 @@ MODULE_DEVICE_TABLE(dmi, tuxedo_nb05_ec_id_table);
 static int __init tuxedo_nb05_ec_init(void)
 {
 	if (!dmi_check_system(tuxedo_nb05_ec_id_table))
+		return -ENODEV;
+
+	if (!tuxedo_is_compatible())
 		return -ENODEV;
 
 	tuxedo_nb05_ec_device =

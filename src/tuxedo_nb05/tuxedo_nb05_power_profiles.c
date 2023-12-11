@@ -27,6 +27,7 @@
 #include <linux/delay.h>
 #include <linux/platform_device.h>
 #include "tuxedo_nb05_power_profiles.h"
+#include "../tuxedo_compatibility_check/tuxedo_compatibility_check.h"
 
 #define dev_to_wdev(__dev)	container_of_const(__dev, struct wmi_device, dev)
 
@@ -238,6 +239,9 @@ static int tuxedo_nb05_power_profiles_probe(struct wmi_device *wdev, const void 
 	pr_debug("driver probe\n");
 
 	__wmi_dev = wdev;
+
+	if (!tuxedo_is_compatible())
+		return -ENODEV;
 
 	driver_data = devm_kzalloc(&wdev->dev, sizeof(*driver_data), GFP_KERNEL);
 	if (!driver_data)
