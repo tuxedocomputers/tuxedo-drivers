@@ -1,10 +1,14 @@
 tuxedo-drivers (4.0.0) jammy; urgency=medium
 
   * Merge tuxedo-keyboard and tuxedo-keyboard-ite
-  * Rename package
+  * Rename package to tuxedo-drivers
   * Rework packaging process
+  * Fn-lock sysfs interface for nb02 and nb01 (newer models with CCC from v4.0)
+  * Flexicharger sysfs interface for nb01 (new plus legacy which works on some older models)
+  * Various backlight bugfixes and rework
+  * nb05 driver collection (so far used by Pulse Gen3)
 
- -- Werner Sembach <tux@tuxedocomputers.com>  Mon, 20 Nov 2023 20:22:38 +0100
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 12 Dec 2023 15:36:39 +0100
 
 tuxedo-keyboard (3.2.14) jammy; urgency=low
 

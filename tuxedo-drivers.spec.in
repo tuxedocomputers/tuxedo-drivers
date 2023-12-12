@@ -111,10 +111,14 @@ rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
-* Mon Nov 20 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.0-1
+* Tue Dec 12 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.0-1
 - Merge tuxedo-keyboard and tuxedo-keyboard-ite
-- Rename package
+- Rename package to tuxedo-drivers
 - Rework packaging process
+- Fn-lock sysfs interface for nb02 and nb01 (newer models with CCC from v4.0)
+- Flexicharger sysfs interface for nb01 (new plus legacy which works on some older models)
+- Various backlight bugfixes and rework
+- nb05 driver collection (so far used by Pulse Gen3)
 * Thu Nov 16 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.4-1
 - Add color scaling for Stellaris Gen5 AMD devices
 * Thu Nov 16 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.14-1
