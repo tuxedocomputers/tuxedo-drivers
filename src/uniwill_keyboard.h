@@ -46,9 +46,12 @@
 #define UNIWILL_KEY_RFKILL			0x0A4
 #define UNIWILL_KEY_KBDILLUMDOWN		0x0B1
 #define UNIWILL_KEY_KBDILLUMUP			0x0B2
+#define UNIWILL_KEY_FN_LOCK			0x0B8
 #define UNIWILL_KEY_KBDILLUMTOGGLE		0x0B9
 
 #define UNIWILL_OSD_TOUCHPADWORKAROUND		0xFFF
+
+#define UNIWILL_FN_LOCK_MASK			0x10
 
 static void uw_charging_priority_write_state(void);
 static void uw_charging_profile_write_state(void);
@@ -59,7 +62,7 @@ struct uniwill_device_features_t uniwill_device_features;
 
 static bool uw_feats_loaded = false;
 
-static u8 uniwill_kbd_bl_enable_state_on_start;
+static u8 uniwill_kbd_bl_enable_state_on_start = 0xff;
 
 static struct key_entry uniwill_wmi_keymap[] = {
 	// { KE_KEY,	UNIWILL_OSD_RADIOON,		{ KEY_RFKILL } },
@@ -77,6 +80,8 @@ static struct key_entry uniwill_wmi_keymap[] = {
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL2,	{ KEY_KBDILLUMTOGGLE } },
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL3,	{ KEY_KBDILLUMTOGGLE } },
 	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL4,	{ KEY_KBDILLUMTOGGLE } },
+	// Send FN_ESC to user space as input-event-codes.h does not define Fn-Lock
+	{ KE_KEY,	UNIWILL_KEY_FN_LOCK,		{ KEY_FN_ESC } },
 	// Only used to put ev bits
 	{ KE_KEY,	0xffff,				{ KEY_F6 } },
 	{ KE_KEY,	0xffff,				{ KEY_LEFTALT } },
@@ -310,104 +315,6 @@ void uniwill_event_callb(u32 code)
 				if (!sparse_keymap_report_known_event(uniwill_keyboard_driver.input_device, code, 1, true))
 					TUXEDO_DEBUG("Unknown code - %d (%0#6x)\n", code, code);
 	}
-}
-
-static void uw_kbd_bl_init_set(struct platform_device *dev)
-{
-	uniwill_leds_init_late(dev);
-	uniwill_write_kbd_bl_enable(1);
-}
-
-// Keep track of previous colors on start, init array with different non-colors
-static u32 uw_prev_colors[] = {0x01000000, 0x02000000, 0x03000000};
-static u32 uw_prev_colors_size = 3;
-static u32 uw_prev_colors_index = 0;
-
-// Timer for checking animation colors
-static struct timer_list uw_kbd_bl_init_timer;
-static volatile int uw_kbd_bl_check_count = 40;
-static int uw_kbd_bl_init_check_interval_ms = 500;
-
-static int uniwill_read_kbd_bl_rgb(u8 *red, u8 *green, u8 *blue)
-{
-	int result = 0;
-
-	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_RED_BRIGHTNESS, red);
-	if (result) {
-		return result;
-	}
-	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_GREEN_BRIGHTNESS, green);
-	if (result) {
-		return result;
-	}
-	result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_RGB_BLUE_BRIGHTNESS, blue);
-	if (result) {
-		return result;
-	}
-
-	return result;
-}
-
-static struct platform_device *uw_kbd_bl_init_ready_check_work_func_args_dev;
-
-static void uw_kbd_bl_init_ready_check_work_func(struct work_struct *work)
-{
-	u8 uw_cur_red, uw_cur_green, uw_cur_blue;
-	int i;
-	bool prev_colors_same;
-	uniwill_read_kbd_bl_rgb(&uw_cur_red, &uw_cur_green, &uw_cur_blue);
-	uw_prev_colors[uw_prev_colors_index] = (uw_cur_red << 0x10) | (uw_cur_green << 0x08) | uw_cur_blue;
-	uw_prev_colors_index = (uw_prev_colors_index + 1) % uw_prev_colors_size;
-
-	prev_colors_same = true;
-	for (i = 1; i < uw_prev_colors_size; ++i) {
-		if (uw_prev_colors[i-1] != uw_prev_colors[i]) prev_colors_same = false;
-	}
-
-	if (prev_colors_same) {
-		uw_kbd_bl_init_set(uw_kbd_bl_init_ready_check_work_func_args_dev);
-		del_timer(&uw_kbd_bl_init_timer);
-	} else {
-		if (uw_kbd_bl_check_count != 0) {
-			mod_timer(&uw_kbd_bl_init_timer, jiffies + msecs_to_jiffies(uw_kbd_bl_init_check_interval_ms));
-		} else {
-			TUXEDO_INFO("uw kbd init timeout, failed to detect end of boot animation\n");
-			del_timer(&uw_kbd_bl_init_timer);
-		}
-	}
-
-	uw_kbd_bl_check_count -= 1;
-}
-
-static DECLARE_WORK(uw_kbd_bl_init_ready_check_work, uw_kbd_bl_init_ready_check_work_func);
-
-static void uw_kbd_bl_init_ready_check(struct timer_list *t)
-{
-	schedule_work(&uw_kbd_bl_init_ready_check_work);
-}
-
-static int uw_kbd_bl_init(struct platform_device *dev)
-{
-	int status = 0;
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 18, 0)
-	TUXEDO_ERROR("Warning: Kernel version less that 4.18, keyboard backlight might not be properly recognized.");
-#endif
-
-	uniwill_leds_init_early(dev);
-
-	if (uniwill_leds_get_backlight_type() == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
-		// Start periodic checking of animation, set and enable bl when done
-		uw_kbd_bl_init_ready_check_work_func_args_dev = dev;
-		timer_setup(&uw_kbd_bl_init_timer, uw_kbd_bl_init_ready_check, 0);
-		mod_timer(&uw_kbd_bl_init_timer, jiffies + msecs_to_jiffies(uw_kbd_bl_init_check_interval_ms));
-	} else {
-		// For non-RGB versions
-		// Enable keyboard backlight immediately (should it be disabled)
-		uniwill_write_kbd_bl_enable(1);
-	}
-
-	return status;
 }
 
 #define UNIWILL_LIGHTBAR_LED_MAX_BRIGHTNESS	0x24
@@ -1164,6 +1071,94 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 }
 EXPORT_SYMBOL(uniwill_get_device_features);
 
+// Fn lock
+
+static int uniwill_wmi_fn_lock_get(int *on)
+{
+	u8 data;
+	int err;
+
+	err = uniwill_read_ec_ram(UW_EC_REG_KBD_FN_LOCK_STATUS_BIT, &data);
+	if (err)
+		return err;
+
+	if (on)
+		*on = (data & UNIWILL_FN_LOCK_MASK) >> 4;
+
+	return 0;
+}
+
+static int uniwill_wmi_fn_lock_set(int on)
+{
+	u8 data;
+	int err;
+
+	// possible race condition
+	err = uniwill_read_ec_ram(UW_EC_REG_KBD_FN_LOCK_STATUS_BIT, &data);
+	if (err)
+		return err;
+
+	if (on)
+		data = data | UNIWILL_FN_LOCK_MASK;
+	else
+		data = data & ~UNIWILL_FN_LOCK_MASK;
+
+	err = uniwill_write_ec_ram(UW_EC_REG_KBD_FN_LOCK_STATUS_BIT, data);
+	if (err)
+		return err;
+
+	return 0;
+}
+
+static ssize_t uniwill_fn_lock_show(struct device *dev,
+		struct device_attribute *attr,
+		char *buf)
+{
+	int err, on;
+
+	err = uniwill_wmi_fn_lock_get(&on);
+	if (err)
+		return err;
+
+	return sprintf(buf, "%d\n", on);
+}
+
+static ssize_t uniwill_fn_lock_store(struct device *dev,
+		struct device_attribute *attr,
+		const char *buf, size_t size)
+{
+	int on, err;
+
+	if (kstrtoint(buf, 10, &on) ||
+			on < 0 || on > 1)
+		return -EINVAL;
+
+	err = uniwill_wmi_fn_lock_set(on);
+	if (err)
+		return err;
+
+	return size;
+}
+
+bool uniwill_fn_lock_available(void){
+	int err, on;
+
+	// Fn lock does not work for XMG Fusion
+	// exclude all versions
+	if (dmi_match(DMI_BOARD_NAME, "LAPQC71A")
+	    || dmi_match(DMI_BOARD_NAME, "LAPQC71B")
+	    || dmi_match(DMI_PRODUCT_NAME, "A60 MUV")) {
+		return 0;
+	}
+
+	// do a read for test (this may not produce an error)
+	err = uniwill_wmi_fn_lock_get(&on);
+	if (err)
+		return 0;
+	else
+		return 1;
+}
+
 static int uniwill_keyboard_probe(struct platform_device *dev)
 {
 	u32 i;
@@ -1203,7 +1198,13 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 
 	status = register_keyboard_notifier(&keyboard_notifier_block);
 
-	uw_kbd_bl_init(dev);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
+	TUXEDO_ERROR("Warning: Kernel version less that 5.9, keyboard backlight might not be properly recognized.");
+#endif
+	uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
+	uniwill_kbd_bl_enable_state_on_start = (data >> 1) & 0x01;
+	uniwill_leds_init(dev);
+	uniwill_write_kbd_bl_enable(1);
 
 	status = uw_lightbar_init(dev);
 	uw_lightbar_loaded = (status >= 0);
@@ -1230,8 +1231,6 @@ static int uniwill_keyboard_remove(struct platform_device *dev)
 	}
 
 	unregister_keyboard_notifier(&keyboard_notifier_block);
-
-	del_timer(&uw_kbd_bl_init_timer);
 
 	if (uw_lightbar_loaded)
 		uw_lightbar_remove(dev);
@@ -1270,6 +1269,9 @@ struct tuxedo_keyboard_driver uniwill_keyboard_driver = {
 	.platform_driver = &platform_driver_uniwill,
 	.probe = uniwill_keyboard_probe,
 	.key_map = uniwill_wmi_keymap,
+	.fn_lock_available = uniwill_fn_lock_available,
+	.fn_lock_show = uniwill_fn_lock_show,
+	.fn_lock_store = uniwill_fn_lock_store,
 };
 
 #endif // UNIWILL_KEYBOARD_H

@@ -28,6 +28,10 @@ case "$1" in
         rmmod ite_8291_lb > /dev/null 2>&1 || true
         rmmod ite_8297 > /dev/null 2>&1 || true
         rmmod ite_829x > /dev/null 2>&1 || true
+        rmmod tuxedo_nb05_keyboard > /dev/null 2>&1 || true
+        rmmod tuxedo_nb05_sensors > /dev/null 2>&1 || true
+        rmmod tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
+        rmmod tuxedo_nb05_ec > /dev/null 2>&1 || true
         rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
         modprobe tuxedo_compatibility_check > /dev/null 2>&1 || true
         modprobe tuxedo_keyboard > /dev/null 2>&1 || true
@@ -39,6 +43,10 @@ case "$1" in
         modprobe ite_8291_lb > /dev/null 2>&1 || true
         modprobe ite_8297 > /dev/null 2>&1 || true
         modprobe ite_829x > /dev/null 2>&1 || true
+        modprobe tuxedo_nb05_ec > /dev/null 2>&1 || true
+        modprobe tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
+        modprobe tuxedo_nb05_sensors > /dev/null 2>&1 || true
+        modprobe tuxedo_nb05_keyboard > /dev/null 2>&1 || true
 
         # Restart tccd after reload if it was running before
         if $TCCD_RUNNING; then

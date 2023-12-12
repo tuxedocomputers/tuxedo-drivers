@@ -1,0 +1,4 @@
+obj-m += tuxedo_nb05_keyboard.o
+obj-m += tuxedo_nb05_power_profiles.o
+obj-m += tuxedo_nb05_ec.o
+obj-m += tuxedo_nb05_sensors.o

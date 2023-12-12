@@ -38,6 +38,9 @@ static int clevo_acpi_evaluate(struct acpi_device *device, u8 cmd, u32 arg, unio
 	acpi_handle handle;
 	u64 dsm_rev_dummy = 0x00; // Dummy 0 value since not used
 	u64 dsm_func = cmd;
+	union acpi_object *out_obj;
+	guid_t clevo_acpi_dsm_uuid;
+
 	// Integer package data for argument
 	union acpi_object dsm_argv4_package_data[] = {
 		{
@@ -51,6 +54,49 @@ static int clevo_acpi_evaluate(struct acpi_device *device, u8 cmd, u32 arg, unio
 		.package.type = ACPI_TYPE_PACKAGE,
 		.package.count = 1,
 		.package.elements = dsm_argv4_package_data
+	};
+
+	status = guid_parse(CLEVO_ACPI_DSM_UUID, &clevo_acpi_dsm_uuid);
+	if (status < 0)
+		return -ENOENT;
+
+	handle = acpi_device_handle(device);
+	if (handle == NULL)
+		return -ENODEV;
+
+	out_obj = acpi_evaluate_dsm(handle, &clevo_acpi_dsm_uuid, dsm_rev_dummy, dsm_func, &dsm_argv4);
+	if (!out_obj) {
+		pr_err("failed to evaluate _DSM\n");
+		status = -1;
+	}
+	else {
+		if (!IS_ERR_OR_NULL(result)) {
+			*result = out_obj;
+		}
+	}
+
+	return status;
+}
+
+static int clevo_acpi_evaluate_pkgbuf(struct acpi_device *device, u8 cmd, u8 *arg, u32 length, union acpi_object **result)
+{
+	int status;
+	acpi_handle handle;
+	u64 dsm_rev_dummy = 0x00; // Dummy 0 value since not used
+	u64 dsm_func = cmd;
+
+	// Use a buffer inside a package
+	union acpi_object args = {
+		.buffer.type = ACPI_TYPE_BUFFER,
+		.buffer.length = length,
+		.buffer.pointer = arg,
+	};
+
+	// Package argument
+	union acpi_object dsm_argv4 = {
+		.package.type = ACPI_TYPE_PACKAGE,
+		.package.count = 1,
+		.package.elements = &args,
 	};
 
 	union acpi_object *out_obj;
@@ -95,9 +141,25 @@ int clevo_acpi_interface_method_call(u8 cmd, u32 arg, union acpi_object **result
 	return status;
 }
 
+int clevo_acpi_interface_method_call_pkgbuf(u8 cmd, u8 *arg, u32 length, union acpi_object **result_value)
+{
+	int status = 0;
+
+	if (!IS_ERR_OR_NULL(active_driver_data)) {
+		status = clevo_acpi_evaluate_pkgbuf(active_driver_data->adev, cmd, arg, length, result_value);
+	} else {
+		pr_err("acpi method call exec, no driver data found\n");
+		pr_err("..for method_call: %0#2x\n", cmd);
+		status = -ENODATA;
+	}
+
+	return status;
+}
+
 struct clevo_interface_t clevo_acpi_interface = {
 	.string_id = CLEVO_INTERFACE_ACPI_STRID,
 	.method_call = clevo_acpi_interface_method_call,
+	.method_call_pkgbuf = clevo_acpi_interface_method_call_pkgbuf,
 };
 
 static int clevo_acpi_add(struct acpi_device *device)
