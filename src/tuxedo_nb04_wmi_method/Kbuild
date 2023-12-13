@@ -1,2 +1,0 @@
-obj-m += tuxedo_nb04_wmi_ab.o
-obj-m += tuxedo_nb04_wmi_bs.o

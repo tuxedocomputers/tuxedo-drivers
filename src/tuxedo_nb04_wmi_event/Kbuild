@@ -1,1 +1,0 @@
-obj-m += tuxedo_nb04_wmi_event.o
