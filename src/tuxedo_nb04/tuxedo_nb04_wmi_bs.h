@@ -18,5 +18,9 @@
  */
 #ifndef TUXEDO_NB04_WMI_BS_H
 #define TUXEDO_NB04_WMI_BS_H
+
+#define BS_INPUT_BUFFER_LENGTH		8
+#define BS_OUTPUT_BUFFER_LENGTH		80
 int nb04_wmi_bs_method(u32 wmi_method_id, u8 *in, u8 *out);
+
 #endif

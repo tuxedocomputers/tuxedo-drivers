@@ -22,6 +22,44 @@
 #include <linux/platform_device.h>
 #include "tuxedo_nb04_wmi_bs.h"
 
+static int read_cpu_info(u8 *cpu_temp, u8 *cpu_turbo_mode)
+{
+	int err;
+	u8 in[BS_INPUT_BUFFER_LENGTH];
+	u8 out[BS_OUTPUT_BUFFER_LENGTH];
+
+	err = nb04_wmi_bs_method(0x04, in, out);
+	if (err)
+		return err;
+
+	if (cpu_temp)
+		*cpu_temp = out[2];
+	if (cpu_turbo_mode)
+		*cpu_turbo_mode = out[3];
+
+	return 0;
+}
+
+static int read_gpu_info(u8 *gpu_temp, u8 *gpu_turbo_mode, u16 *gpu_max_freq)
+{
+	int err;
+	u8 in[BS_INPUT_BUFFER_LENGTH];
+	u8 out[BS_OUTPUT_BUFFER_LENGTH];
+
+	err = nb04_wmi_bs_method(0x06, in, out);
+	if (err)
+		return err;
+
+	if (gpu_temp)
+		*gpu_temp = out[2];
+	if (gpu_turbo_mode)
+		*gpu_turbo_mode = out[3];
+	if (gpu_max_freq)
+		*gpu_max_freq = (out[5] << 8) | out[4];
+
+	return 0;
+}
+
 static const char * const temp_labels[] = {
 	"cpu0",
 	"gpu0"
@@ -52,13 +90,26 @@ static int
 tuxedo_nb04_sensors_read(struct device *dev, enum hwmon_sensor_types type,
 		   u32 attr, int channel, long *val)
 {
+	int err;
+	u8 data;
 	struct driver_data_t *driver_data = dev_get_drvdata(dev);
 
 	switch (type) {
 	case hwmon_temp:
-		// TODO: Read from HW
-		*val = 15000;
-		return 0;
+		if (channel == 0) {
+			err = read_cpu_info(&data, NULL);
+			if (err)
+				return err;
+			*val = data * 1000;
+			return 0;
+		} else if (channel == 1) {
+			err = read_gpu_info(&data, NULL, NULL);
+			if (err)
+				return err;
+			*val = data * 1000;
+			return 0;
+		}
+		break;
 	case hwmon_fan:
 		switch (attr) {
 		case hwmon_fan_min:
