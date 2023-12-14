@@ -19,6 +19,7 @@ case "$1" in
         rmmod tuxedo_nb05_sensors > /dev/null 2>&1 || true
         rmmod tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
         rmmod tuxedo_nb05_ec > /dev/null 2>&1 || true
+        rmmod tuxedo_nb04_sensors > /dev/null 2>&1 || true
         rmmod tuxedo_nb04_wmi_event > /dev/null 2>&1 || true
         rmmod tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
         rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true

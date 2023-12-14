@@ -1,9 +1,9 @@
 /*!
  * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
- * This file is part of tuxedo-keyboard.
+ * This file is part of tuxedo-drivers.
  *
- * tuxedo-keyboard is free software: you can redistribute it and/or modify
+ * tuxedo-drivers is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -20,124 +20,69 @@
 #include <linux/acpi.h>
 #include <linux/module.h>
 #include <linux/wmi.h>
-#include <linux/keyboard.h>
-#include <linux/input.h>
-#include <linux/input/sparse-keymap.h>
-#include <linux/hwmon.h>
 #include <linux/version.h>
-#include <linux/delay.h>
+#include "tuxedo_nb04_wmi_bs.h"
 
-#define NB04_WMI_AB_GUID	"80C9BAA6-AC48-4538-9234-9F81A55E7C85"
-#define NB04_WMI_BB_GUID	"B8BED7BB-3F3D-4C71-953D-6D4172F27A63"
 #define NB04_WMI_BS_GUID	"1F174999-3A4E-4311-900D-7BE7166D5055"
 
-static const char * const temp_labels[] = {
-	"cpu0",
-	"gpu0"
-};
+#define BS_INPUT_BUFFER_LENGTH	8
+#define BS_OUTPUT_BUFFER_LENGTH	80
 
-static const char * const fan_labels[] = {
-	"cpu0",
-	"gpu0"
-};
+struct driver_data_t {};
 
-struct driver_data_t {
-	int fan_cpu_max;
-	int fan_cpu_min;
-	int fan_gpu_max;
-	int fan_gpu_min;
-};
+static struct wmi_device *__wmi_dev;
 
-static umode_t
-nb04_wmi_temp_is_visible(const void *drvdata, enum hwmon_sensor_types type,
-			 u32 attr, int channel)
+static int __nb04_wmi_bs_method(struct wmi_device *wdev, u32 wmi_method_id,
+				     u8 *in, u8 *out)
 {
-	return 0444;
-}
+	struct acpi_buffer acpi_buffer_in = { (acpi_size)BS_INPUT_BUFFER_LENGTH, in };
+	struct acpi_buffer return_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+	union acpi_object *acpi_object_out;
+	acpi_status status;
 
-static int
-nb04_wmi_temp_read(struct device *dev, enum hwmon_sensor_types type,
-		   u32 attr, int channel, long *val)
-{
-	struct driver_data_t *driver_data = dev_get_drvdata(dev);
+	pr_debug("evaluate: %u\n", wmi_method_id);
+	status = wmidev_evaluate_method(wdev, 0, wmi_method_id,
+					&acpi_buffer_in, &return_buffer);
 
-	switch (type) {
-	case hwmon_temp:
-		// TODO: Read from HW
-		*val = 15000;
-		return 0;
-	case hwmon_fan:
-		switch (attr) {
-		case hwmon_fan_min:
-			if (channel == 0) {
-				*val = driver_data->fan_cpu_min;
-				return 0;
-			} else if (channel == 1) {
-				*val = driver_data->fan_gpu_min;
-				return 0;
-			}
-			break;
-		case hwmon_fan_max:
-			if (channel == 0) {
-				*val = driver_data->fan_cpu_max;
-				return 0;
-			} else if (channel == 1) {
-				*val = driver_data->fan_gpu_max;
-				return 0;
-			}
-			break;
-		case hwmon_fan_input:
-			// TODO: Read from HW
-			*val = 2400;
-			return 0;
-		default:
-			break;
-		}
-	default:
-		break;
+	if (ACPI_FAILURE(status)) {
+		pr_err("failed to evaluate wmi method %u\n", wmi_method_id);
+		return -EIO;
 	}
 
-	return -EOPNOTSUPP;
-}
+	acpi_object_out = (union acpi_object *) return_buffer.pointer;
+	if (!acpi_object_out)
+		return -ENODATA;
 
-static int
-nb04_wmi_temp_read_string(struct device *dev, enum hwmon_sensor_types type,
-			  u32 attr, int channel, const char **str)
-{
-	switch (type) {
-	case hwmon_temp:
-		*str = temp_labels[channel];
-		return 0;
-	case hwmon_fan:
-		*str = fan_labels[channel];
-		return 0;
-	default:
-		break;
+	if (acpi_object_out->type != ACPI_TYPE_BUFFER) {
+		// Returns an int 0 when not finding a valid method number
+		kfree(return_buffer.pointer);
+		return -EINVAL;
 	}
 
-	return -EOPNOTSUPP;
+	if (acpi_object_out->buffer.length != BS_OUTPUT_BUFFER_LENGTH) {
+		pr_err("Unexpected buffer length: %u for method (%u) call\n", 
+		       acpi_object_out->buffer.length, wmi_method_id);
+		kfree(return_buffer.pointer);
+		return -EIO;
+	}
+
+	memcpy(out, acpi_object_out->buffer.pointer, BS_OUTPUT_BUFFER_LENGTH);
+	kfree(return_buffer.pointer);
+
+	return 0;
 }
 
-static const struct hwmon_ops nb04_wmi_temp_ops = {
-	.is_visible = nb04_wmi_temp_is_visible,
-	.read = nb04_wmi_temp_read,
-	.read_string = nb04_wmi_temp_read_string
-};
-
-static const struct hwmon_channel_info *const nb04_wmi_temp_info[] = {
-	HWMON_CHANNEL_INFO(temp,
-			   HWMON_T_INPUT | HWMON_T_LABEL,
-			   HWMON_T_INPUT | HWMON_T_LABEL),
-	HWMON_CHANNEL_INFO(fan,
-			   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_MIN | HWMON_F_MAX,
-			   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_MIN | HWMON_F_MAX),
-	NULL
-};
-
-static const struct hwmon_chip_info nb04_wmi_chip_info = {
-	.ops = &nb04_wmi_temp_ops,
-	.info = nb04_wmi_temp_info
-};
+/**
+ * Method interface 8 bytes in 80 bytes out
+ */
+int nb04_wmi_bs_method(u32 wmi_method_id, u8 *in, u8 *out)
+{
+	if (__wmi_dev)
+		return __nb04_wmi_bs_method(__wmi_dev, wmi_method_id, in, out);
+	else
+		return -ENODEV;
+}
+EXPORT_SYMBOL(nb04_wmi_bs_method);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0)
 static int tuxedo_nb04_wmi_probe(struct wmi_device *wdev)
@@ -146,27 +91,16 @@ static int tuxedo_nb04_wmi_probe(struct wmi_device *wdev, const void *dummy_cont
 #endif
 {
 	struct driver_data_t *driver_data;
-	struct device *hwmon_dev;
 
 	pr_debug("driver probe\n");
+
+	__wmi_dev = wdev;
 
 	driver_data = devm_kzalloc(&wdev->dev, sizeof(struct driver_data_t), GFP_KERNEL);
 	if (!driver_data)
 		return -ENOMEM;
 
 	dev_set_drvdata(&wdev->dev, driver_data);
-
-	// TODO: Initial read from HW
-	driver_data->fan_cpu_max=10000;
-	driver_data->fan_cpu_min=0;
-	driver_data->fan_gpu_max=10000;
-	driver_data->fan_gpu_min=0;
-
-	hwmon_dev = devm_hwmon_device_register_with_info(&wdev->dev,
-							 "tuxedo",
-							 driver_data,
-							 &nb04_wmi_chip_info,
-							 NULL);
 
 	return 0;
 }
