@@ -24,7 +24,7 @@
 #include <linux/version.h>
 #include <linux/delay.h>
 
-#define dev_to_wdev(__dev)	container_of_const(__dev, struct wmi_device, dev)
+#define dev_to_wdev(__dev)	container_of(__dev, struct wmi_device, dev)
 
 #define NB04_WMI_AB_GUID	"80C9BAA6-AC48-4538-9234-9F81A55E7C85"
 
