@@ -24,13 +24,17 @@
 
 static int read_cpu_info(u8 *cpu_temp, u8 *cpu_turbo_mode)
 {
-	int err;
+	int err, wmi_return;
 	u8 in[BS_INPUT_BUFFER_LENGTH];
 	u8 out[BS_OUTPUT_BUFFER_LENGTH];
 
 	err = nb04_wmi_bs_method(0x04, in, out);
 	if (err)
 		return err;
+
+	wmi_return = (out[1] << 8) | out[0];
+	if (wmi_return != WMI_RETURN_STATUS_SUCCESS)
+		return -EIO;
 
 	if (cpu_temp)
 		*cpu_temp = out[2];
@@ -42,13 +46,17 @@ static int read_cpu_info(u8 *cpu_temp, u8 *cpu_turbo_mode)
 
 static int read_gpu_info(u8 *gpu_temp, u8 *gpu_turbo_mode, u16 *gpu_max_freq)
 {
-	int err;
+	int err, wmi_return;
 	u8 in[BS_INPUT_BUFFER_LENGTH];
 	u8 out[BS_OUTPUT_BUFFER_LENGTH];
 
 	err = nb04_wmi_bs_method(0x06, in, out);
 	if (err)
 		return err;
+
+	wmi_return = (out[1] << 8) | out[0];
+	if (wmi_return != WMI_RETURN_STATUS_SUCCESS)
+		return -EIO;
 
 	if (gpu_temp)
 		*gpu_temp = out[2];
@@ -64,13 +72,17 @@ static int read_fan_setting(u16 *fan1_cur_rpm, u16 *fan2_cur_rpm,
 			    u16 *fan1_max_rpm, u16 *fan2_max_rpm,
 			    bool *full_fan_status)
 {
-	int err;
+	int err, wmi_return;
 	u8 in[BS_INPUT_BUFFER_LENGTH];
 	u8 out[BS_OUTPUT_BUFFER_LENGTH];
 
 	err = nb04_wmi_bs_method(0x02, in, out);
 	if (err)
 		return err;
+
+	wmi_return = (out[1] << 8) | out[0];
+	if (wmi_return != WMI_RETURN_STATUS_SUCCESS)
+		return -EIO;
 
 	if (fan1_cur_rpm)
 		*fan1_cur_rpm = (out[3] << 8) | out[2];
