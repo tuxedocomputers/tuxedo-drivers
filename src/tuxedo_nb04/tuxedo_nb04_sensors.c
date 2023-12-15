@@ -242,7 +242,7 @@ static int __init tuxedo_nb04_sensors_probe(struct platform_device *pdev)
 							 &tuxedo_nb04_sensors_chip_info,
 							 NULL);
 
-	return 0;
+	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
 static struct platform_device *tuxedo_nb04_sensors_device;
