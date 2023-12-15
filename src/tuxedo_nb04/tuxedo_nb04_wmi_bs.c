@@ -30,6 +30,8 @@
 
 struct driver_data_t {};
 
+static DEFINE_MUTEX(nb04_wmi_bs_access_lock);
+
 static struct wmi_device *__wmi_dev;
 
 static int __nb04_wmi_bs_method(struct wmi_device *wdev, u32 wmi_method_id,
@@ -40,9 +42,13 @@ static int __nb04_wmi_bs_method(struct wmi_device *wdev, u32 wmi_method_id,
 	union acpi_object *acpi_object_out;
 	acpi_status status;
 
+	mutex_lock(&nb04_wmi_bs_access_lock);
+
 	pr_debug("evaluate: %u\n", wmi_method_id);
 	status = wmidev_evaluate_method(wdev, 0, wmi_method_id,
 					&acpi_buffer_in, &return_buffer);
+
+	mutex_unlock(&nb04_wmi_bs_access_lock);
 
 	if (ACPI_FAILURE(status)) {
 		pr_err("failed to evaluate wmi method %u\n", wmi_method_id);
