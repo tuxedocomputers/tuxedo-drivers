@@ -60,6 +60,32 @@ static int read_gpu_info(u8 *gpu_temp, u8 *gpu_turbo_mode, u16 *gpu_max_freq)
 	return 0;
 }
 
+static int read_fan_setting(u16 *fan1_cur_rpm, u16 *fan2_cur_rpm,
+			    u16 *fan1_max_rpm, u16 *fan2_max_rpm,
+			    bool *full_fan_status)
+{
+	int err;
+	u8 in[BS_INPUT_BUFFER_LENGTH];
+	u8 out[BS_OUTPUT_BUFFER_LENGTH];
+
+	err = nb04_wmi_bs_method(0x02, in, out);
+	if (err)
+		return err;
+
+	if (fan1_cur_rpm)
+		*fan1_cur_rpm = (out[3] << 8) | out[2];
+	if (fan2_cur_rpm)
+		*fan2_cur_rpm = (out[5] << 8) | out[4];
+	if (fan1_max_rpm)
+		*fan1_max_rpm = (out[7] << 8) | out[6];
+	if (fan2_max_rpm)
+		*fan2_max_rpm = (out[9] << 8) | out[8];
+	if (full_fan_status)
+		*full_fan_status = (out[10] == 0x01);
+
+	return 0;
+}
+
 static const char * const temp_labels[] = {
 	"cpu0",
 	"gpu0"
@@ -91,22 +117,23 @@ tuxedo_nb04_sensors_read(struct device *dev, enum hwmon_sensor_types type,
 		   u32 attr, int channel, long *val)
 {
 	int err;
-	u8 data;
+	u8 temp_data;
+	u16 rpm_data;
 	struct driver_data_t *driver_data = dev_get_drvdata(dev);
 
 	switch (type) {
 	case hwmon_temp:
 		if (channel == 0) {
-			err = read_cpu_info(&data, NULL);
+			err = read_cpu_info(&temp_data, NULL);
 			if (err)
 				return err;
-			*val = data * 1000;
+			*val = temp_data * 1000;
 			return 0;
 		} else if (channel == 1) {
-			err = read_gpu_info(&data, NULL, NULL);
+			err = read_gpu_info(&temp_data, NULL, NULL);
 			if (err)
 				return err;
-			*val = data * 1000;
+			*val = temp_data * 1000;
 			return 0;
 		}
 		break;
@@ -131,9 +158,20 @@ tuxedo_nb04_sensors_read(struct device *dev, enum hwmon_sensor_types type,
 			}
 			break;
 		case hwmon_fan_input:
-			// TODO: Read from HW
-			*val = 2400;
-			return 0;
+			if (channel == 0) {
+				err = read_fan_setting(&rpm_data, NULL, NULL, NULL, NULL);
+				if (err)
+					return err;
+				*val = rpm_data;
+				return 0;
+			} else if (channel == 1) {
+				err = read_fan_setting(NULL, &rpm_data, NULL, NULL, NULL);
+				if (err)
+					return err;
+				*val = rpm_data;
+				return 0;
+			}
+			break;
 		default:
 			break;
 		}
@@ -185,11 +223,17 @@ static const struct hwmon_chip_info tuxedo_nb04_sensors_chip_info = {
 
 static int __init tuxedo_nb04_sensors_probe(struct platform_device *pdev) {
 	struct device *hwmon_dev;
+	int err;
+	u16 fan1_max_rpm, fan2_max_rpm;
 
-	driver_data.fan_cpu_max=10000;
-	driver_data.fan_cpu_min=0;
-	driver_data.fan_gpu_max=10000;
-	driver_data.fan_gpu_min=0;
+	err = read_fan_setting(NULL, NULL, &fan1_max_rpm, &fan2_max_rpm, NULL);
+	if (err)
+		return err;
+
+	driver_data.fan_cpu_max = fan1_max_rpm;
+	driver_data.fan_cpu_min = 0;
+	driver_data.fan_gpu_max = fan2_max_rpm;
+	driver_data.fan_gpu_min = 0;
 
 	hwmon_dev = devm_hwmon_device_register_with_info(&pdev->dev,
 							 "tuxedo",
