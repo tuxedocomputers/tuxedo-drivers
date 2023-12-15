@@ -29,6 +29,7 @@
 #include <linux/acpi.h>
 #include <linux/delay.h>
 #include <linux/keyboard.h>
+#include <linux/dmi.h>
 #include <linux/led-class-multicolor.h>
 
 MODULE_DESCRIPTION("TUXEDO Computers, ITE backlight driver");
@@ -382,6 +383,12 @@ static const struct dev_pm_ops ite8291_pm = {
 static int __init ite8291_init(void)
 {
 	pr_debug("module init\n");
+
+	// Known not compatible/broken device, do not even load module
+	if (dmi_match(DMI_SYS_VENDOR, "TUXEDO") &&
+	    dmi_match(DMI_PRODUCT_SKU, "SIRIUS1601"))
+		return -ENODEV;
+
 	mutex_init(&input_lock);
 	
 	ite829x_driver.driver.pm = &ite8291_pm;
