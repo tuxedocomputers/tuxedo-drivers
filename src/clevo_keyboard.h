@@ -21,6 +21,7 @@
 
 #include <linux/power_supply.h>
 #include <acpi/battery.h>
+#include <linux/version.h>
 
 #include "tuxedo_keyboard_common.h"
 #include "clevo_interfaces.h"
@@ -881,7 +882,11 @@ static struct attribute *clevo_battery_attrs[] = {
 
 ATTRIBUTE_GROUPS(clevo_battery);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+static int clevo_battery_add(struct power_supply *battery)
+#else
 static int clevo_battery_add(struct power_supply *battery, struct acpi_battery_hook *hook)
+#endif
 {
 	bool has_legacy_flexicharger;
 	bool has_cc4_flexicharger;
@@ -907,7 +912,11 @@ static int clevo_battery_add(struct power_supply *battery, struct acpi_battery_h
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+static int clevo_battery_remove(struct power_supply *battery)
+#else
 static int clevo_battery_remove(struct power_supply *battery, struct acpi_battery_hook *hook)
+#endif
 {
 	device_remove_groups(&battery->dev, clevo_battery_groups);
 	return 0;
