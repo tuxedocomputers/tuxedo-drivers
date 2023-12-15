@@ -107,14 +107,14 @@ struct driver_data_t driver_data;
 
 static umode_t
 tuxedo_nb04_sensors_is_visible(const void *drvdata, enum hwmon_sensor_types type,
-			 u32 attr, int channel)
+			       u32 attr, int channel)
 {
 	return 0444;
 }
 
 static int
 tuxedo_nb04_sensors_read(struct device *dev, enum hwmon_sensor_types type,
-		   u32 attr, int channel, long *val)
+			 u32 attr, int channel, long *val)
 {
 	int err;
 	u8 temp_data;
@@ -184,7 +184,7 @@ tuxedo_nb04_sensors_read(struct device *dev, enum hwmon_sensor_types type,
 
 static int
 tuxedo_nb04_sensors_read_string(struct device *dev, enum hwmon_sensor_types type,
-			  u32 attr, int channel, const char **str)
+				u32 attr, int channel, const char **str)
 {
 	switch (type) {
 	case hwmon_temp:
@@ -221,7 +221,8 @@ static const struct hwmon_chip_info tuxedo_nb04_sensors_chip_info = {
 	.info = tuxedo_nb04_sensors_info
 };
 
-static int __init tuxedo_nb04_sensors_probe(struct platform_device *pdev) {
+static int __init tuxedo_nb04_sensors_probe(struct platform_device *pdev)
+{
 	struct device *hwmon_dev;
 	int err;
 	u16 fan1_max_rpm, fan2_max_rpm;

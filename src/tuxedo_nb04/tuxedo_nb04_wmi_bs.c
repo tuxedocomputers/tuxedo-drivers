@@ -35,7 +35,7 @@ static DEFINE_MUTEX(nb04_wmi_bs_access_lock);
 static struct wmi_device *__wmi_dev;
 
 static int __nb04_wmi_bs_method(struct wmi_device *wdev, u32 wmi_method_id,
-				     u8 *in, u8 *out)
+				u8 *in, u8 *out)
 {
 	struct acpi_buffer acpi_buffer_in = { (acpi_size)BS_INPUT_BUFFER_LENGTH, in };
 	struct acpi_buffer return_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
