@@ -111,6 +111,8 @@ rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
+* Fri Dec 15 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.1-1
+- Fix build on Ubuntu 22.04 5.15 kernel
 * Tue Dec 12 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.0-1
 - Merge tuxedo-keyboard and tuxedo-keyboard-ite
 - Rename package to tuxedo-drivers
