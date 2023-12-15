@@ -29,7 +29,7 @@
 #include "tuxedo_nb05_power_profiles.h"
 #include "../tuxedo_compatibility_check/tuxedo_compatibility_check.h"
 
-#define dev_to_wdev(__dev)	container_of_const(__dev, struct wmi_device, dev)
+#define dev_to_wdev(__dev)	container_of(__dev, struct wmi_device, dev)
 
 #define NB05_WMI_METHOD_BA_GUID	"99D89064-8D50-42BB-BEA9-155B2E5D0FCD"
 

@@ -99,17 +99,11 @@ static int tuxedo_nb05_ec_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static void tuxedo_nb05_ec_remove(struct platform_device *pdev)
-{
-	pr_debug("driver remove\n");
-}
-
 static struct platform_driver tuxedo_nb05_ec_driver = {
 	.driver		= {
 		.name	= KBUILD_MODNAME,
 	},
 	.probe		= tuxedo_nb05_ec_probe,
-	.remove_new	= tuxedo_nb05_ec_remove,
 };
 
 static struct platform_device *tuxedo_nb05_ec_device;
