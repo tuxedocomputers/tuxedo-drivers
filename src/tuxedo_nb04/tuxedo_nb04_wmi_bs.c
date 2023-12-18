@@ -23,8 +23,6 @@
 #include <linux/version.h>
 #include "tuxedo_nb04_wmi_bs.h"
 
-#define NB04_WMI_BS_GUID	"1F174999-3A4E-4311-900D-7BE7166D5055"
-
 #define BS_INPUT_BUFFER_LENGTH	8
 #define BS_OUTPUT_BUFFER_LENGTH	80
 
@@ -147,4 +145,3 @@ MODULE_VERSION("0.0.1");
 MODULE_LICENSE("GPL");
 
 MODULE_DEVICE_TABLE(wmi, tuxedo_nb04_wmi_device_ids);
-MODULE_ALIAS("wmi:" NB04_WMI_BS_GUID);
