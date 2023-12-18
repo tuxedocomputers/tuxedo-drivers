@@ -53,6 +53,8 @@ struct driver_data_t {
 
 static struct key_entry driver_keymap[] = {
 	{ KE_KEY,	NB04_WMI_EVENT_TOUCHPAD_TOGGLE,	{ KEY_F21 } },
+	{ KE_KEY,	NB04_WMI_EVENT_KBD_BRT_DOWN,	{ KEY_KBDILLUMDOWN } },
+	{ KE_KEY,	NB04_WMI_EVENT_KBD_BRT_UP,	{ KEY_KBDILLUMUP } },
 	{ KE_END,	0 }
 };
 
