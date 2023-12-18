@@ -65,3 +65,7 @@ BUILT_MODULE_LOCATION[15]="tuxedo_nb04"
 DEST_MODULE_LOCATION[16]="/kernel/lib/"
 BUILT_MODULE_NAME[16]="tuxedo_nb04_wmi_bs"
 BUILT_MODULE_LOCATION[16]="tuxedo_nb04"
+
+DEST_MODULE_LOCATION[17]="/kernel/lib/"
+BUILT_MODULE_NAME[17]="tuxedo_nb04_sensors"
+BUILT_MODULE_LOCATION[17]="tuxedo_nb04"
