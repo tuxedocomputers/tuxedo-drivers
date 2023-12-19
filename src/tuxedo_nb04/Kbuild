@@ -2,3 +2,4 @@ obj-m += tuxedo_nb04_keyboard.o
 obj-m += tuxedo_nb04_wmi_ab.o
 obj-m += tuxedo_nb04_wmi_bs.o
 obj-m += tuxedo_nb04_sensors.o
+obj-m += tuxedo_nb04_power_profiles.o
