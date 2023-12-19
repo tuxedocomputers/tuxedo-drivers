@@ -877,6 +877,8 @@ static DEVICE_ATTR_RW(charge_control_end_threshold);
 static DEVICE_ATTR_RO(charge_control_start_available_thresholds);
 static DEVICE_ATTR_RO(charge_control_end_available_thresholds);
 
+static bool charge_control_registered = false;
+
 static struct attribute *clevo_battery_attrs[] = {
 	&dev_attr_charge_type.attr,
 	&dev_attr_charge_control_start_threshold.attr,
@@ -915,6 +917,8 @@ static int clevo_battery_add(struct power_supply *battery, struct acpi_battery_h
 	if (device_add_groups(&battery->dev, clevo_battery_groups))
 		return -ENODEV;
 
+	charge_control_registered = true;
+
 	return 0;
 }
 
@@ -941,7 +945,8 @@ static void clevo_flexicharger_init(void)
 
 static void clevo_flexicharger_remove(void)
 {
-	battery_hook_unregister(&battery_hook);
+	if (charge_control_registered)
+		battery_hook_unregister(&battery_hook);
 }
 
 static void clevo_keyboard_init(void)
