@@ -626,6 +626,12 @@ static int clevo_cc4_flexicharger_read(u8 *start, u8 *end, u8 *status)
 		return -EIO;
 	}
 
+	if (out_obj->buffer.pointer[2] == 0 &&
+	    out_obj->buffer.pointer[1] == 0) {
+		ACPI_FREE(out_obj);
+		return -ENODEV;
+	}
+
 	if (end != NULL)
 		*end = out_obj->buffer.pointer[2];
 	if (start != NULL)
