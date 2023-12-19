@@ -56,7 +56,8 @@ enum wmi_keyboard_type {
 	WMI_KEYBOARD_TYPE_NORMAL = 0,
 	WMI_KEYBOARD_TYPE_PERKEY = 1,
 	WMI_KEYBOARD_TYPE_4ZONE = 2,
-	WMI_KEYBOARD_TYPE_WHITE = 3
+	WMI_KEYBOARD_TYPE_WHITE = 3,
+	WMI_KEYBOARD_TYPE_MAX,
 };
 
 enum wmi_keyboard_matrix {
@@ -263,18 +264,34 @@ int wmi_update_device_status_keyboard(struct wmi_device *wdev)
 	u8 arg[AB_INPUT_BUFFER_LENGTH_NORMAL] = {0};
 	u8 out[AB_OUTPUT_BUFFER_LENGTH] = {0};
 	u16 wmi_return;
-	int result;
+	int result, retry_count = 3;
 	struct driver_data_t *driver_data = dev_get_drvdata(&wdev->dev);
 
 	arg[0] = WMI_DEVICE_TYPE_ID_KEYBOARD;
 
-	result = nb04_wmi_ab_method_buffer(wdev, 2, arg, out);
-	if (result)
-		return result;
+	while (retry_count--) {
+		result = nb04_wmi_ab_method_buffer(wdev, 2, arg, out);
+		if (result)
+			return result;
 
-	wmi_return = (out[1] << 8) | out[0];
-	if (wmi_return != WMI_RETURN_STATUS_SUCCESS)
-		return -EIO;
+		wmi_return = (out[1] << 8) | out[0];
+		if (wmi_return != WMI_RETURN_STATUS_SUCCESS)
+			return -EIO;
+
+		if (out[3] < WMI_KEYBOARD_TYPE_MAX)
+			break;
+
+		// Sometimes initial read has proved to fail without having a fail
+		// status. However the returned keyboard type in this case is invalid.
+		pr_debug("Unexpected keyboard type (%d), retry read\n", out[3]);
+		msleep(50);
+	}
+
+	// If, despite retries, not getting a valid keyboard type => give up
+	if (out[3] >= WMI_KEYBOARD_TYPE_MAX) {
+		pr_err("Failed to identifiy keyboard type\n");
+		return -ENODEV;
+	}
 
 	driver_data->device_status.keyboard_state_enabled = out[2] == 1;
 	driver_data->device_status.keyboard_type = out[3];
@@ -377,9 +394,19 @@ static int tuxedo_nb04_wmi_ab_probe(struct wmi_device *wdev, const void *dummy_c
 	if (result)
 		return result;
 
-	// Note: One read of keyboard status needed for fw init
+	// Note: Read of keyboard status needed for fw init
 	//       before writing can be done
-	wmi_update_device_status_keyboard(wdev);
+	result = wmi_update_device_status_keyboard(wdev);
+
+	if (result) {
+		pr_err("Failed init write %d\n", result);
+		return result;
+	}
+
+	pr_debug("kbd enabled: %d\n", driver_data->device_status.keyboard_state_enabled);
+	pr_debug("kbd type: %d\n", driver_data->device_status.keyboard_type);
+	pr_debug("kbd sidebar support: %d\n", driver_data->device_status.keyboard_sidebar_support);
+	pr_debug("kbd keyboard matrix: %d\n", driver_data->device_status.keyboard_matrix);
 
 	return 0;
 }
