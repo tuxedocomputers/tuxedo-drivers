@@ -21,6 +21,7 @@
 #include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
+#include <linux/dmi.h>
 #include "tuxedo_nb04_wmi_bs.h"
 
 #define DEFAULT_PROFILE		WMI_SYSTEM_MODE_BEAST
@@ -191,6 +192,11 @@ static int __init tuxedo_nb04_power_profiles_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	pr_debug("driver probe\n");
+
+	// Sirius uses other platform control interface
+	if (dmi_match(DMI_SYS_VENDOR, "TUXEDO") &&
+	    dmi_match(DMI_PRODUCT_SKU, "SIRIUS1601"))
+		return -ENODEV;
 
 	dev_set_drvdata(&pdev->dev, driver_data);
 
