@@ -516,7 +516,6 @@ static int clevo_has_legacy_flexicharger(bool *status)
 		|| dmi_string_in(DMI_BOARD_NAME, "N141CU")
 		|| dmi_string_in(DMI_BOARD_NAME, "NH5xAx")
 		|| dmi_string_in(DMI_BOARD_NAME, "NL5xNU")
-		|| dmi_string_in(DMI_BOARD_NAME, "NS5x_7xPU")
 		|| dmi_string_in(DMI_BOARD_NAME, "P95xER")
 		|| dmi_string_in(DMI_BOARD_NAME, "PCX0DX")
 		|| dmi_string_in(DMI_BOARD_NAME, "PD5x_7xPNP_PNR_PNN_PNT")
@@ -624,6 +623,12 @@ static int clevo_cc4_flexicharger_read(u8 *start, u8 *end, u8 *status)
 	    out_obj->buffer.length < 3) {
 		ACPI_FREE(out_obj);
 		return -EIO;
+	}
+
+	if (out_obj->buffer.pointer[2] == 0 &&
+	    out_obj->buffer.pointer[1] == 0) {
+		ACPI_FREE(out_obj);
+		return -ENODEV;
 	}
 
 	if (end != NULL)
@@ -871,6 +876,8 @@ static DEVICE_ATTR_RW(charge_control_end_threshold);
 static DEVICE_ATTR_RO(charge_control_start_available_thresholds);
 static DEVICE_ATTR_RO(charge_control_end_available_thresholds);
 
+static bool charge_control_registered = false;
+
 static struct attribute *clevo_battery_attrs[] = {
 	&dev_attr_charge_type.attr,
 	&dev_attr_charge_control_start_threshold.attr,
@@ -909,6 +916,8 @@ static int clevo_battery_add(struct power_supply *battery, struct acpi_battery_h
 	if (device_add_groups(&battery->dev, clevo_battery_groups))
 		return -ENODEV;
 
+	charge_control_registered = true;
+
 	return 0;
 }
 
@@ -935,7 +944,8 @@ static void clevo_flexicharger_init(void)
 
 static void clevo_flexicharger_remove(void)
 {
-	battery_hook_unregister(&battery_hook);
+	if (charge_control_registered)
+		battery_hook_unregister(&battery_hook);
 }
 
 static void clevo_keyboard_init(void)
