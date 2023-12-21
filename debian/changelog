@@ -1,3 +1,9 @@
+tuxedo-drivers (4.0.2) jammy; urgency=medium
+
+  * nb01: Charging thresholds fixes
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 21 Dec 2023 16:59:26 +0100
+
 tuxedo-drivers (4.0.1) jammy; urgency=medium
 
   * Fix build on Ubuntu 22.04 5.15 kernel
