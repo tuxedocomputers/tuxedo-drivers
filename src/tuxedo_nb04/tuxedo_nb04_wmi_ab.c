@@ -47,9 +47,11 @@ __nb04_wmi_ab_method_buffer(struct wmi_device *wdev, u32 wmi_method_id,
 	union acpi_object *acpi_object_out;
 	acpi_status status;
 
+	mutex_lock(&nb04_wmi_ab_lock);
 	pr_debug("evaluate: %u\n", wmi_method_id);
 	status = wmidev_evaluate_method(wdev, 0, wmi_method_id,
 					&acpi_buffer_in, &return_buffer);
+	mutex_unlock(&nb04_wmi_ab_lock);
 
 	if (ACPI_FAILURE(status)) {
 		pr_err("failed to evaluate wmi method %u\n", wmi_method_id);
@@ -100,10 +102,11 @@ __nb04_wmi_ab_method_buffer_reduced_output(struct wmi_device *wdev, u32 wmi_meth
 	union acpi_object *acpi_object_out;
 	acpi_status status;
 
+	mutex_lock(&nb04_wmi_ab_lock);
 	pr_debug("evaluate: %u\n", wmi_method_id);
 	status = wmidev_evaluate_method(wdev, 0, wmi_method_id,
 					&acpi_buffer_in, &return_buffer);
-
+	mutex_unlock(&nb04_wmi_ab_lock);
 	if (ACPI_FAILURE(status)) {
 		pr_err("failed to evaluate wmi method %u\n", wmi_method_id);
 		return -EIO;
@@ -153,9 +156,11 @@ __nb04_wmi_ab_method_extended_input(struct wmi_device *wdev, u32 wmi_method_id,
 	union acpi_object *acpi_object_out;
 	acpi_status status;
 
+	mutex_lock(&nb04_wmi_ab_lock);
 	pr_debug("evaluate: %u\n", wmi_method_id);
 	status = wmidev_evaluate_method(wdev, 0, wmi_method_id,
 					&acpi_buffer_in, &return_buffer);
+	mutex_unlock(&nb04_wmi_ab_lock);
 
 	if (ACPI_FAILURE(status)) {
 		pr_err("failed to evaluate wmi method %u\n", wmi_method_id);
@@ -206,9 +211,11 @@ __nb04_wmi_ab_method_int_out(struct wmi_device *wdev, u32 wmi_method_id,
 	union acpi_object *acpi_object_out;
 	acpi_status status;
 
+	mutex_lock(&nb04_wmi_ab_lock);
 	pr_debug("evaluate: %u\n", wmi_method_id);
 	status = wmidev_evaluate_method(wdev, 0, wmi_method_id,
 					&acpi_buffer_in, &return_buffer);
+	mutex_unlock(&nb04_wmi_ab_lock);
 
 	if (ACPI_FAILURE(status)) {
 		pr_err("failed to evaluate wmi method\n");
