@@ -1,9 +1,9 @@
 /*!
  * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
- * This file is part of tuxedo-keyboard.
+ * This file is part of tuxedo-drivers.
  *
- * tuxedo-keyboard is free software: you can redistribute it and/or modify
+ * tuxedo-drivers is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -20,60 +20,15 @@
 #include <linux/acpi.h>
 #include <linux/module.h>
 #include <linux/wmi.h>
-#include <linux/led-class-multicolor.h>
 #include <linux/version.h>
 #include <linux/delay.h>
+#include "tuxedo_nb04_wmi_ab.h"
 
 #define dev_to_wdev(__dev)	container_of(__dev, struct wmi_device, dev)
 
-#define NB04_WMI_AB_GUID	"80C9BAA6-AC48-4538-9234-9F81A55E7C85"
-
 static DEFINE_MUTEX(nb04_wmi_ab_lock);
 
-#define AB_INPUT_BUFFER_LENGTH_NORMAL	8
-#define AB_INPUT_BUFFER_LENGTH_EXTENDED	496
-#define AB_OUTPUT_BUFFER_LENGTH		80
-#define AB_OUTPUT_BUFFER_LENGTH_REDUCED	10
-
-enum wmi_return_status {
-	WMI_RETURN_STATUS_SUCCESS = 0,
-	WMI_RETURN_STATUS_UNSUPPORTED = 1,
-	WMI_RETURN_STATUS_INVALID_PARAMETER = 2,
-	WMI_RETURN_STATUS_UNDEFINED_DEVICE = 3,
-	WMI_RETURN_STATUS_DEVICE_ERROR = 4,
-	WMI_RETURN_STATUS_UNEXPECTED_ERROR = 5,
-	WMI_RETURN_STATUS_TIMEOUT = 6,
-	WMI_RETURN_STATUS_EC_BUSY = 7,
-};
-
-enum wmi_device_type_id {
-	WMI_DEVICE_TYPE_ID_TOUCHPAD = 1,
-	WMI_DEVICE_TYPE_ID_KEYBOARD = 2,
-	WMI_DEVICE_TYPE_ID_APPDISPLAYPAGES = 3
-};
-
-enum wmi_keyboard_type {
-	WMI_KEYBOARD_TYPE_NORMAL = 0,
-	WMI_KEYBOARD_TYPE_PERKEY = 1,
-	WMI_KEYBOARD_TYPE_4ZONE = 2,
-	WMI_KEYBOARD_TYPE_WHITE = 3,
-	WMI_KEYBOARD_TYPE_MAX,
-};
-
-enum wmi_keyboard_matrix {
-	WMI_KEYBOARD_MATRIX_US = 0,
-	WMI_KEYBOARD_MATRIX_UK = 1
-};
-
-enum wmi_color_preset {
-	WMI_COLOR_PRESET_RED = 1,
-	WMI_COLOR_PRESET_GREEN = 2,
-	WMI_COLOR_PRESET_YELLOW = 3,
-	WMI_COLOR_PRESET_BLUE = 4,
-	WMI_COLOR_PRESET_PURPLE = 5,
-	WMI_COLOR_PRESET_INDIGO = 6,
-	WMI_COLOR_PRESET_WHITE = 7
-};
+static struct wmi_device *__wmi_dev;
 
 #define KEYBOARD_MAX_BRIGHTNESS		0x0a
 #define KEYBOARD_DEFAULT_BRIGHTNESS	0x00
@@ -81,24 +36,11 @@ enum wmi_color_preset {
 #define KEYBOARD_DEFAULT_COLOR_GREEN	0xff
 #define KEYBOARD_DEFAULT_COLOR_BLUE	0xff
 
-struct device_status_t {
-	bool keyboard_state_enabled;
-	enum wmi_keyboard_type keyboard_type;
-	bool keyboard_sidebar_support;
-	enum wmi_keyboard_matrix keyboard_matrix;
-};
+struct driver_data_t {};
 
-struct driver_data_t {
-	struct led_classdev_mc mcled_cdev_keyboard;
-	struct mc_subled mcled_cdev_subleds_keyboard[3];
-	struct device_status_t device_status;
-};
-
-/**
- * Method interface 8 bytes in 80 bytes out
- */
-static int nb04_wmi_ab_method_buffer(struct wmi_device *wdev, u32 wmi_method_id,
-				     u8 *in, u8 *out)
+static int
+__nb04_wmi_ab_method_buffer(struct wmi_device *wdev, u32 wmi_method_id,
+			    u8 *in, u8 *out)
 {
 	struct acpi_buffer acpi_buffer_in = { (acpi_size)AB_INPUT_BUFFER_LENGTH_NORMAL, in };
 	struct acpi_buffer return_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
@@ -138,10 +80,20 @@ static int nb04_wmi_ab_method_buffer(struct wmi_device *wdev, u32 wmi_method_id,
 }
 
 /**
- * Method interface 8 bytes in 10 bytes out
+ * Method interface 8 bytes in 80 bytes out
  */
-static int nb04_wmi_ab_method_buffer_reduced_output(struct wmi_device *wdev, u32 wmi_method_id,
-				     u8 *in, u8 *out)
+int nb04_wmi_ab_method_buffer(u32 wmi_method_id, u8 *in, u8 *out)
+{
+	if (__wmi_dev)
+		return __nb04_wmi_ab_method_buffer(__wmi_dev, wmi_method_id, in, out);
+	else
+		return -ENODEV;
+}
+EXPORT_SYMBOL(nb04_wmi_ab_method_buffer);
+
+static int
+__nb04_wmi_ab_method_buffer_reduced_output(struct wmi_device *wdev, u32 wmi_method_id,
+					   u8 *in, u8 *out)
 {
 	struct acpi_buffer acpi_buffer_in = { (acpi_size)AB_INPUT_BUFFER_LENGTH_NORMAL, in };
 	struct acpi_buffer return_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
@@ -181,10 +133,20 @@ static int nb04_wmi_ab_method_buffer_reduced_output(struct wmi_device *wdev, u32
 }
 
 /**
- * Method interface 496 bytes in 80 bytes out
+ * Method interface 8 bytes in 10 bytes out
  */
-static int nb04_wmi_ab_method_extended_input(struct wmi_device *wdev, u32 wmi_method_id,
-					     u8 *in, u8 *out)
+int nb04_wmi_ab_method_buffer_reduced_output(u32 wmi_method_id, u8 *in, u8 *out)
+{
+	if (__wmi_dev)
+		return __nb04_wmi_ab_method_buffer_reduced_output(__wmi_dev, wmi_method_id, in, out);
+	else
+		return -ENODEV;
+}
+EXPORT_SYMBOL(nb04_wmi_ab_method_buffer_reduced_output);
+
+static int
+__nb04_wmi_ab_method_extended_input(struct wmi_device *wdev, u32 wmi_method_id,
+				    u8 *in, u8 *out)
 {
 	struct acpi_buffer acpi_buffer_in = { (acpi_size)AB_INPUT_BUFFER_LENGTH_EXTENDED, in };
 	struct acpi_buffer return_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
@@ -224,10 +186,20 @@ static int nb04_wmi_ab_method_extended_input(struct wmi_device *wdev, u32 wmi_me
 }
 
 /**
- * Method interface 8 bytes in integer out
+ * Method interface 496 bytes in 80 bytes out
  */
-static int nb04_wmi_ab_method_int_out(struct wmi_device *wdev, u32 wmi_method_id,
-				      u8 *in, u64 *out)
+int nb04_wmi_ab_method_extended_input(u32 wmi_method_id, u8 *in, u8 *out)
+{
+	if (__wmi_dev)
+		return __nb04_wmi_ab_method_extended_input(__wmi_dev, wmi_method_id, in, out);
+	else
+		return -ENODEV;
+}
+EXPORT_SYMBOL(nb04_wmi_ab_method_extended_input);
+
+static int
+__nb04_wmi_ab_method_int_out(struct wmi_device *wdev, u32 wmi_method_id,
+			     u8 *in, u64 *out)
 {
 	struct acpi_buffer acpi_buffer_in = { (acpi_size)AB_INPUT_BUFFER_LENGTH_NORMAL, in };
 	struct acpi_buffer return_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
@@ -259,18 +231,29 @@ static int nb04_wmi_ab_method_int_out(struct wmi_device *wdev, u32 wmi_method_id
 	return 0;
 }
 
-int wmi_update_device_status_keyboard(struct wmi_device *wdev)
+/**
+ * Method interface 8 bytes in integer out
+ */
+int nb04_wmi_ab_method_int_out(u32 wmi_method_id, u8 *in, u64 *out)
+{
+	if (__wmi_dev)
+		return __nb04_wmi_ab_method_int_out(__wmi_dev, wmi_method_id, in, out);
+	else
+		return -ENODEV;
+}
+EXPORT_SYMBOL(nb04_wmi_ab_method_int_out);
+
+int wmi_update_device_status_keyboard(struct device_keyboard_status_t *kbds)
 {
 	u8 arg[AB_INPUT_BUFFER_LENGTH_NORMAL] = {0};
 	u8 out[AB_OUTPUT_BUFFER_LENGTH] = {0};
 	u16 wmi_return;
 	int result, retry_count = 3;
-	struct driver_data_t *driver_data = dev_get_drvdata(&wdev->dev);
 
 	arg[0] = WMI_DEVICE_TYPE_ID_KEYBOARD;
 
 	while (retry_count--) {
-		result = nb04_wmi_ab_method_buffer(wdev, 2, arg, out);
+		result = nb04_wmi_ab_method_buffer(2, arg, out);
 		if (result)
 			return result;
 
@@ -293,15 +276,16 @@ int wmi_update_device_status_keyboard(struct wmi_device *wdev)
 		return -ENODEV;
 	}
 
-	driver_data->device_status.keyboard_state_enabled = out[2] == 1;
-	driver_data->device_status.keyboard_type = out[3];
-	driver_data->device_status.keyboard_sidebar_support = out[4] == 1;
-	driver_data->device_status.keyboard_matrix = out[5];
+	kbds->keyboard_state_enabled = out[2] == 1;
+	kbds->keyboard_type = out[3];
+	kbds->keyboard_sidebar_support = out[4] == 1;
+	kbds->keyboard_matrix = out[5];
 
 	return 0;
 }
+EXPORT_SYMBOL(wmi_update_device_status_keyboard);
 
-int wmi_set_whole_keyboard(struct wmi_device *wdev, u8 red, u8 green, u8 blue, int brightness)
+int wmi_set_whole_keyboard(u8 red, u8 green, u8 blue, int brightness)
 {
 	u8 arg[AB_INPUT_BUFFER_LENGTH_NORMAL] = {0};
 	u64 out;
@@ -322,7 +306,7 @@ int wmi_set_whole_keyboard(struct wmi_device *wdev, u8 red, u8 green, u8 blue, i
 	arg[6] = 0x00;
 	arg[7] = enable_byte;
 
-	result = nb04_wmi_ab_method_int_out(wdev, 3, arg, &out);
+	result = nb04_wmi_ab_method_int_out(3, arg, &out);
 	if (result)
 		return result;
 
@@ -331,47 +315,7 @@ int wmi_set_whole_keyboard(struct wmi_device *wdev, u8 red, u8 green, u8 blue, i
 
 	return 0;
 }
-
-void leds_set_brightness_mc_keyboard(struct led_classdev *led_cdev, enum led_brightness brightness)
-{
-	struct wmi_device *wdev = dev_to_wdev(led_cdev->dev->parent);
-	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
-	u8 red = mcled_cdev->subled_info[0].intensity;
-	u8 green = mcled_cdev->subled_info[1].intensity;
-	u8 blue = mcled_cdev->subled_info[2].intensity;
-
-	pr_debug("wmi_set_whole_keyboard(%u, %u, %u, %u)\n", red, green, blue, brightness);
-
-	wmi_set_whole_keyboard(wdev, red, green, blue, brightness);
-}
-
-static int init_leds(struct wmi_device *wdev)
-{
-	struct driver_data_t *driver_data = dev_get_drvdata(&wdev->dev);
-	int retval;
-
-	driver_data->mcled_cdev_keyboard.led_cdev.name = "rgb:" LED_FUNCTION_KBD_BACKLIGHT;
-	driver_data->mcled_cdev_keyboard.led_cdev.max_brightness = KEYBOARD_MAX_BRIGHTNESS;
-	driver_data->mcled_cdev_keyboard.led_cdev.brightness_set = &leds_set_brightness_mc_keyboard;
-	driver_data->mcled_cdev_keyboard.led_cdev.brightness = KEYBOARD_DEFAULT_BRIGHTNESS;
-	driver_data->mcled_cdev_keyboard.num_colors = 3;
-	driver_data->mcled_cdev_keyboard.subled_info = driver_data->mcled_cdev_subleds_keyboard;
-	driver_data->mcled_cdev_keyboard.subled_info[0].color_index = LED_COLOR_ID_RED;
-	driver_data->mcled_cdev_keyboard.subled_info[0].intensity = KEYBOARD_DEFAULT_COLOR_RED;
-	driver_data->mcled_cdev_keyboard.subled_info[0].channel = 0;
-	driver_data->mcled_cdev_keyboard.subled_info[1].color_index = LED_COLOR_ID_GREEN;
-	driver_data->mcled_cdev_keyboard.subled_info[1].intensity = KEYBOARD_DEFAULT_COLOR_GREEN;
-	driver_data->mcled_cdev_keyboard.subled_info[1].channel = 0;
-	driver_data->mcled_cdev_keyboard.subled_info[2].color_index = LED_COLOR_ID_BLUE;
-	driver_data->mcled_cdev_keyboard.subled_info[2].intensity = KEYBOARD_DEFAULT_COLOR_BLUE;
-	driver_data->mcled_cdev_keyboard.subled_info[2].channel = 0;
-
-	retval = devm_led_classdev_multicolor_register(&wdev->dev, &driver_data->mcled_cdev_keyboard);
-	if (retval)
-		return retval;
-
-	return 0;
-}
+EXPORT_SYMBOL(wmi_set_whole_keyboard);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0)
 static int tuxedo_nb04_wmi_ab_probe(struct wmi_device *wdev)
@@ -379,7 +323,6 @@ static int tuxedo_nb04_wmi_ab_probe(struct wmi_device *wdev)
 static int tuxedo_nb04_wmi_ab_probe(struct wmi_device *wdev, const void *dummy_context)
 #endif
 {
-	int result;
 	struct driver_data_t *driver_data;
 
 	pr_debug("driver probe\n");
@@ -390,23 +333,7 @@ static int tuxedo_nb04_wmi_ab_probe(struct wmi_device *wdev, const void *dummy_c
 
 	dev_set_drvdata(&wdev->dev, driver_data);
 
-	result = init_leds(wdev);
-	if (result)
-		return result;
-
-	// Note: Read of keyboard status needed for fw init
-	//       before writing can be done
-	result = wmi_update_device_status_keyboard(wdev);
-
-	if (result) {
-		pr_err("Failed init write %d\n", result);
-		return result;
-	}
-
-	pr_debug("kbd enabled: %d\n", driver_data->device_status.keyboard_state_enabled);
-	pr_debug("kbd type: %d\n", driver_data->device_status.keyboard_type);
-	pr_debug("kbd sidebar support: %d\n", driver_data->device_status.keyboard_sidebar_support);
-	pr_debug("kbd keyboard matrix: %d\n", driver_data->device_status.keyboard_matrix);
+	__wmi_dev = wdev;
 
 	return 0;
 }
@@ -417,8 +344,7 @@ static int tuxedo_nb04_wmi_ab_remove(struct wmi_device *wdev)
 static void tuxedo_nb04_wmi_ab_remove(struct wmi_device *wdev)
 #endif
 {
-	struct driver_data_t *driver_data = dev_get_drvdata(&wdev->dev);
-	devm_led_classdev_multicolor_unregister(&wdev->dev, &driver_data->mcled_cdev_keyboard);
+	__wmi_dev = NULL;
 	pr_debug("driver remove\n");
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 13, 0)

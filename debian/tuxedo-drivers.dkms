@@ -73,3 +73,7 @@ BUILT_MODULE_LOCATION[17]="tuxedo_nb04"
 DEST_MODULE_LOCATION[18]="/kernel/lib/"
 BUILT_MODULE_NAME[18]="tuxedo_nb04_power_profiles"
 BUILT_MODULE_LOCATION[18]="tuxedo_nb04"
+
+DEST_MODULE_LOCATION[19]="/kernel/lib/"
+BUILT_MODULE_NAME[19]="tuxedo_nb04_kbd_backlight"
+BUILT_MODULE_LOCATION[19]="tuxedo_nb04"
