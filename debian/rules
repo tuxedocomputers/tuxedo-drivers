@@ -7,7 +7,7 @@ include /usr/share/dpkg/pkg-info.mk
 
 override_dh_install:
 	dh_install src/. -X*.cmd -X*.d -X*.ko -X*.mod -X*.mod.c -X*.o -Xmodules.order -Xdkms.conf usr/src/$(DEB_SOURCE)-$(DEB_VERSION_UPSTREAM)
-	dh_install tuxedo_keyboard.conf /etc/modprope.d
+	dh_install tuxedo_keyboard.conf /etc/modprobe.d
 
 override_dh_dkms:
 	dh_dkms -V
