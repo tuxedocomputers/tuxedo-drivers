@@ -472,7 +472,7 @@ static int register_leds(struct hid_device *hdev)
 			res = devm_led_classdev_multicolor_register(&hdev->dev, &device_data->mcled_cdevs[i][j]);
 			if (res) {
 				for (k = 0; k <= i; ++k) {
-					for (l = 0; l <=j; ++l) {
+					for (l = 0; l <= j; ++l) {
 						devm_led_classdev_multicolor_unregister(&hdev->dev, &device_data->mcled_cdevs[i][j]);
 					}
 				}
