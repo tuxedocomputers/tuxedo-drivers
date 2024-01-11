@@ -155,7 +155,7 @@ static int ite8291_perkey_write_state(struct hid_device *);
 struct ite8291_driver_data_zones_t {
 	u8 brightness;
 	struct led_classdev_mc mcled_cdevs[ITE8291_NR_ZONES];
-	struct mc_subled mcled_cdev_subleds[ITE8291_NR_ZONES][3];
+	struct mc_subled mcled_cdevs_subleds[ITE8291_NR_ZONES][3];
 };
 
 static int ite8291_zones_add(struct hid_device *);
@@ -602,7 +602,7 @@ static int ite8291_zones_add(struct hid_device *hdev)
 		zones_data->mcled_cdevs[i].led_cdev.brightness_set = &leds_zones_set_brightness_mc;
 		zones_data->mcled_cdevs[i].led_cdev.brightness = ITE8291_KBD_ZONES_BRIGHTNESS_DEFAULT;
 		zones_data->mcled_cdevs[i].num_colors = 3;
-		zones_data->mcled_cdevs[i].subled_info = zones_data->mcled_cdev_subleds[i];
+		zones_data->mcled_cdevs[i].subled_info = zones_data->mcled_cdevs_subleds[i];
 		zones_data->mcled_cdevs[i].subled_info[0].color_index = LED_COLOR_ID_RED;
 		zones_data->mcled_cdevs[i].subled_info[0].intensity = 255;
 		zones_data->mcled_cdevs[i].subled_info[0].channel = i;
