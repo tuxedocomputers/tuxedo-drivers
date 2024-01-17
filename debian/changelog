@@ -1,3 +1,9 @@
+tuxedo-drivers (4.1.0) jammy; urgency=medium
+
+  * Add nb04 driver collection (so far used by Sirius 16 Gen1)
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 17 Jan 2024 17:40:07 +0100
+
 tuxedo-drivers (4.0.3) jammy; urgency=medium
 
   * Fix modprobe conf file not applying
