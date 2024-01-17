@@ -69,6 +69,12 @@ rmmod tuxedo_nb05_keyboard > /dev/null 2>&1 || true
 rmmod tuxedo_nb05_sensors > /dev/null 2>&1 || true
 rmmod tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
 rmmod tuxedo_nb05_ec > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_sensors > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_keyboard > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
 rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 modprobe tuxedo_compatibility_check > /dev/null 2>&1 || true
 modprobe tuxedo_keyboard > /dev/null 2>&1 || true
@@ -84,6 +90,12 @@ modprobe tuxedo_nb05_ec > /dev/null 2>&1 || true
 modprobe tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
 modprobe tuxedo_nb05_sensors > /dev/null 2>&1 || true
 modprobe tuxedo_nb05_keyboard > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_keyboard > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_sensors > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
 # Restart tccd after reload if it was running before
 if $TCCD_RUNNING; then
 	echo "Start tccd again"
@@ -106,6 +118,12 @@ rmmod tuxedo_nb05_keyboard > /dev/null 2>&1 || true
 rmmod tuxedo_nb05_sensors > /dev/null 2>&1 || true
 rmmod tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
 rmmod tuxedo_nb05_ec > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_sensors > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_keyboard > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
 rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 # Remove modules via DKMS
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
