@@ -217,6 +217,16 @@ static struct led_classdev_mc uniwill_mcled_cdev = {
 	.subled_info = uw_mcled_cdev_subleds
 };
 
+static const struct dmi_system_id force_no_ec_led_control[] = {
+	{
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
+			DMI_MATCH(DMI_PRODUCT_SKU, "STELLARIS1XA05"),
+		},
+	},
+	{ }
+};
+
 int uniwill_leds_init(struct platform_device *dev)
 {
 	int result = 0, i = 0;
@@ -239,15 +249,18 @@ int uniwill_leds_init(struct platform_device *dev)
 	}
 	pr_debug("EC Barebone ID: %#04x\n", uniwill_barebone_id);
 
-	if (uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxxxxx ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxMxxx ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TRX1 ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TUX1 ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TQx1 ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TRX1 ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TQxx ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Pxxx) {
+	if (dmi_check_system(force_no_ec_led_control)) {
+		pr_debug("Skip uniwill_kb_backlight_type checks because of quirk.\n");
+	}
+	else if (uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxxxxx ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxMxxx ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TRX1 ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TUX1 ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TQx1 ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TRX1 ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TQxx ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Pxxx) {
 		uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
 		uniwill_kbl_brightness_ec_controlled = true;
 	}
