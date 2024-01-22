@@ -248,22 +248,8 @@ int uniwill_leds_init(struct platform_device *dev)
 	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TQxx ||
 	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx ||
 	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Pxxx) {
-		result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
-		if (result) {
-			pr_err("Reading keyboard backlight status failed.\n");
-			return result;
-		}
-		pr_debug("UW_EC_REG_KBD_BL_STATUS: 0x%02x\n", data);
-
-		/*
-		 * At least one IBP 16 Gen7 which should have this bit set doesn't. So skip this
-		 * check since we don't have IBP 16 Gen7 devices without keyboard backlight anyway.
-		 */
-		if (data & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB
-		    || uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx) {
-			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
-			uniwill_kbl_brightness_ec_controlled = true;
-		}
+		uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
+		uniwill_kbl_brightness_ec_controlled = true;
 	}
 	else {
 		result = uniwill_read_ec_ram(UW_EC_REG_FEATURES_1, &data);
