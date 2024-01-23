@@ -217,6 +217,16 @@ static struct led_classdev_mc uniwill_mcled_cdev = {
 	.subled_info = uw_mcled_cdev_subleds
 };
 
+static const struct dmi_system_id force_no_ec_led_control[] = {
+	{
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
+			DMI_MATCH(DMI_PRODUCT_SKU, "STELLARIS1XA05"),
+		},
+	},
+	{ }
+};
+
 int uniwill_leds_init(struct platform_device *dev)
 {
 	int result = 0, i = 0;
@@ -239,31 +249,20 @@ int uniwill_leds_init(struct platform_device *dev)
 	}
 	pr_debug("EC Barebone ID: %#04x\n", uniwill_barebone_id);
 
-	if (uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxxxxx ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxMxxx ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TRX1 ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TUX1 ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TQx1 ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TRX1 ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TQxx ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx ||
-	    uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Pxxx) {
-		result = uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
-		if (result) {
-			pr_err("Reading keyboard backlight status failed.\n");
-			return result;
-		}
-		pr_debug("UW_EC_REG_KBD_BL_STATUS: 0x%02x\n", data);
-
-		/*
-		 * At least one IBP 16 Gen7 which should have this bit set doesn't. So skip this
-		 * check since we don't have IBP 16 Gen7 devices without keyboard backlight anyway.
-		 */
-		if (data & UW_EC_REG_KBD_BL_STATUS_BIT_WHITE_ONLY_KB
-		    || uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx) {
-			uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
-			uniwill_kbl_brightness_ec_controlled = true;
-		}
+	if (dmi_check_system(force_no_ec_led_control)) {
+		pr_debug("Skip uniwill_kb_backlight_type checks because of quirk.\n");
+	}
+	else if (uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxxxxx ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PFxMxxx ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TRX1 ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TUX1 ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4TQx1 ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TRX1 ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH6TQxx ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Axxx ||
+		 uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_PH4Pxxx) {
+		uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
+		uniwill_kbl_brightness_ec_controlled = true;
 	}
 	else {
 		result = uniwill_read_ec_ram(UW_EC_REG_FEATURES_1, &data);
