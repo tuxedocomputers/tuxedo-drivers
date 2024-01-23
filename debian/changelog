@@ -1,3 +1,9 @@
+tuxedo-drivers (4.1.1) jammy; urgency=medium
+
+  * Fix keyboard backlight detection for Stellaris Gen5 AMD
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 23 Jan 2024 16:51:55 +0100
+
 tuxedo-drivers (4.1.0) jammy; urgency=medium
 
   * Add nb04 driver collection (so far used by Sirius 16 Gen1)

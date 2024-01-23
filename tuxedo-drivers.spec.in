@@ -129,6 +129,8 @@ rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
+* Tue Jan 23 2024 Werner Sembach <tux@tuxedocomputers.com> 4.1.1-1
+- Fix keyboard backlight detection for Stellaris Gen5 AMD
 * Wed Jan 17 2024 Werner Sembach <tux@tuxedocomputers.com> 4.1.0-1
 - Add nb04 driver collection (so far used by Sirius 16 Gen1)
 * Thu Dec 28 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.3-1
