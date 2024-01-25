@@ -172,17 +172,45 @@ static ssize_t platform_profile_show(struct device *dev,
 	return -EIO;
 }
 
-int rewrite_last_profile(void)
+static int write_profile(u64 profile)
 {
-	struct driver_data_t *driver_data = dev_get_drvdata(&__wmi_dev->dev);
-	u64 out;
-	int err = nb05_wmi_aa_method(1, &driver_data->last_chosen_profile, &out);
+	u64 out = 0;
+	int err = nb05_wmi_aa_method(1, &profile, &out);
 	if (err)
 		return err;
 	else if (out)
 		return -EINVAL;
-	else
-		return 0;
+
+	return 0;
+}
+
+static int read_profile(u64 *profile)
+{
+	u64 in;
+	int err = nb05_wmi_aa_method(2, &in, profile);
+	if (err)
+		return err;
+
+	return 0;
+}
+
+int rewrite_last_profile(void)
+{
+	struct driver_data_t *driver_data = dev_get_drvdata(&__wmi_dev->dev);
+	u64 current_profile;
+	int err;
+
+	err = read_profile(&current_profile);
+	if (err)
+		return err;
+
+	if (current_profile != driver_data->last_chosen_profile) {
+		err = write_profile(driver_data->last_chosen_profile);
+		if (err)
+			return err;
+	}
+
+	return 0;
 }
 EXPORT_SYMBOL(rewrite_last_profile);
 
