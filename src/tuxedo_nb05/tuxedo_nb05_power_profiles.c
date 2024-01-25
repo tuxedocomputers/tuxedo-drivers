@@ -85,6 +85,28 @@ int nb05_wmi_aa_method(u32 wmi_method_id, u64 *in, u64 *out)
 }
 EXPORT_SYMBOL(nb05_wmi_aa_method);
 
+static int write_profile(u64 profile)
+{
+	u64 out = 0;
+	int err = nb05_wmi_aa_method(1, &profile, &out);
+	if (err)
+		return err;
+	else if (out)
+		return -EINVAL;
+
+	return 0;
+}
+
+static int read_profile(u64 *profile)
+{
+	u64 in;
+	int err = nb05_wmi_aa_method(2, &in, profile);
+	if (err)
+		return err;
+
+	return 0;
+}
+
 static ssize_t platform_profile_choices_show(struct device *dev,
 					     struct device_attribute *attr,
 					     char *buffer);
@@ -152,10 +174,8 @@ static ssize_t platform_profile_show(struct device *dev,
 {
 	u64 platform_profile_value;
 	int i, err;
-	struct platform_device *pdev = to_platform_device(dev);
-	struct wmi_device *wdev = dev_to_wdev(pdev->dev.parent);
 
-	err = __nb05_wmi_aa_method(wdev, 2, &platform_profile_value, &platform_profile_value);
+	err = read_profile(&platform_profile_value);
 	if (err) {
 		pr_err("Error reading power profile");
 		return -EIO;
@@ -175,14 +195,20 @@ static ssize_t platform_profile_show(struct device *dev,
 int rewrite_last_profile(void)
 {
 	struct driver_data_t *driver_data = dev_get_drvdata(&__wmi_dev->dev);
-	u64 out;
-	int err = nb05_wmi_aa_method(1, &driver_data->last_chosen_profile, &out);
+	u64 current_profile;
+	int err;
+
+	err = read_profile(&current_profile);
 	if (err)
 		return err;
-	else if (out)
-		return -EINVAL;
-	else
-		return 0;
+
+	if (current_profile != driver_data->last_chosen_profile) {
+		err = write_profile(driver_data->last_chosen_profile);
+		if (err)
+			return err;
+	}
+
+	return 0;
 }
 EXPORT_SYMBOL(rewrite_last_profile);
 
@@ -193,7 +219,7 @@ static ssize_t platform_profile_store(struct device *dev,
 	struct platform_device *pdev = to_platform_device(dev);
 	struct wmi_device *wdev = dev_to_wdev(pdev->dev.parent);
 	struct driver_data_t *driver_data = dev_get_drvdata(&wdev->dev);
-	u64 platform_profile_value, out;
+	u64 platform_profile_value;
 	int i, err;
 	char *buffer_copy;
 	char *platform_profile_descriptor;
@@ -212,11 +238,9 @@ static ssize_t platform_profile_store(struct device *dev,
 
 	if (i < ARRAY_SIZE(platform_profile_options)) {
 		// Option found try to set
-		err = __nb05_wmi_aa_method(wdev, 1, &platform_profile_value, &out);
+		err = write_profile(platform_profile_value);
 		if (err)
 			return err;
-		else if (out)
-			return -EINVAL;
 		
 		driver_data->last_chosen_profile = platform_profile_value;
 		return size;
@@ -249,7 +273,7 @@ static int tuxedo_nb05_power_profiles_probe(struct wmi_device *wdev, const void 
 	dev_set_drvdata(&wdev->dev, driver_data);
 
 	// Initialize last chosen profile
-	err = __nb05_wmi_aa_method(wdev, 2, &driver_data->last_chosen_profile, &driver_data->last_chosen_profile);
+	err = read_profile(&driver_data->last_chosen_profile);
 	if (err) {
 		pr_err("Error reading power profile");
 		return -EIO;
