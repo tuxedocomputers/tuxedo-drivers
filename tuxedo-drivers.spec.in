@@ -129,6 +129,8 @@ rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
+* Thu Jan 25 2024 Werner Sembach <tux@tuxedocomputers.com> 4.1.2-1
+- Fix high cpu load caused by profile write logic bug
 * Tue Jan 23 2024 Werner Sembach <tux@tuxedocomputers.com> 4.1.1-1
 - Fix keyboard backlight detection for Stellaris Gen5 AMD
 * Wed Jan 17 2024 Werner Sembach <tux@tuxedocomputers.com> 4.1.0-1

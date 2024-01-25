@@ -1,3 +1,9 @@
+tuxedo-drivers (4.1.2) jammy; urgency=medium
+
+  * Fix high cpu load caused by profile write logic bug
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 25 Jan 2024 16:55:42 +0100
+
 tuxedo-drivers (4.1.1) jammy; urgency=medium
 
   * Fix keyboard backlight detection for Stellaris Gen5 AMD
