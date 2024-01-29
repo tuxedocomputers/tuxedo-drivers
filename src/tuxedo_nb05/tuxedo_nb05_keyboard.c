@@ -1,9 +1,9 @@
 /*!
- * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2023-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
- * This file is part of tuxedo-keyboard.
+ * This file is part of tuxedo-drivers.
  *
- * tuxedo-keyboard is free software: you can redistribute it and/or modify
+ * tuxedo-drivers is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -26,6 +26,7 @@
 #include <linux/version.h>
 #include <linux/delay.h>
 #include "tuxedo_nb05_power_profiles.h"
+#include "tuxedo_nb05_kbd_backlight.h"
 #include "../tuxedo_compatibility_check/tuxedo_compatibility_check.h"
 
 #define NB05_WMI_EVENT_GUID	"8FAFC061-22DA-46E2-91DB-1FE3D7E5FF3C"
@@ -202,6 +203,15 @@ static void tuxedo_nb05_keyboard_notify(struct wmi_device *wdev, union acpi_obje
 		case NB05_WMI_EVENT_MODE_BALANCE:
 		case NB05_WMI_EVENT_MODE_HIGH_PERFORMANCE:
 			rewrite_last_profile();
+			break;
+		case NB05_WMI_EVENT_KBD_BRT_MAX:
+			nb05_leds_notify_brightness_change_extern(2);
+			break;
+		case NB05_WMI_EVENT_KBD_BRT_MIDDLE:
+			nb05_leds_notify_brightness_change_extern(1);
+			break;
+		case NB05_WMI_EVENT_KBD_BRT_OFF:
+			nb05_leds_notify_brightness_change_extern(0);
 			break;
 		default:
 			break;

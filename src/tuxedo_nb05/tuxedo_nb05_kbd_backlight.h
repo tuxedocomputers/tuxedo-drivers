@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-drivers.
  *
@@ -16,11 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this software.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef TUXEDO_NB05_EC_H
-#define TUXEDO_NB05_EC_H
-
-MODULE_ALIAS("platform:tuxedo_nb05_ec");
-
-void nb05_read_ec_ram(u16 addr, u8 *data);
-void nb05_write_ec_ram(u16 addr, u8 data);
+#ifndef TUXEDO_NB05_KBD_BACKLIGHT_H
+#define TUXEDO_NB05_KBD_BACKLIGHT_H
+#include <linux/types.h>
+void nb05_leds_notify_brightness_change_extern(u8);
 #endif
