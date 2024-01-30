@@ -520,6 +520,8 @@ static int clevo_has_legacy_flexicharger(bool *status)
 		|| dmi_string_in(DMI_BOARD_NAME, "PCX0DX")
 		|| dmi_string_in(DMI_BOARD_NAME, "PD5x_7xPNP_PNR_PNN_PNT")
 		|| dmi_string_in(DMI_BOARD_NAME, "X170SM")
+		|| dmi_string_in(DMI_BOARD_NAME, "NS50MU")
+		|| dmi_string_in(DMI_BOARD_NAME, "NS50_70MU")
 		;
 
 	if (excluded_device) {
