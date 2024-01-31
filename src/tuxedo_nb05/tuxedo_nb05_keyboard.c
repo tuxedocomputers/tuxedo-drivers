@@ -66,7 +66,7 @@ static struct key_entry driver_keymap[] = {
 	{ KE_END,	0 }
 };
 
-static void report_gauge_key_combo(struct input_dev *idev)
+static void __attribute__ ((unused)) report_gauge_key_combo(struct input_dev *idev)
 {
 	// Special key combination when mode change key is pressed
 	input_report_key(idev, KEY_LEFTMETA, 1);
