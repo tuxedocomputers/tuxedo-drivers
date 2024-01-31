@@ -23,6 +23,7 @@
 #include <linux/version.h>
 #include <linux/delay.h>
 #include "tuxedo_nb04_wmi_ab.h"
+#include "../tuxedo_compatibility_check/tuxedo_compatibility_check.h"
 
 #define dev_to_wdev(__dev)	container_of(__dev, struct wmi_device, dev)
 
@@ -333,6 +334,12 @@ static int tuxedo_nb04_wmi_ab_probe(struct wmi_device *wdev, const void *dummy_c
 	struct driver_data_t *driver_data;
 
 	pr_debug("driver probe\n");
+
+	if (!tuxedo_is_compatible())
+		return -ENODEV;
+
+	if (!wmi_has_guid(NB04_WMI_AB_GUID))
+		return -ENODEV;
 
 	driver_data = devm_kzalloc(&wdev->dev, sizeof(struct driver_data_t), GFP_KERNEL);
 	if (!driver_data)

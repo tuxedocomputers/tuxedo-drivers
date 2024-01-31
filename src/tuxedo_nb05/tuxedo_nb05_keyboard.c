@@ -152,6 +152,9 @@ static int tuxedo_nb05_keyboard_probe(struct wmi_device *wdev, const void *dummy
 	if (!tuxedo_is_compatible())
 		return -ENODEV;
 
+	if (!wmi_has_guid(NB05_WMI_EVENT_GUID))
+		return -ENODEV;
+
 	driver_data = devm_kzalloc(&wdev->dev, sizeof(*driver_data), GFP_KERNEL);
 	if (!driver_data)
 		return -ENOMEM;

@@ -266,6 +266,9 @@ static int tuxedo_nb05_power_profiles_probe(struct wmi_device *wdev, const void 
 	if (!tuxedo_is_compatible())
 		return -ENODEV;
 
+	if (!wmi_has_guid(NB05_WMI_METHOD_BA_GUID))
+		return -ENODEV;
+
 	driver_data = devm_kzalloc(&wdev->dev, sizeof(*driver_data), GFP_KERNEL);
 	if (!driver_data)
 		return -ENOMEM;
