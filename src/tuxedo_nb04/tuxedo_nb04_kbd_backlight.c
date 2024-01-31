@@ -93,7 +93,8 @@ static int __init tuxedo_nb04_kbd_backlight_probe(struct platform_device *pdev)
 	result = wmi_update_device_status_keyboard(&driver_data->device_status);
 
 	if (result) {
-		pr_err("Failed init write %d\n", result);
+		if (result != -ENODEV)
+			pr_err("Failed initial read %d\n", result);
 		return result;
 	}
 
