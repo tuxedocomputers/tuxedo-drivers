@@ -5,14 +5,14 @@
 # Description <a name="description"></a>
 Drivers for several platform devices for TUXEDO notebooks meant for the DKMS.
 
-##Features
+## Features
 - Driver for Fn-keys
 - SysFS control of brightness/color/mode for most TUXEDO keyboards
     - [https://docs.kernel.org/leds/leds-class.html](https://docs.kernel.org/leds/leds-class.html)
     - [https://docs.kernel.org/leds/leds-class-multicolor.html](https://docs.kernel.org/leds/leds-class-multicolor.html)
 - Hardware I/O driver for TUXEDO Control Center
 
-Modules included in this package
+## Modules included in this package
 - tuxedo_compatibility_check
 - tuxedo_keyboard
 - clevo_acpi
@@ -44,15 +44,19 @@ For production systems use the version from the package repository where availab
 
 ## Dependencies:
 All:
-    - make
+- make
+
 `make install`:
-    - gcc or clang
-    - linux-headers
+- gcc or clang
+- linux-headers
+
 `make dkmsinstall`:
-    - dkms
-    - linux-headers
+- dkms
+- linux-headers
+
 `make package-deb`:
-    - devscripts
-    - debhelper
+- devscripts
+- debhelper
+
 `make package-rpm`:
-    - rpm
+- rpm
