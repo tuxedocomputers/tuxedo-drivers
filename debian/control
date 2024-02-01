@@ -20,8 +20,7 @@ Breaks: tuxedo-cc-wmi, tuxedo-keyboard (<< 4.0.0~), tuxedo-keyboard-dkms,
  tuxedo-keyboard-ite (<< 4.0.0~), tuxedo-touchpad-fix, tuxedo-wmi-dkms,
  tuxedo-xp-xc-airplane-mode-fix, tuxedo-xp-xc-touchpad-key-fix
 Description: Kernel modules for TUXEDO devices
- Drivers for several platform devices for TUXEDO notebooks meant for DKMS
- framework.
+ Drivers for several platform devices for TUXEDO notebooks meant for DKMS.
 
 Package: tuxedo-keyboard
 Architecture: all
