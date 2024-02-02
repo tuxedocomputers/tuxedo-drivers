@@ -34,7 +34,6 @@
 
 MODULE_DESCRIPTION("TUXEDO Computers, ITE backlight driver");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_VERSION("0.2.0");
 MODULE_LICENSE("GPL");
 
 #define KEYBOARD_ROWS       6

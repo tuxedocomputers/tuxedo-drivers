@@ -158,4 +158,3 @@ EXPORT_SYMBOL(tuxedo_is_compatible);
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Provide check for other modules if driver package is known compatible");
 MODULE_LICENSE("GPL");
-MODULE_VERSION("1.0.0");

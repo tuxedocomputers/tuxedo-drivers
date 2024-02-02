@@ -30,7 +30,6 @@
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("TUXEDO Computers keyboard & keyboard backlight Driver");
 MODULE_LICENSE("GPL");
-MODULE_VERSION("4.0.0");
 
 static DEFINE_MUTEX(tuxedo_keyboard_init_driver_lock);
 

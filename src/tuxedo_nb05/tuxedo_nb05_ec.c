@@ -155,5 +155,4 @@ module_exit(tuxedo_nb05_ec_exit);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for NB05 EC I/O");
-MODULE_VERSION("0.0.1");
 MODULE_LICENSE("GPL");
