@@ -66,6 +66,17 @@ rmmod ite_8291 > /dev/null 2>&1 || true
 rmmod ite_8291_lb > /dev/null 2>&1 || true
 rmmod ite_8297 > /dev/null 2>&1 || true
 rmmod ite_829x > /dev/null 2>&1 || true
+rmmod tuxedo_nb05_kbd_backlight > /dev/null 2>&1 || true
+rmmod tuxedo_nb05_keyboard > /dev/null 2>&1 || true
+rmmod tuxedo_nb05_sensors > /dev/null 2>&1 || true
+rmmod tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
+rmmod tuxedo_nb05_ec > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_sensors > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_keyboard > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
 rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 modprobe tuxedo_compatibility_check > /dev/null 2>&1 || true
 modprobe tuxedo_keyboard > /dev/null 2>&1 || true
@@ -78,6 +89,17 @@ modprobe ite_8291 > /dev/null 2>&1 || true
 modprobe ite_8291_lb > /dev/null 2>&1 || true
 modprobe ite_8297 > /dev/null 2>&1 || true
 modprobe ite_829x > /dev/null 2>&1 || true
+modprobe tuxedo_nb05_ec > /dev/null 2>&1 || true
+modprobe tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
+modprobe tuxedo_nb05_sensors > /dev/null 2>&1 || true
+modprobe tuxedo_nb05_keyboard > /dev/null 2>&1 || true
+modprobe tuxedo_nb05_kbd_backlight > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_keyboard > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_sensors > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
+modprobe tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
 # Restart tccd after reload if it was running before
 if $TCCD_RUNNING; then
 	echo "Start tccd again"
@@ -97,15 +119,42 @@ rmmod ite_8291 > /dev/null 2>&1 || true
 rmmod ite_8291_lb > /dev/null 2>&1 || true
 rmmod ite_8297 > /dev/null 2>&1 || true
 rmmod ite_829x > /dev/null 2>&1 || true
+rmmod tuxedo_nb05_kbd_backlight > /dev/null 2>&1 || true
+rmmod tuxedo_nb05_keyboard > /dev/null 2>&1 || true
+rmmod tuxedo_nb05_sensors > /dev/null 2>&1 || true
+rmmod tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
+rmmod tuxedo_nb05_ec > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_sensors > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_keyboard > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
+rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
 rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 # Remove modules via DKMS
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
-* Mon Nov 20 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.0-1
+* Thu Jan 25 2024 Werner Sembach <tux@tuxedocomputers.com> 4.1.2-1
+- Fix high cpu load caused by profile write logic bug
+* Tue Jan 23 2024 Werner Sembach <tux@tuxedocomputers.com> 4.1.1-1
+- Fix keyboard backlight detection for Stellaris Gen5 AMD
+* Wed Jan 17 2024 Werner Sembach <tux@tuxedocomputers.com> 4.1.0-1
+- Add nb04 driver collection (so far used by Sirius 16 Gen1)
+* Thu Dec 28 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.3-1
+- Fix modprobe conf file not applying
+* Thu Dec 21 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.2-1
+- nb01: Charging thresholds fixes
+* Fri Dec 15 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.1-1
+- Fix build on Ubuntu 22.04 5.15 kernel
+* Tue Dec 12 2023 Werner Sembach <tux@tuxedocomputers.com> 4.0.0-1
 - Merge tuxedo-keyboard and tuxedo-keyboard-ite
-- Rename package
+- Rename package to tuxedo-drivers
 - Rework packaging process
+- Fn-lock sysfs interface for nb02 and nb01 (newer models with CCC from v4.0)
+- Flexicharger sysfs interface for nb01 (new plus legacy which works on some older models)
+- Various backlight bugfixes and rework
+- nb05 driver collection (so far used by Pulse Gen3)
 * Thu Nov 16 2023 C Sandberg <tux@tuxedocomputers.com> 0.4.4-1
 - Add color scaling for Stellaris Gen5 AMD devices
 * Thu Nov 16 2023 C Sandberg <tux@tuxedocomputers.com> 3.2.14-1

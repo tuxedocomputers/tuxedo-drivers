@@ -1,10 +1,50 @@
+tuxedo-drivers (4.1.2) jammy; urgency=medium
+
+  * Fix high cpu load caused by profile write logic bug
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 25 Jan 2024 16:55:42 +0100
+
+tuxedo-drivers (4.1.1) jammy; urgency=medium
+
+  * Fix keyboard backlight detection for Stellaris Gen5 AMD
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 23 Jan 2024 16:51:55 +0100
+
+tuxedo-drivers (4.1.0) jammy; urgency=medium
+
+  * Add nb04 driver collection (so far used by Sirius 16 Gen1)
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 17 Jan 2024 17:40:07 +0100
+
+tuxedo-drivers (4.0.3) jammy; urgency=medium
+
+  * Fix modprobe conf file not applying
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 28 Dec 2023 13:36:02 +0100
+
+tuxedo-drivers (4.0.2) jammy; urgency=medium
+
+  * nb01: Charging thresholds fixes
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 21 Dec 2023 16:59:26 +0100
+
+tuxedo-drivers (4.0.1) jammy; urgency=medium
+
+  * Fix build on Ubuntu 22.04 5.15 kernel
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Fri, 15 Dec 2023 17:35:09 +0100
+
 tuxedo-drivers (4.0.0) jammy; urgency=medium
 
   * Merge tuxedo-keyboard and tuxedo-keyboard-ite
-  * Rename package
+  * Rename package to tuxedo-drivers
   * Rework packaging process
+  * Fn-lock sysfs interface for nb02 and nb01 (newer models with CCC from v4.0)
+  * Flexicharger sysfs interface for nb01 (new plus legacy which works on some older models)
+  * Various backlight bugfixes and rework
+  * nb05 driver collection (so far used by Pulse Gen3)
 
- -- Werner Sembach <tux@tuxedocomputers.com>  Mon, 20 Nov 2023 20:22:38 +0100
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 12 Dec 2023 15:36:39 +0100
 
 tuxedo-keyboard (3.2.14) jammy; urgency=low
 

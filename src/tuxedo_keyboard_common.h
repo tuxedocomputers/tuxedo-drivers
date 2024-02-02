@@ -46,6 +46,12 @@ struct tuxedo_keyboard_driver {
 	struct key_entry *key_map;
 	// Input device reference filled in on module init after probe success
 	struct input_dev *input_device;
+	// test if acpi or wmi functions for fn lock are exposed and functional
+	bool (*fn_lock_available)(void);
+	// show function for sysfs device fn_lock
+	ssize_t (*fn_lock_show)(struct device *, struct device_attribute *, char *);
+	// store function for sysfs device fn_lock
+	ssize_t (*fn_lock_store)(struct device *, struct device_attribute *, const char *, size_t);
 };
 
 // Global module devices

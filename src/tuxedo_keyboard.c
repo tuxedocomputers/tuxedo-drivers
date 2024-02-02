@@ -34,6 +34,25 @@ MODULE_VERSION("4.0.0");
 
 static DEFINE_MUTEX(tuxedo_keyboard_init_driver_lock);
 
+// sysfs device function
+static ssize_t fn_lock_show(struct device *dev,
+		struct device_attribute *attr,
+		char *buf)
+{
+	// one sysfs device for clevo or uniwill
+	return current_driver->fn_lock_show(dev, attr, buf);
+}
+
+// sysfs device function
+static ssize_t fn_lock_store(struct device *dev,
+		struct device_attribute *attr,
+		const char *buf, size_t size)
+{
+	return current_driver->fn_lock_store(dev, attr, buf, size);
+}
+
+static DEVICE_ATTR_RW(fn_lock);
+
 // static struct tuxedo_keyboard_driver *driver_list[] = { };
 
 static int tuxedo_input_init(const struct key_entry key_map[])
@@ -111,7 +130,17 @@ struct platform_device *tuxedo_keyboard_init_driver(struct tuxedo_keyboard_drive
 			}
 		}
 
+		// set current driver (clevo or uniwill)
 		current_driver = tk_driver;
+
+		// test for fn lock and create sysfs device
+		if (current_driver->fn_lock_available()) {
+			err = device_create_file(&tuxedo_platform_device->dev, &dev_attr_fn_lock);
+			if(err)
+				pr_err("device_create_file for fn_lock failed\n");
+		} else {
+			pr_debug("FnLock not available\n");
+		}
 	}
 
 init_driver_exit:
@@ -130,6 +159,7 @@ static void __exit tuxedo_input_exit(void)
 	{
 		tuxedo_input_device = NULL;
 	}
+
 }
 
 void tuxedo_keyboard_remove_driver(struct tuxedo_keyboard_driver *tk_driver)
@@ -145,6 +175,8 @@ void tuxedo_keyboard_remove_driver(struct tuxedo_keyboard_driver *tk_driver)
 
 	if (specified_driver_differ_from_used)
 		return;
+
+	device_remove_file(&tuxedo_platform_device->dev, &dev_attr_fn_lock);
 
 	TUXEDO_DEBUG("tuxedo_input_exit()\n");
 	tuxedo_input_exit();

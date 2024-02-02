@@ -10,3 +10,5 @@ obj-y += ite_829x/
 obj-y += tuxedo_compatibility_check/
 obj-y += tuxedo_io/
 obj-y += tuxedo_nb02_nvidia_power_ctrl/
+obj-y += tuxedo_nb05/
+obj-y += tuxedo_nb04/
