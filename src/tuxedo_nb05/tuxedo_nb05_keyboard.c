@@ -66,7 +66,7 @@ static struct key_entry driver_keymap[] = {
 	{ KE_END,	0 }
 };
 
-static void report_gauge_key_combo(struct input_dev *idev)
+static void __attribute__ ((unused)) report_gauge_key_combo(struct input_dev *idev)
 {
 	// Special key combination when mode change key is pressed
 	input_report_key(idev, KEY_LEFTMETA, 1);
@@ -150,6 +150,9 @@ static int tuxedo_nb05_keyboard_probe(struct wmi_device *wdev, const void *dummy
 	pr_debug("driver probe\n");
 
 	if (!tuxedo_is_compatible())
+		return -ENODEV;
+
+	if (!wmi_has_guid(NB05_WMI_EVENT_GUID))
 		return -ENODEV;
 
 	driver_data = devm_kzalloc(&wdev->dev, sizeof(*driver_data), GFP_KERNEL);

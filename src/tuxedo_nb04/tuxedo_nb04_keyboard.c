@@ -25,6 +25,7 @@
 #include <linux/input/sparse-keymap.h>
 #include <linux/version.h>
 #include <linux/delay.h>
+#include "../tuxedo_compatibility_check/tuxedo_compatibility_check.h"
 
 #define NB04_WMI_EVENT_GUID	"96A786FA-690C-48FB-9EB3-FA9BC3D92300"
 
@@ -128,6 +129,12 @@ static int tuxedo_nb04_keyboard_probe(struct wmi_device *wdev, const void *dummy
 	int err;
 
 	pr_debug("driver probe\n");
+
+	if (!tuxedo_is_compatible())
+		return -ENODEV;
+
+	if (!wmi_has_guid(NB04_WMI_EVENT_GUID))
+		return -ENODEV;
 
 	driver_data = devm_kzalloc(&wdev->dev, sizeof(*driver_data), GFP_KERNEL);
 	if (!driver_data)

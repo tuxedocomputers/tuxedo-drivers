@@ -21,6 +21,7 @@
 #include <linux/module.h>
 #include <linux/wmi.h>
 #include <linux/version.h>
+#include "../tuxedo_compatibility_check/tuxedo_compatibility_check.h"
 #include "tuxedo_nb04_wmi_bs.h"
 
 #define BS_INPUT_BUFFER_LENGTH	8
@@ -31,6 +32,15 @@ struct driver_data_t {};
 static DEFINE_MUTEX(nb04_wmi_bs_access_lock);
 
 static struct wmi_device *__wmi_dev;
+
+bool nb04_wmi_bs_available()
+{
+	if (__wmi_dev)
+		return true;
+	else
+		return false;
+}
+EXPORT_SYMBOL(nb04_wmi_bs_available);
 
 static int __nb04_wmi_bs_method(struct wmi_device *wdev, u32 wmi_method_id,
 				u8 *in, u8 *out)
@@ -97,6 +107,12 @@ static int tuxedo_nb04_wmi_probe(struct wmi_device *wdev, const void *dummy_cont
 	struct driver_data_t *driver_data;
 
 	pr_debug("driver probe\n");
+
+	if (!tuxedo_is_compatible())
+		return -ENODEV;
+
+	if (!wmi_has_guid(NB04_WMI_BS_GUID))
+		return -ENODEV;
 
 	__wmi_dev = wdev;
 

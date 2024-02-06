@@ -53,7 +53,7 @@ struct ite8291_driver_data_t {
 /**
  * strstr version of dmi_match
  */
-static bool dmi_string_in(enum dmi_field f, const char *str)
+static bool __attribute__ ((unused)) dmi_string_in(enum dmi_field f, const char *str)
 {
 	const char *info = dmi_get_system_info(f);
 
@@ -221,7 +221,7 @@ static int ite8291_write_lightbar_mono(struct hid_device *hdev, u8 red, u8 green
  * @param brightness Range 0x00 - 0x64
  * @param speed Range slowest 0x0a to fastest 0x01
  */
-static int ite8291_write_lightbar_breathe(struct hid_device *hdev, u8 brightness, u8 speed)
+static int __attribute__ ((unused)) ite8291_write_lightbar_breathe(struct hid_device *hdev, u8 brightness, u8 speed)
 {
 	if (hdev == NULL)
 		return -ENODEV;
@@ -256,7 +256,7 @@ static int ite8291_write_lightbar_breathe(struct hid_device *hdev, u8 brightness
  * @param brightness Range 0x00 - 0x64
  * @param speed Range slowest 0x0a to fastest 0x01
  */
-static int ite8291_write_lightbar_wave(struct hid_device *hdev, u8 brightness, u8 speed)
+static int __attribute__ ((unused)) ite8291_write_lightbar_wave(struct hid_device *hdev, u8 brightness, u8 speed)
 {
 	if (hdev == NULL)
 		return -ENODEV;
@@ -287,7 +287,7 @@ static int ite8291_write_lightbar_wave(struct hid_device *hdev, u8 brightness, u
  * @param brightness Range 0x00 - 0x64
  * @param speed Range slowest 0x0a to fastest 0x01
  */
-static int ite8291_write_lightbar_clash(struct hid_device *hdev, u8 brightness, u8 speed)
+static int __attribute__ ((unused)) ite8291_write_lightbar_clash(struct hid_device *hdev, u8 brightness, u8 speed)
 {
 	if (hdev == NULL)
 		return -ENODEV;
@@ -318,7 +318,7 @@ static int ite8291_write_lightbar_clash(struct hid_device *hdev, u8 brightness, 
  * @param brightness Range 0x00 - 0x64
  * @param speed Range slowest 0x0a to fastest 0x01
  */
-static int ite8291_write_lightbar_catchup(struct hid_device *hdev, u8 brightness, u8 speed)
+static int __attribute__ ((unused)) ite8291_write_lightbar_catchup(struct hid_device *hdev, u8 brightness, u8 speed)
 {
 	if (hdev == NULL)
 		return -ENODEV;
@@ -350,7 +350,7 @@ static int ite8291_write_lightbar_catchup(struct hid_device *hdev, u8 brightness
  * @param speed Range slowest 0x0a to fastest 0x01
  * @param direction 0x00: no, 0x01: right, 0x02 left
  */
-static int ite8291_write_lightbar_flash(struct hid_device *hdev, u8 brightness, u8 speed, u8 direction)
+static int __attribute__ ((unused)) ite8291_write_lightbar_flash(struct hid_device *hdev, u8 brightness, u8 speed, u8 direction)
 {
 	if (hdev == NULL)
 		return -ENODEV;
@@ -423,7 +423,7 @@ static int ite8291_write_off(struct hid_device *hdev)
 	return 0;
 }
 
-static void ite8291_set_testcolors(struct hid_device *hdev)
+static void __attribute__ ((unused)) ite8291_set_testcolors(struct hid_device *hdev)
 {
 	ite8291_set_color_list_entry(hdev, 0, 0xff, 0x00, 0x00);
 	ite8291_set_color_list_entry(hdev, 1, 0xff, 0xff, 0x00);

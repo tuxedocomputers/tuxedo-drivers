@@ -231,6 +231,9 @@ static struct platform_driver tuxedo_nb04_power_profiles_driver = {
 
 static int __init tuxedo_nb04_power_profiles_init(void)
 {
+	if (!nb04_wmi_bs_available())
+		return -ENODEV;
+
 	tuxedo_nb04_power_profiles_device =
 		platform_create_bundle(&tuxedo_nb04_power_profiles_driver,
 				       tuxedo_nb04_power_profiles_probe, NULL, 0, NULL, 0);
