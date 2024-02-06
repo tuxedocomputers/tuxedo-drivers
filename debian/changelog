@@ -1,3 +1,13 @@
+tuxedo-drivers (4.2.0) jammy; urgency=medium
+
+  * Add basic nb05 keyboard backlight driver
+  * Remove unsupported IBS Gen6 from flexicharger settings
+  * Clean build and runtime error/warning log
+  * Update README
+  * Add capability to control NVIDIA cTGP on nb02 devices
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 06 Feb 2024 22:16:53 +0100
+
 tuxedo-drivers (4.1.2) jammy; urgency=medium
 
   * Fix high cpu load caused by profile write logic bug
