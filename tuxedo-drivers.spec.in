@@ -25,8 +25,7 @@ Group:          Hardware/Other
 Packager:       TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 
 %description
-Drivers for several platform devices for TUXEDO notebooks meant for DKMS
-framework.
+Drivers for several platform devices for TUXEDO notebooks meant for DKMS.
 
 %prep
 %setup -q
