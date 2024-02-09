@@ -18,5 +18,6 @@
  */
 #ifndef TUXEDO_NB05_POWER_PROFILES_H
 #define TUXEDO_NB05_POWER_PROFILES_H
-int rewrite_last_profile(void);
+void rewrite_last_profile(void);
+bool profile_changed_by_driver(void);
 #endif
