@@ -134,6 +134,8 @@ rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
+* Mon Feb 19 2024 Werner Sembach <tux@tuxedocomputers.com> 4.2.2-1
+- Fix compiler error for older kernels by naming unused variables
 * Wed Feb 07 2024 Werner Sembach <tux@tuxedocomputers.com> 4.2.1-1
 - Fix compile issue on Linux 5.15
 * Tue Feb 06 2024 Werner Sembach <tux@tuxedocomputers.com> 4.2.0-1

@@ -1,3 +1,9 @@
+tuxedo-drivers (4.2.2) jammy; urgency=medium
+
+  * Fix compiler error for older kernels by naming unused variables
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Mon, 19 Feb 2024 14:26:55 +0100
+
 tuxedo-drivers (4.2.1) jammy; urgency=medium
 
   * Fix compile issue on Linux 5.15
