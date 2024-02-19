@@ -7,7 +7,8 @@
 
 #define __unused __attribute__((unused))
 
-static ssize_t ctgp_offset_show(struct device *__unused, struct device_attribute *__unused,
+static ssize_t ctgp_offset_show(struct device * __unused dev,
+				struct device_attribute * __unused attr,
 				char *buf)
 {
 	int result = 0;
@@ -19,7 +20,8 @@ static ssize_t ctgp_offset_show(struct device *__unused, struct device_attribute
 
 	return sysfs_emit(buf, "%u\n", data);
 }
-static ssize_t ctgp_offset_store(struct device *__unused, struct device_attribute *__unused,
+static ssize_t ctgp_offset_store(struct device * __unused dev,
+				 struct device_attribute * __unused attr,
 				 const char *buf, size_t count)
 {
 	int result = 0;
@@ -38,7 +40,9 @@ static ssize_t ctgp_offset_store(struct device *__unused, struct device_attribut
 DEVICE_ATTR_RW(ctgp_offset);
 
 #ifdef DEBUG
-static ssize_t db_offset_show(struct device *__unused, struct device_attribute *__unused, char *buf)
+static ssize_t db_offset_show(struct device * __unused dev,
+			      struct device_attribute * __unused attr,
+			      char *buf)
 {
 	int result = 0;
 	u8 data = 0;
@@ -49,7 +53,8 @@ static ssize_t db_offset_show(struct device *__unused, struct device_attribute *
 
 	return sysfs_emit(buf, "%u\n", data);
 }
-static ssize_t db_offset_store(struct device *__unused, struct device_attribute *__unused,
+static ssize_t db_offset_store(struct device * __unused dev,
+			       struct device_attribute * __unused attr,
 			       const char *buf, size_t count)
 {
 	int result = 0;
@@ -67,7 +72,8 @@ static ssize_t db_offset_store(struct device *__unused, struct device_attribute 
 }
 DEVICE_ATTR_RW(db_offset);
 
-static ssize_t ctgp_enable_show(struct device *__unused, struct device_attribute *__unused,
+static ssize_t ctgp_enable_show(struct device * __unused dev,
+				struct device_attribute * __unused attr,
 				char *buf)
 {
 	int result = 0;
@@ -79,7 +85,8 @@ static ssize_t ctgp_enable_show(struct device *__unused, struct device_attribute
 
 	return sysfs_emit(buf, "%u\n", data & UW_EC_REG_CTGP_DB_ENABLE_BIT_CTGP_ENABLE? 1 : 0);
 }
-static ssize_t ctgp_enable_store(struct device *__unused, struct device_attribute *__unused,
+static ssize_t ctgp_enable_store(struct device * __unused dev,
+				 struct device_attribute * __unused attr,
 				 const char *buf, size_t count)
 {
 	int result = 0;
@@ -121,8 +128,9 @@ static ssize_t ctgp_enable_store(struct device *__unused, struct device_attribut
 }
 DEVICE_ATTR_RW(ctgp_enable);
 
-static ssize_t db_enable_show(struct device *__unused, struct device_attribute *__unused,
-				char *buf)
+static ssize_t db_enable_show(struct device * __unused dev,
+			      struct device_attribute * __unused attr,
+			      char *buf)
 {
 	int result = 0;
 	u8 data = 0;
@@ -133,8 +141,9 @@ static ssize_t db_enable_show(struct device *__unused, struct device_attribute *
 
 	return sysfs_emit(buf, "%u\n", data & UW_EC_REG_CTGP_DB_ENABLE_BIT_DB_ENABLE? 1 : 0);
 }
-static ssize_t db_enable_store(struct device *__unused, struct device_attribute *__unused,
-				 const char *buf, size_t count)
+static ssize_t db_enable_store(struct device * __unused dev,
+			       struct device_attribute * __unused attr,
+			       const char *buf, size_t count)
 {
 	int result = 0;
 	u8 data = 0;
@@ -175,7 +184,9 @@ static ssize_t db_enable_store(struct device *__unused, struct device_attribute 
 }
 DEVICE_ATTR_RW(db_enable);
 
-static ssize_t tpp_offset_show(struct device *__unused, struct device_attribute *__unused, char *buf)
+static ssize_t tpp_offset_show(struct device * __unused dev,
+			       struct device_attribute * __unused attr,
+			       char *buf)
 {
 	int result = 0;
 	u8 data = 0;
@@ -186,8 +197,9 @@ static ssize_t tpp_offset_show(struct device *__unused, struct device_attribute 
 
 	return sysfs_emit(buf, "%u\n", data);
 }
-static ssize_t tpp_offset_store(struct device *__unused, struct device_attribute *__unused,
-			       const char *buf, size_t count)
+static ssize_t tpp_offset_store(struct device * __unused dev,
+				struct device_attribute * __unused attr,
+				const char *buf, size_t count)
 {
 	int result = 0;
 	u8 data = 0;
