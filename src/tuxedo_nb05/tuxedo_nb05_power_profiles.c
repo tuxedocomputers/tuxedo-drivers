@@ -26,6 +26,7 @@
 #include <linux/version.h>
 #include <linux/delay.h>
 #include <linux/platform_device.h>
+#include <linux/timer.h>
 #include "tuxedo_nb05_power_profiles.h"
 #include "../tuxedo_compatibility_check/tuxedo_compatibility_check.h"
 
@@ -33,12 +34,40 @@
 
 #define NB05_WMI_METHOD_BA_GUID	"99D89064-8D50-42BB-BEA9-155B2E5D0FCD"
 
+static DEFINE_MUTEX(nb05_wmi_aa_access_lock);
+
 struct driver_data_t {
 	struct platform_device *pdev;
 	u64 last_chosen_profile;
 };
 
 static struct wmi_device *__wmi_dev;
+
+static int rewrite_last_profile_internal(void);
+
+void nb05_rewrite_profile_work_handler(struct work_struct *work)
+{
+	rewrite_last_profile_internal();
+}
+
+static DECLARE_WORK(nb05_rewrite_profile_work, nb05_rewrite_profile_work_handler);
+
+static void profile_changed_timeout(struct timer_list *t);
+DEFINE_TIMER(profile_changed_timer, profile_changed_timeout);
+static volatile bool profile_changed_by_driver_flag = false;
+
+static void profile_changed_timer_bump(void)
+{
+	profile_changed_by_driver_flag = true;
+	mod_timer(&profile_changed_timer, jiffies + msecs_to_jiffies(300));
+}
+
+static void profile_changed_timeout(struct timer_list *t)
+{
+	profile_changed_by_driver_flag = false;
+	// Again make sure that the last profile is written
+	rewrite_last_profile();
+}
 
 /**
  * Method interface: int in, int out
@@ -51,9 +80,13 @@ static int __nb05_wmi_aa_method(struct wmi_device *wdev, u32 wmi_method_id,
 	union acpi_object *acpi_object_out;
 	acpi_status status;
 
+	mutex_lock(&nb05_wmi_aa_access_lock);
+
 	pr_debug("evaluate: %u\n", wmi_method_id);
 	status = wmidev_evaluate_method(wdev, 0, wmi_method_id,
 					&acpi_buffer_in, &return_buffer);
+
+	mutex_unlock(&nb05_wmi_aa_access_lock);
 
 	if (ACPI_FAILURE(status)) {
 		pr_err("failed to evaluate wmi method %u\n", wmi_method_id);
@@ -88,6 +121,7 @@ EXPORT_SYMBOL(nb05_wmi_aa_method);
 static int write_profile(u64 profile)
 {
 	u64 out = 0;
+	profile_changed_timer_bump();
 	int err = nb05_wmi_aa_method(1, &profile, &out);
 	if (err)
 		return err;
@@ -192,7 +226,7 @@ static ssize_t platform_profile_show(struct device *dev,
 	return -EIO;
 }
 
-int rewrite_last_profile(void)
+static int rewrite_last_profile_internal()
 {
 	struct driver_data_t *driver_data = dev_get_drvdata(&__wmi_dev->dev);
 	u64 current_profile;
@@ -210,7 +244,18 @@ int rewrite_last_profile(void)
 
 	return 0;
 }
+
+void rewrite_last_profile()
+{
+	schedule_work(&nb05_rewrite_profile_work);
+}
 EXPORT_SYMBOL(rewrite_last_profile);
+
+bool profile_changed_by_driver()
+{
+	return profile_changed_by_driver_flag;
+}
+EXPORT_SYMBOL(profile_changed_by_driver);
 
 static ssize_t platform_profile_store(struct device *dev,
 				      struct device_attribute *attr,
@@ -311,6 +356,7 @@ static void tuxedo_nb05_power_profiles_remove(struct wmi_device *wdev)
 #endif
 {
 	pr_debug("driver remove\n");
+	del_timer(&profile_changed_timer);
 	struct driver_data_t *driver_data = dev_get_drvdata(&wdev->dev);
 	sysfs_remove_group(&driver_data->pdev->dev.kobj, &platform_profile_attr_group);
 	platform_device_unregister(driver_data->pdev);

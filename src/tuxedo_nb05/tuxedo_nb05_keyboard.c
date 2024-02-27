@@ -205,7 +205,10 @@ static void tuxedo_nb05_keyboard_notify(struct wmi_device *wdev, union acpi_obje
 		case NB05_WMI_EVENT_MODE_POWER_SAVE:
 		case NB05_WMI_EVENT_MODE_BALANCE:
 		case NB05_WMI_EVENT_MODE_HIGH_PERFORMANCE:
-			rewrite_last_profile();
+			if (!profile_changed_by_driver()) {
+				report_gauge_key_combo(driver_data->input_dev);
+				rewrite_last_profile();
+			}
 			break;
 		case NB05_WMI_EVENT_KBD_BRT_MAX:
 			nb05_leds_notify_brightness_change_extern(2);
