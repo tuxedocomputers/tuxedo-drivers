@@ -134,6 +134,8 @@ rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
+* Thu Feb 29 2024 Werner Sembach <tux@tuxedocomputers.com> 4.3.0-1
+- Implement nb05 (Pulse Gen3) gauge key (opens TCC)
 * Mon Feb 19 2024 Werner Sembach <tux@tuxedocomputers.com> 4.2.2-1
 - Fix compiler error for older kernels by naming unused variables
 * Wed Feb 07 2024 Werner Sembach <tux@tuxedocomputers.com> 4.2.1-1

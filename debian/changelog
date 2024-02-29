@@ -1,3 +1,9 @@
+tuxedo-drivers (4.3.0) jammy; urgency=medium
+
+  * Implement nb05 (Pulse Gen3) gauge key (opens TCC)
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 29 Feb 2024 22:29:57 +0100
+
 tuxedo-drivers (4.2.2) jammy; urgency=medium
 
   * Fix compiler error for older kernels by naming unused variables
