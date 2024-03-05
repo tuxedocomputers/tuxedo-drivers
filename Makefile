@@ -70,6 +70,7 @@ package-rpm:
 		--transform="s/src/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/src\/$(PACKAGE_NAME)-$(PACKAGE_VERSION)/"\
 		--transform="s/tuxedo_keyboard.conf/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/etc\/modprobe.d\/tuxedo_keyboard.conf/"\
 		--transform="s/debian\/copyright/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/LICENSE/"\
+		--transform="s/99-z-tuxedo-systemd-fix.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-z-tuxedo-systemd-fix.rules/"\
 		--exclude=*.cmd\
 		--exclude=*.d\
 		--exclude=*.ko\
@@ -77,5 +78,5 @@ package-rpm:
 		--exclude=*.mod.c\
 		--exclude=*.o\
 		--exclude=modules.order\
-		src tuxedo_keyboard.conf debian/copyright
+		src tuxedo_keyboard.conf debian/copyright 99-z-tuxedo-systemd-fix.rules
 	rpmbuild -ba tuxedo-drivers.spec

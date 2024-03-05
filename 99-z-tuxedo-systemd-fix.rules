@@ -1,0 +1,6 @@
+# Workaround for a systemd bug, that is causing a boot delay, when there are too many kbd_backlight devices.
+SUBSYSTEM=="leds", KERNEL=="*kbd_backlight*", TAG-="systemd"
+SUBSYSTEM=="leds", KERNEL=="*kbd_backlight", TAG+="systemd"
+SUBSYSTEM=="leds", KERNEL=="*kbd_backlight_1", TAG+="systemd"
+SUBSYSTEM=="leds", KERNEL=="*kbd_backlight_2", TAG+="systemd"
+SUBSYSTEM=="leds", KERNEL=="*kbd_backlight_3", TAG+="systemd"
