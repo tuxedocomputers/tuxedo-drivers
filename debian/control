@@ -13,23 +13,69 @@ Package: tuxedo-drivers
 Architecture: all
 Depends: ${misc:Depends}
 Provides: tuxedo-keyboard (= 4.0.0)
-Replaces: tuxedo-cc-wmi, tuxedo-keyboard (<< 4.0.0~), tuxedo-keyboard-dkms,
- tuxedo-keyboard-ite (<< 4.0.0~), tuxedo-touchpad-fix, tuxedo-wmi-dkms,
- tuxedo-xp-xc-airplane-mode-fix, tuxedo-xp-xc-touchpad-key-fix
-Breaks: tuxedo-cc-wmi, tuxedo-keyboard (<< 4.0.0~), tuxedo-keyboard-dkms,
- tuxedo-keyboard-ite (<< 4.0.0~), tuxedo-touchpad-fix, tuxedo-wmi-dkms,
- tuxedo-xp-xc-airplane-mode-fix, tuxedo-xp-xc-touchpad-key-fix
+Replaces: tuxedo-cc-wmi (<< 4.0.0~), tuxedo-keyboard (<< 4.0.0~),
+ tuxedo-keyboard-dkms (<< 4.0.0~), tuxedo-keyboard-ite (<< 4.0.0~),
+ tuxedo-touchpad-fix (<< 4.0.0~), tuxedo-wmi-dkms (<< 4.0.0~),
+ tuxedo-xp-xc-airplane-mode-fix (<< 4.0.0~),
+ tuxedo-xp-xc-touchpad-key-fix (<< 4.0.0~)
+Breaks: tuxedo-cc-wmi (<< 4.0.0~), tuxedo-keyboard (<< 4.0.0~),
+ tuxedo-keyboard-dkms (<< 4.0.0~), tuxedo-keyboard-ite (<< 4.0.0~),
+ tuxedo-touchpad-fix (<< 4.0.0~), tuxedo-wmi-dkms (<< 4.0.0~),
+ tuxedo-xp-xc-airplane-mode-fix (<< 4.0.0~),
+ tuxedo-xp-xc-touchpad-key-fix (<< 4.0.0~)
 Description: Kernel modules for TUXEDO devices
  Drivers for several platform devices for TUXEDO notebooks meant for DKMS.
 
-Package: tuxedo-keyboard
+Package: tuxedo-cc-wmi
 Architecture: all
 Section: oldlibs
 Depends: tuxedo-drivers, ${misc:Depends}
 Description: Keyboard driver for TUXEDO notebooks (dummy transitional package)
  Transitional package for upgrades. This package can be safely removed.
 
+Package: tuxedo-keyboard
+Architecture: all
+Section: oldlibs
+Depends: tuxedo-drivers, ${misc:Depends}
+Description: Keyboard back-light driver for ITE devices (dummy transitional package)
+ Transitional package for upgrades. This package can be safely removed.
+
+Package: tuxedo-keyboard-dkms
+Architecture: all
+Section: oldlibs
+Depends: tuxedo-drivers, ${misc:Depends}
+Description: Keyboard back-light driver for ITE devices (dummy transitional package)
+ Transitional package for upgrades. This package can be safely removed.
+
 Package: tuxedo-keyboard-ite
+Architecture: all
+Section: oldlibs
+Depends: tuxedo-drivers, ${misc:Depends}
+Description: Keyboard back-light driver for ITE devices (dummy transitional package)
+ Transitional package for upgrades. This package can be safely removed.
+
+Package: tuxedo-touchpad-fix
+Architecture: all
+Section: oldlibs
+Depends: tuxedo-drivers, ${misc:Depends}
+Description: Keyboard back-light driver for ITE devices (dummy transitional package)
+ Transitional package for upgrades. This package can be safely removed.
+
+Package: tuxedo-wmi-dkms
+Architecture: all
+Section: oldlibs
+Depends: tuxedo-drivers, ${misc:Depends}
+Description: Keyboard back-light driver for ITE devices (dummy transitional package)
+ Transitional package for upgrades. This package can be safely removed.
+
+Package: tuxedo-xp-xc-airplane-mode-fix
+Architecture: all
+Section: oldlibs
+Depends: tuxedo-drivers, ${misc:Depends}
+Description: Keyboard back-light driver for ITE devices (dummy transitional package)
+ Transitional package for upgrades. This package can be safely removed.
+
+Package: tuxedo-xp-xc-touchpad-key-fix
 Architecture: all
 Section: oldlibs
 Depends: tuxedo-drivers, ${misc:Depends}
