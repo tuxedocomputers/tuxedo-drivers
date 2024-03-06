@@ -75,7 +75,7 @@ case "$1" in
         # Restart tccd after reload if it was running before
         if $TCCD_RUNNING; then
             echo "Start tccd again"
-            deb-systemd-invoke start tccd 2>&1 || true
+            deb-systemd-invoke restart tccd 2>&1 || true
         fi
     ;;
 esac

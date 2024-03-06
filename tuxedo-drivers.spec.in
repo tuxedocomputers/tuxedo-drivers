@@ -107,7 +107,7 @@ systemctl restart upower 2>&1 || true
 # Restart tccd after reload if it was running before
 if $TCCD_RUNNING; then
 	echo "Start tccd again"
-	systemctl start tccd 2>&1 || true
+	systemctl restart tccd 2>&1 || true
 fi
 
 %preun
