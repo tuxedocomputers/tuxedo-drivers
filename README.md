@@ -1,6 +1,7 @@
 # Table of Content
 - <a href="#description">Description</a>
 - <a href="#building">Building and Install</a>
+- <a href="#troubleshooting">Troubleshooting</a>
 
 # Description <a name="description"></a>
 Drivers for several platform devices for TUXEDO notebooks meant for the DKMS.
@@ -60,3 +61,14 @@ All:
 
 `make package-rpm`:
 - rpm
+
+# Troubleshooting <a name="troubleshooting"></a>
+
+## The keyboard backlight control and/or touchpad toggle key combinations do not work
+For all devices with a touchpad toggle key(-combo) and some devices with keyboard backlight control key-combos the driver does nothing more then to send the corresponding key event to userspace where it is the desktop environments duty to carry out the action. Some smaller desktop environments however don't bind an action to these keys by default so it seems that these keys don't work.
+
+Please refer to your desktop environments documentation on how to set custom keybindings to fix this.
+
+For keyboard brightness control you should use the D-Bus interface of UPower as actions for the key presses.
+
+For touchpad toggle on X11 you can use `xinput` to enable/disable the touchpad, on Wayland the correct way is desktop environment specific.
