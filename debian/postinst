@@ -17,6 +17,10 @@ case "$1" in
             deb-systemd-invoke stop tccd 2>&1 || true
         fi
 
+        # Stop UPower as it does not handle well when kbd_backlight entries disapear
+        echo "Stop UPower temporarily"
+        systemctl stop upower 2>&1 || true
+
         # (Re-)load modules
         echo "(Re)load modules if possible"
         rmmod tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
@@ -63,6 +67,10 @@ case "$1" in
         modprobe tuxedo_nb04_sensors > /dev/null 2>&1 || true
         modprobe tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
         modprobe tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
+
+        # Restart UPower
+        echo "Start UPower again"
+        systemctl restart upower 2>&1 || true
 
         # Restart tccd after reload if it was running before
         if $TCCD_RUNNING; then
