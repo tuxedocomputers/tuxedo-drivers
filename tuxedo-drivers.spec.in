@@ -11,7 +11,14 @@ Requires:       dkms >= 2.1
 
 BuildArch:      noarch
 
-Provides:       tuxedo-keyboard = 4.0.0-1
+Provides:       tuxedo-cc-wmi < 4.0.0-1
+Provides:       tuxedo-keyboard < 4.0.0-1
+Provides:       tuxedo-keyboard-dkms < 4.0.0-1
+Provides:       tuxedo-keyboard-ite < 4.0.0-1
+Provides:       tuxedo-touchpad-fix < 4.0.0-1
+Provides:       tuxedo-wmi-dkms < 4.0.0-1
+Provides:       tuxedo-xp-xc-airplane-mode-fix < 4.0.0-1
+Provides:       tuxedo-xp-xc-touchpad-key-fix < 4.0.0-1
 Obsoletes:      tuxedo-cc-wmi < 4.0.0~
 Obsoletes:      tuxedo-keyboard < 4.0.0~
 Obsoletes:      tuxedo-keyboard-dkms < 4.0.0~
