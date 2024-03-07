@@ -5,6 +5,11 @@ set -e
 case "$1" in
     remove|upgrade|deconfigure)
         # Attempt to unload modules, fail silently if not possible
+
+        # Stop UPower as it does not handle well when kbd_backlight entries disapear
+        echo "Stop UPower temporarily"
+        systemctl stop upower 2>&1 || true
+
         echo "Unload modules if possible"
         rmmod tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
         rmmod tuxedo_io > /dev/null 2>&1 || true
@@ -28,6 +33,10 @@ case "$1" in
         rmmod tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
         rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
         rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
+
+        # Restart UPower
+        echo "Start UPower again"
+        systemctl restart upower 2>&1 || true
     ;;
 esac
 

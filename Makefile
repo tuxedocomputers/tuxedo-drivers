@@ -39,8 +39,14 @@ clean:
 	rm -f debian/debhelper-build-stamp
 	rm -f debian/files
 	rm -rf debian/tuxedo-drivers
+	rm -rf debian/tuxedo-cc-wmi
 	rm -rf debian/tuxedo-keyboard
+	rm -rf debian/tuxedo-keyboard-dkms
 	rm -rf debian/tuxedo-keyboard-ite
+	rm -rf debian/tuxedo-touchpad-fix
+	rm -rf debian/tuxedo-wmi-dkms
+	rm -rf debian/tuxedo-xp-xc-airplane-mode-fix
+	rm -rf debian/tuxedo-xp-xc-touchpad-key-fix
 	make -C $(KDIR) M=$(PWD) clean
 
 install:
