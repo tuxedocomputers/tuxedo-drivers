@@ -11,7 +11,14 @@ Requires:       dkms >= 2.1
 
 BuildArch:      noarch
 
-Provides:       tuxedo-keyboard = 4.0.0-1
+Provides:       tuxedo-cc-wmi < 4.0.0-1
+Provides:       tuxedo-keyboard < 4.0.0-1
+Provides:       tuxedo-keyboard-dkms < 4.0.0-1
+Provides:       tuxedo-keyboard-ite < 4.0.0-1
+Provides:       tuxedo-touchpad-fix < 4.0.0-1
+Provides:       tuxedo-wmi-dkms < 4.0.0-1
+Provides:       tuxedo-xp-xc-airplane-mode-fix < 4.0.0-1
+Provides:       tuxedo-xp-xc-touchpad-key-fix < 4.0.0-1
 Obsoletes:      tuxedo-cc-wmi < 4.0.0~
 Obsoletes:      tuxedo-keyboard < 4.0.0~
 Obsoletes:      tuxedo-keyboard-dkms < 4.0.0~
@@ -54,6 +61,9 @@ if systemctl is-active --quiet tccd.service; then
     echo "Stop tccd temporarily"
     systemctl stop tccd 2>&1 || true
 fi
+# Stop UPower as it does not handle well when kbd_backlight entries disapear
+echo "Stop UPower temporarily"
+systemctl stop upower 2>&1 || true
 # (Re-)load modules
 echo "(Re)load modules if possible"
 rmmod tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
@@ -100,13 +110,19 @@ modprobe tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
 modprobe tuxedo_nb04_sensors > /dev/null 2>&1 || true
 modprobe tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
 modprobe tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
+# Restart UPower
+echo "Start UPower again"
+systemctl restart upower 2>&1 || true
 # Restart tccd after reload if it was running before
 if $TCCD_RUNNING; then
 	echo "Start tccd again"
-	systemctl start tccd 2>&1 || true
+	systemctl restart tccd 2>&1 || true
 fi
 
 %preun
+# Stop UPower as it does not handle well when kbd_backlight entries disapear
+echo "Stop UPower temporarily"
+systemctl stop upower 2>&1 || true
 # Attempt to unload modules, fail silently if not possible
 echo "Unload modules if possible"
 rmmod tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
@@ -133,6 +149,9 @@ rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
 rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 # Remove modules via DKMS
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
+# Restart UPower
+echo "Start UPower again"
+systemctl restart upower 2>&1 || true
 
 %changelog
 * Tue Mar 05 2024 Werner Sembach <tux@tuxedocomputers.com> 4.3.1-1
