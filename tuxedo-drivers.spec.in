@@ -62,6 +62,7 @@ if systemctl is-active --quiet tccd.service; then
     systemctl stop tccd 2>&1 || true
 fi
 # Stop UPower as it does not handle well when kbd_backlight entries disapear
+echo "Stop UPower temporarily"
 systemctl stop upower 2>&1 || true
 # (Re-)load modules
 echo "(Re)load modules if possible"
@@ -110,6 +111,7 @@ modprobe tuxedo_nb04_sensors > /dev/null 2>&1 || true
 modprobe tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
 modprobe tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
 # Restart UPower
+echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 # Restart tccd after reload if it was running before
 if $TCCD_RUNNING; then
@@ -119,6 +121,7 @@ fi
 
 %preun
 # Stop UPower as it does not handle well when kbd_backlight entries disapear
+echo "Stop UPower temporarily"
 systemctl stop upower 2>&1 || true
 # Attempt to unload modules, fail silently if not possible
 echo "Unload modules if possible"
@@ -147,6 +150,7 @@ rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 # Remove modules via DKMS
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 # Restart UPower
+echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
