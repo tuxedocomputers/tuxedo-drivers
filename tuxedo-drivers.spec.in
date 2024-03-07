@@ -154,6 +154,10 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Thu Mar 07 2024 Werner Sembach <tux@tuxedocomputers.com> 4.3.2-1
+- Restart UPower upon instal and remove because it does not handle (dis-)appearing leds devices well
+- Add troubleshooting section to ReadMe
+- Touchups on package and make scripts
 * Tue Mar 05 2024 Werner Sembach <tux@tuxedocomputers.com> 4.3.1-1
 - Clarify transitional packages and obsoletes
 - Add systemd boot delay fix

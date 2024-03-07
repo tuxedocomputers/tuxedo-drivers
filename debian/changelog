@@ -1,3 +1,11 @@
+tuxedo-drivers (4.3.2) jammy; urgency=medium
+
+  * Restart UPower upon instal and remove because it does not handle (dis-)appearing leds devices well
+  * Add troubleshooting section to ReadMe
+  * Touchups on package and make scripts
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 07 Mar 2024 19:21:56 +0100
+
 tuxedo-drivers (4.3.1) jammy; urgency=medium
 
   * Clarify transitional packages and obsoletes
