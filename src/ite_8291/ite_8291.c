@@ -183,6 +183,10 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 		*red = (255 * *red) / 255;
 		*green = (220 * *green) / 255;
 		*blue = (200 * *blue) / 255;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06") &&
+		   hdev->product == 0xce00 && driver_data->bcd_device == 0x0002) {
+		*green = (180 * *green) / 255;
+		*blue = (180 * *blue) / 255;
 	} else {
 		*green = (126 * *green) / 255;
 		*blue = (120 * *blue) / 255;
