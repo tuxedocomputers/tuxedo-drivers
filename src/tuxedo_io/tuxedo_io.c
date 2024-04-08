@@ -1,9 +1,9 @@
 /*!
- * Copyright (c) 2019-2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2019-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
- * This file is part of tuxedo-io.
+ * This file is part of tuxedo-drivers.
  *
- * tuxedo-io is free software: you can redistribute it and/or modify
+ * tuxedo-drivers is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -49,6 +49,16 @@ static u32 id_check_uniwill;
 
 static struct uniwill_device_features_t *uw_feats;
 
+static int set_full_fan_mode(bool enable);
+static int uw_init_fan(void);
+static u32 uw_set_fan(u32 fan_index, u8 fan_speed);
+static u32 uw_set_fan_auto(void);
+static int uw_get_tdp_min(u8 tdp_index);
+static int uw_get_tdp_max(u8 tdp_index);
+static int uw_get_tdp(u8 tdp_index);
+static int uw_set_tdp(u8 tdp_index, u8 tdp_data);
+static u32 uw_set_performance_profile_v1(u8 profile_index);
+
 /**
  * strstr version of dmi_match
  */
@@ -79,8 +89,11 @@ static int tdp_max_ph4trx[] = { 0x32, 0x32, 0x00 };
 static int tdp_min_ph4tqx[] = { 0x05, 0x05, 0x00 };
 static int tdp_max_ph4tqx[] = { 0x32, 0x32, 0x00 };
 
-static int tdp_min_ph4axx[] = { 0x05, 0x05, 0x00 };
-static int tdp_max_ph4axx[] = { 0x2d, 0x3c, 0x00 };
+static int tdp_min_phxaxx_mk1[] = { 0x05, 0x05, 0x00 };
+static int tdp_max_phxaxx_mk1[] = { 0x32, 0x3c, 0x00 };
+
+static int tdp_min_phxaxx_mk2[] = { 0x05, 0x05, 0x00 };
+static int tdp_max_phxaxx_mk2[] = { 0x37, 0x64, 0x00 };
 
 static int tdp_min_phxpxx[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_phxpxx[] = { 0x2d, 0x3c, 0x6e };
@@ -112,6 +125,9 @@ static int tdp_max_gmxpxxx[] = { 0x82, 0x82, 0xc8 };
 static int tdp_min_gmxxgxx[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxxgxx[] = { 0x50, 0x50, 0x64 };
 
+static int tdp_min_gmxixxn[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxixxn[] = { 0xa0, 0xa0, 0xfa };
+
 static int *tdp_min_defs = NULL;
 static int *tdp_max_defs = NULL;
 
@@ -126,10 +142,13 @@ void uw_id_tdp(void)
 	} else if (uw_feats->model == UW_MODEL_PH4TQF) {
 		tdp_min_defs = tdp_min_ph4tqx;
 		tdp_max_defs = tdp_max_ph4tqx;
-	} else if (uw_feats->model == UW_MODEL_PH4AQF_ARX) {
-		tdp_min_defs = tdp_min_ph4axx;
-		tdp_max_defs = tdp_max_ph4axx;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+	} else if (dmi_match(DMI_PRODUCT_SKU, "IBP1XI07MK1")) {
+		tdp_min_defs = tdp_min_phxaxx_mk1;
+		tdp_max_defs = tdp_max_phxaxx_mk1;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "IBP1XI07MK2")) {
+		tdp_min_defs = tdp_min_phxaxx_mk2;
+		tdp_max_defs = tdp_max_phxaxx_mk2;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "IBP1XI08MK1") ||
 		   dmi_match(DMI_PRODUCT_SKU, "IBP1XI08MK2") ||
 		   dmi_match(DMI_PRODUCT_SKU, "IBP14I08MK2") ||
@@ -169,6 +188,12 @@ void uw_id_tdp(void)
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XA05")) {
 		tdp_min_defs = tdp_min_gmxxgxx;
 		tdp_max_defs = tdp_max_gmxxgxx;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06")) {
+		tdp_min_defs = tdp_min_gmxixxn;
+		tdp_max_defs = tdp_max_gmxixxn;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06")) {
+		tdp_min_defs = tdp_min_gmxixxn;
+		tdp_max_defs = tdp_max_gmxixxn;
 #endif
 	} else {
 		tdp_min_defs = NULL;
@@ -510,6 +535,11 @@ static int uw_set_tdp(u8 tdp_index, u8 tdp_data)
 	int tdp_min, tdp_max;
 	u16 tdp_base_addr = 0x0783;
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
+
+	// Ensure that "custom" profile is chosen to enable TDP set
+	// for devices that require this
+	if (uw_feats->uniwill_profile_custom_change_tdp_only)
+		uw_set_performance_profile_v1(0x00);
 
 	// Use min tdp to detect support for chosen tdp parameter
 	int min_tdp_status = uw_get_tdp_min(tdp_index);
