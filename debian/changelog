@@ -1,3 +1,10 @@
+tuxedo-drivers (4.4.0) jammy; urgency=medium
+
+  * Split IBPG7 TDP definitions for mk1/mk2 and update values
+  * Initial Stellaris Gen6 support
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Mon, 08 Apr 2024 14:09:46 +0200
+
 tuxedo-drivers (4.3.2) jammy; urgency=medium
 
   * Restart UPower upon instal and remove because it does not handle (dis-)appearing leds devices well

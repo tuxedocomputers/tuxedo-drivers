@@ -154,6 +154,9 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Mon Apr 08 2024 Werner Sembach <tux@tuxedocomputers.com> 4.4.0-1
+- Split IBPG7 TDP definitions for mk1/mk2 and update values
+- Initial Stellaris Gen6 support
 * Thu Mar 07 2024 Werner Sembach <tux@tuxedocomputers.com> 4.3.2-1
 - Restart UPower upon instal and remove because it does not handle (dis-)appearing leds devices well
 - Add troubleshooting section to ReadMe
