@@ -79,8 +79,11 @@ static int tdp_max_ph4trx[] = { 0x32, 0x32, 0x00 };
 static int tdp_min_ph4tqx[] = { 0x05, 0x05, 0x00 };
 static int tdp_max_ph4tqx[] = { 0x32, 0x32, 0x00 };
 
-static int tdp_min_ph4axx[] = { 0x05, 0x05, 0x00 };
-static int tdp_max_ph4axx[] = { 0x2d, 0x3c, 0x00 };
+static int tdp_min_phxaxx_mk1[] = { 0x05, 0x05, 0x00 };
+static int tdp_max_phxaxx_mk1[] = { 0x32, 0x3c, 0x00 };
+
+static int tdp_min_phxaxx_mk2[] = { 0x05, 0x05, 0x00 };
+static int tdp_max_phxaxx_mk2[] = { 0x37, 0x64, 0x00 };
 
 static int tdp_min_phxpxx[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_phxpxx[] = { 0x2d, 0x3c, 0x6e };
@@ -126,10 +129,13 @@ void uw_id_tdp(void)
 	} else if (uw_feats->model == UW_MODEL_PH4TQF) {
 		tdp_min_defs = tdp_min_ph4tqx;
 		tdp_max_defs = tdp_max_ph4tqx;
-	} else if (uw_feats->model == UW_MODEL_PH4AQF_ARX) {
-		tdp_min_defs = tdp_min_ph4axx;
-		tdp_max_defs = tdp_max_ph4axx;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+	} else if (dmi_match(DMI_PRODUCT_SKU, "IBP1XI07MK1")) {
+		tdp_min_defs = tdp_min_phxaxx_mk1;
+		tdp_max_defs = tdp_max_phxaxx_mk1;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "IBP1XI07MK2")) {
+		tdp_min_defs = tdp_min_phxaxx_mk2;
+		tdp_max_defs = tdp_max_phxaxx_mk2;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "IBP1XI08MK1") ||
 		   dmi_match(DMI_PRODUCT_SKU, "IBP1XI08MK2") ||
 		   dmi_match(DMI_PRODUCT_SKU, "IBP14I08MK2") ||
