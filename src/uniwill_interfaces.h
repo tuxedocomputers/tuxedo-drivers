@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2021 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2021-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-drivers.
  *
@@ -131,6 +131,11 @@ struct uniwill_device_features_t {
 	bool uniwill_profile_v1_two_profs;
 	bool uniwill_profile_v1_three_profs;
 	bool uniwill_profile_v1_three_profs_leds_only;
+	/*
+	 * Identifies devices where "custom" profile (0x00) need to be chosen
+	 * for custom TDP values to have effect
+	 */
+	bool uniwill_profile_custom_change_tdp_only;
 	bool uniwill_has_charging_prio;
 	bool uniwill_has_charging_profile;
 	bool uniwill_has_universal_ec_fan_control;

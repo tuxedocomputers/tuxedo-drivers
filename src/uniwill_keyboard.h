@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2020-2021 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2020-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-drivers.
  *
@@ -1040,6 +1040,13 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XA03")
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI04")
 		|| dmi_match(DMI_PRODUCT_SKU, "STEPOL1XA04")
+#endif
+	;
+
+	uw_feats->uniwill_profile_custom_change_tdp_only = false
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06")
+		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06")
 #endif
 	;
 
