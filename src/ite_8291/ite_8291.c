@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2020-2022 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2020-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-drivers.
  *
@@ -187,6 +187,10 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 		   hdev->product == 0xce00 && driver_data->bcd_device == 0x0002) {
 		*green = (180 * *green) / 255;
 		*blue = (180 * *blue) / 255;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06") &&
+		   hdev->product == 0x600a) {
+		*red = (200 * *red) / 255;
+		*blue = (220 * *blue) / 255;
 	} else {
 		*green = (126 * *green) / 255;
 		*blue = (120 * *blue) / 255;
