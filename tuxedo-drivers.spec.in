@@ -154,6 +154,8 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Wed Apr 17 2024 Werner Sembach <tux@tuxedocomputers.com> 4.4.1-1
+- Fix tint in keyboard backlight for Stellaris 17 Gen6
 * Mon Apr 08 2024 Werner Sembach <tux@tuxedocomputers.com> 4.4.0-1
 - Split IBPG7 TDP definitions for mk1/mk2 and update values
 - Initial Stellaris Gen6 support

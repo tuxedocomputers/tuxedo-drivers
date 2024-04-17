@@ -1,3 +1,9 @@
+tuxedo-drivers (4.4.1) jammy; urgency=medium
+
+  * Fix tint in keyboard backlight for Stellaris 17 Gen6
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 17 Apr 2024 12:03:09 +0200
+
 tuxedo-drivers (4.4.0) jammy; urgency=medium
 
   * Split IBPG7 TDP definitions for mk1/mk2 and update values
