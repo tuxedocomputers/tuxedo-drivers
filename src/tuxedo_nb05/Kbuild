@@ -3,3 +3,4 @@ obj-m += tuxedo_nb05_kbd_backlight.o
 obj-m += tuxedo_nb05_power_profiles.o
 obj-m += tuxedo_nb05_ec.o
 obj-m += tuxedo_nb05_sensors.o
+obj-m += tuxedo_nb05_fan_control.o
