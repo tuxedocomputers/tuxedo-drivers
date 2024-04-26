@@ -236,7 +236,7 @@ static int __init init_db_and_ctgp(void)
 	if (result < 0)
 		return result;
 
-	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_DB_OFFSET, 5);
+	result = uniwill_write_ec_ram(UW_EC_REG_CTGP_DB_DB_OFFSET, 25);
 	if (result < 0)
 		return result;
 
