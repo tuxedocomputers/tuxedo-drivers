@@ -26,7 +26,7 @@ PACKAGE_NAME := $(shell grep -Pom1 '.*(?= \(.*\) .*; urgency=.*)' debian/changel
 PACKAGE_VERSION := $(shell grep -Pom1 '.* \(\K.*(?=\) .*; urgency=.*)' debian/changelog)
 
 all:
-	make -C $(KDIR) M=$(PWD) modules
+	make -C $(KDIR) M=$(PWD) $(MAKEFLAGS) modules
 
 clean:
 	rm -f src/dkms.conf
@@ -47,10 +47,10 @@ clean:
 	rm -rf debian/tuxedo-wmi-dkms
 	rm -rf debian/tuxedo-xp-xc-airplane-mode-fix
 	rm -rf debian/tuxedo-xp-xc-touchpad-key-fix
-	make -C $(KDIR) M=$(PWD) clean
+	make -C $(KDIR) M=$(PWD) $(MAKEFLAGS) clean
 
 install:
-	make -C $(KDIR) M=$(PWD) modules_install
+	make -C $(KDIR) M=$(PWD) $(MAKEFLAGS) modules_install
 
 dkmsinstall:
 	sed 's/#MODULE_VERSION#/$(PACKAGE_VERSION)/' debian/tuxedo-drivers.dkms > src/dkms.conf
