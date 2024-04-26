@@ -1,3 +1,10 @@
+tuxedo-drivers (4.4.2) jammy; urgency=medium
+
+  * Fix Dynamic Boost default
+  * Dev/Debug: Pass through make arguments to sub makes
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Fri, 26 Apr 2024 17:45:40 +0200
+
 tuxedo-drivers (4.4.1) jammy; urgency=medium
 
   * Fix tint in keyboard backlight for Stellaris 17 Gen6
