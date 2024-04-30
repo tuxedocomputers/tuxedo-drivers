@@ -157,6 +157,7 @@ int tuxi_set_fan_mode(enum tuxi_fan_mode mode)
 
 	return 0;
 }
+EXPORT_SYMBOL(tuxi_set_fan_mode);
 
 int tuxi_get_fan_mode(enum tuxi_fan_mode *mode)
 {
