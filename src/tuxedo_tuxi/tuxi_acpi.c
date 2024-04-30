@@ -53,6 +53,9 @@ int evaluate_intparams(acpi_handle handle,
 	int i;
 	u32 param_buffer_size = sizeof(union acpi_object) * param_count;
 
+	if (!handle)
+		return -ENODEV;
+
 	if (param_buffer_size > 0)
 		params = kzalloc(param_buffer_size, GFP_KERNEL);
 
