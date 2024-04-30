@@ -97,6 +97,7 @@ int tuxi_set_fan_speed(u8 fan_index, u8 fan_speed)
 
 	return 0;
 }
+EXPORT_SYMBOL(tuxi_set_fan_speed);
 
 int tuxi_get_fan_speed(u8 fan_index, u8 *fan_speed)
 {
@@ -117,6 +118,7 @@ int tuxi_get_fan_speed(u8 fan_index, u8 *fan_speed)
 
 	return 0;
 }
+EXPORT_SYMBOL(tuxi_get_fan_speed);
 
 int tuxi_get_nr_fans(u8 *nr_fans)
 {
@@ -133,6 +135,7 @@ int tuxi_get_nr_fans(u8 *nr_fans)
 
 	return 0;
 }
+EXPORT_SYMBOL(tuxi_get_nr_fans);
 
 // TODO: mode enum signature
 int tuxi_set_fan_mode(u8 mode)
@@ -171,6 +174,7 @@ int tuxi_get_fan_mode(u8 *mode)
 
 	return 0;
 }
+EXPORT_SYMBOL(tuxi_get_fan_mode);
 
 int tuxi_get_fan_type(u8 fan_index, enum tuxi_fan_type *type)
 {
@@ -191,6 +195,7 @@ int tuxi_get_fan_type(u8 fan_index, enum tuxi_fan_type *type)
 
 	return 0;
 }
+EXPORT_SYMBOL(tuxi_get_fan_type);
 
 static int get_tfan(struct acpi_device *tuxi_dev, acpi_handle *tfan_handle)
 {
