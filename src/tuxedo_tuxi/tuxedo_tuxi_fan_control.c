@@ -264,6 +264,14 @@ static struct platform_driver tuxedo_tuxi_fan_control_driver = {
 
 static int __init tuxedo_tuxi_fan_control_init(void)
 {
+	int err;
+	u8 dummy;
+
+	// Check interface presence
+	err = tuxi_get_nr_fans(&dummy);
+	if (err == -ENODEV)
+		return err;
+
 	tuxedo_tuxi_fan_control_device =
 		platform_create_bundle(&tuxedo_tuxi_fan_control_driver,
 				       tuxedo_tuxi_fan_control_probe, NULL, 0, NULL, 0);
