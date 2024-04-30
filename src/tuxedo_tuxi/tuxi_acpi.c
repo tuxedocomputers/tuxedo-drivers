@@ -140,8 +140,7 @@ int tuxi_get_nr_fans(u8 *nr_fans)
 }
 EXPORT_SYMBOL(tuxi_get_nr_fans);
 
-// TODO: mode enum signature
-int tuxi_set_fan_mode(u8 mode)
+int tuxi_set_fan_mode(enum tuxi_fan_mode mode)
 {
 	long long int retval;
 	long long int args[] = { mode };
@@ -159,7 +158,7 @@ int tuxi_set_fan_mode(u8 mode)
 	return 0;
 }
 
-int tuxi_get_fan_mode(u8 *mode)
+int tuxi_get_fan_mode(enum tuxi_fan_mode *mode)
 {
 	long long int retval;
 	int err;

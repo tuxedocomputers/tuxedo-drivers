@@ -29,11 +29,16 @@ enum tuxi_fan_type {
 	GPU = 2,
 };
 
+enum tuxi_fan_mode {
+	AUTO = 0,
+	MANUAL = 1,
+};
+
 int tuxi_set_fan_speed(u8 fan_index, u8 fan_speed);
 int tuxi_get_fan_speed(u8 fan_index, u8 *fan_speed);
 int tuxi_get_nr_fans(u8 *nr_fans);
-int tuxi_set_fan_mode(u8 mode);
-int tuxi_get_fan_mode(u8 *mode);
+int tuxi_set_fan_mode(enum tuxi_fan_mode mode);
+int tuxi_get_fan_mode(enum tuxi_fan_mode *mode);
 int tuxi_get_fan_type(u8 fan_index, enum tuxi_fan_type *type);
 
 #endif
