@@ -25,7 +25,9 @@
 #include "tuxedo_nb05_ec.h"
 
 #define FAN_SET_RPM_MAX 50
+#define FAN_SET_DUTY_MAX 0xb8
 #define FAN_SET_RPM_HIGHTEMP 15
+#define FAN_SET_DUTY_HIGHTEMP ((FAN_SET_RPM_HIGHTEMP * FAN_SET_DUTY_MAX) / FAN_SET_RPM_MAX)
 
 struct driver_data_t {
 	struct platform_device *pdev;
@@ -78,14 +80,25 @@ static u8 read_fan1_rpm(void)
 static int write_fan1_rpm(u8 rpm_data)
 {
 	int reg;
+	u8 duty_data;
+
 	if (rpm_data > FAN_SET_RPM_MAX)
 		return -EINVAL;
+
+	duty_data = (rpm_data * FAN_SET_DUTY_MAX) / FAN_SET_RPM_MAX;
+	for (reg = 0x02c1; reg <= 0x02c7; ++reg) {
+		nb05_write_ec_ram(reg, duty_data);
+	}
 
 	for (reg = 0x02d0; reg <= 0x02d6; ++reg) {
 		nb05_write_ec_ram(reg, rpm_data);
 	}
-	if (rpm_data < FAN_SET_RPM_HIGHTEMP)
+	if (rpm_data < FAN_SET_RPM_HIGHTEMP) {
 		rpm_data = FAN_SET_RPM_HIGHTEMP;
+		duty_data = FAN_SET_DUTY_HIGHTEMP;
+	}
+	nb05_write_ec_ram(0x02c8, duty_data);
+	nb05_write_ec_ram(0x02c9, duty_data);
 	nb05_write_ec_ram(0x02d7, rpm_data);
 	nb05_write_ec_ram(0x02d8, rpm_data);
 
@@ -119,14 +132,25 @@ static u8 read_fan2_rpm(void)
 static int write_fan2_rpm(u8 rpm_data)
 {
 	int reg;
+	u8 duty_data;
+
 	if (rpm_data > FAN_SET_RPM_MAX)
 		return -EINVAL;
+
+	duty_data = (rpm_data * FAN_SET_DUTY_MAX) / FAN_SET_RPM_MAX;
+	for (reg = 0x0241; reg <= 0x0247; ++reg) {
+		nb05_write_ec_ram(reg, duty_data);
+	}
 
 	for (reg = 0x0250; reg <= 0x0256; ++reg) {
 		nb05_write_ec_ram(reg, rpm_data);
 	}
-	if (rpm_data < FAN_SET_RPM_HIGHTEMP)
+	if (rpm_data < FAN_SET_RPM_HIGHTEMP) {
 		rpm_data = FAN_SET_RPM_HIGHTEMP;
+		duty_data = FAN_SET_DUTY_HIGHTEMP;
+	}
+	nb05_write_ec_ram(0x0248, duty_data);
+	nb05_write_ec_ram(0x0249, duty_data);
 	nb05_write_ec_ram(0x0257, rpm_data);
 	nb05_write_ec_ram(0x0258, rpm_data);
 
