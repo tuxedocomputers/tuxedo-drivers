@@ -154,6 +154,8 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Wed May 08 2024 Werner Sembach <tux@tuxedocomputers.com> 4.4.3-1
+- Stop generating transitional packages
 * Fri Apr 26 2024 Werner Sembach <tux@tuxedocomputers.com> 4.4.2-1
 - Fix Dynamic Boost default
 - Dev/Debug: Pass through make arguments to sub makes

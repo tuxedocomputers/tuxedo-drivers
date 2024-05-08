@@ -1,3 +1,9 @@
+tuxedo-drivers (4.4.3) UNRELEASED; urgency=medium
+
+  * Stop generating transitional packages
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 08 May 2024 17:29:45 +0200
+
 tuxedo-drivers (4.4.2) jammy; urgency=medium
 
   * Fix Dynamic Boost default
