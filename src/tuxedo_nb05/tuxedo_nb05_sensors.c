@@ -159,7 +159,7 @@ static int __init tuxedo_nb05_sensors_probe(struct platform_device *pdev) {
 
 	pr_debug("driver_probe\n");
 
-	driver_data.fan_cpu_max=5000;
+	driver_data.fan_cpu_max=5400;
 	driver_data.fan_cpu_min=0;
 
 	hwmon_dev = devm_hwmon_device_register_with_info(&pdev->dev,

@@ -24,7 +24,7 @@
 #include <linux/dmi.h>
 #include "tuxedo_nb05_ec.h"
 
-#define FAN_SET_RPM_MAX 50
+#define FAN_SET_RPM_MAX 54
 #define FAN_SET_DUTY_MAX 0xb8
 #define FAN_SET_RPM_HIGHTEMP 15
 #define FAN_SET_DUTY_HIGHTEMP ((FAN_SET_RPM_HIGHTEMP * FAN_SET_DUTY_MAX) / FAN_SET_RPM_MAX)
