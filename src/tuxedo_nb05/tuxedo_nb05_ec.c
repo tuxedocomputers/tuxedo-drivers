@@ -124,6 +124,15 @@ static const struct dmi_system_id tuxedo_nb05_ec_id_table[] __initconst = {
 		},
 		.callback = dmi_check_callback,
 	},
+{
+		.ident = "TUXEDO Pulse 14 Gen4",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
+			DMI_MATCH(DMI_BOARD_VENDOR, "NB05"),
+			DMI_MATCH(DMI_PRODUCT_SKU, "PULSE1404"),
+		},
+		.callback = dmi_check_callback,
+	},
 	{ },
 };
 MODULE_DEVICE_TABLE(dmi, tuxedo_nb05_ec_id_table);
