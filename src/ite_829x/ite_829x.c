@@ -385,7 +385,7 @@ static int __init ite8291_init(void)
 
 	// Known not compatible/broken device, do not even load module
 	if (dmi_match(DMI_SYS_VENDOR, "TUXEDO") &&
-	    dmi_match(DMI_PRODUCT_SKU, "SIRIUS1601"))
+	    (dmi_match(DMI_PRODUCT_SKU, "SIRIUS1601") || dmi_match(DMI_PRODUCT_SKU, "SIRIUS1602")))
 		return -ENODEV;
 
 	mutex_init(&input_lock);
