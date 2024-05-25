@@ -1,4 +1,4 @@
-tuxedo-drivers (4.4.3) UNRELEASED; urgency=medium
+tuxedo-drivers (4.4.3) jammy; urgency=medium
 
   * Stop generating transitional packages
 
