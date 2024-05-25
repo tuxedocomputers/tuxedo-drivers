@@ -157,6 +157,11 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Sat May 25 2024 Werner Sembach <tux@tuxedocomputers.com> 4.5.0-1
+- Fix dynamic boost being stuck at 5W
+- Add Pulse Gen4 support
+- Add Sirius Gen2 support
+- Add Pulse Gen3 and Gen4 fan control support
 * Wed May 08 2024 Werner Sembach <tux@tuxedocomputers.com> 4.4.3-1
 - Stop generating transitional packages
 * Fri Apr 26 2024 Werner Sembach <tux@tuxedocomputers.com> 4.4.2-1

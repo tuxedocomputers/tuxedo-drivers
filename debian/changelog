@@ -1,3 +1,12 @@
+tuxedo-drivers (4.5.0) jammy; urgency=medium
+
+  * Fix dynamic boost being stuck at 5W
+  * Add Pulse Gen4 support
+  * Add Sirius Gen2 support
+  * Add Pulse Gen3 and Gen4 fan control support
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Sat, 25 May 2024 16:06:05 +0200
+
 tuxedo-drivers (4.4.3) jammy; urgency=medium
 
   * Stop generating transitional packages
