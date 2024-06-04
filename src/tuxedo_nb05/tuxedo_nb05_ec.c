@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2023-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-drivers.
  *
@@ -92,9 +92,19 @@ void nb05_write_ec_ram(u16 addr, u8 data)
 }
 EXPORT_SYMBOL(nb05_write_ec_ram);
 
+void nb05_read_ec_fw_version(u8 *major, u8 *minor)
+{
+	nb05_read_ec_ram(0x0400, major);
+	nb05_read_ec_ram(0x0401, minor);
+}
+EXPORT_SYMBOL(nb05_read_ec_fw_version);
+
 static int tuxedo_nb05_ec_probe(struct platform_device *pdev)
 {
-	pr_debug("driver probe\n");
+	u8 minor, major;
+
+	nb05_read_ec_fw_version(&major, &minor);
+	pr_info("EC I/O driver loaded, firmware version %d.%d\n", major, minor);
 
 	return 0;
 }
