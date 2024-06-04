@@ -85,13 +85,11 @@ static int write_fan1_rpm(u8 rpm_data)
 	if (rpm_data > FAN_SET_RPM_MAX)
 		return -EINVAL;
 
-	for (reg = 0x02d0; reg <= 0x02d6; ++reg) {
+	for (reg = 0x02d0; reg <= 0x02d6; ++reg)
 		nb05_write_ec_ram(reg, rpm_data);
-	}
 
-	if (rpm_data < FAN_SET_RPM_HIGHTEMP) {
+	if (rpm_data < FAN_SET_RPM_HIGHTEMP)
 		rpm_data = FAN_SET_RPM_HIGHTEMP;
-	}
 
 	nb05_write_ec_ram(0x02d7, rpm_data);
 	nb05_write_ec_ram(0x02d8, rpm_data);
@@ -149,9 +147,8 @@ static int write_fan2_rpm(u8 rpm_data)
 	if (rpm_data > FAN_SET_RPM_MAX)
 		return -EINVAL;
 
-	for (reg = 0x0250; reg <= 0x0256; ++reg) {
+	for (reg = 0x0250; reg <= 0x0256; ++reg)
 		nb05_write_ec_ram(reg, rpm_data);
-	}
 
 	if (rpm_data < FAN_SET_RPM_HIGHTEMP)
 		rpm_data = FAN_SET_RPM_HIGHTEMP;
@@ -274,11 +271,11 @@ static ssize_t fan1_pwm_enable_show(struct device *dev,
 {
 	u8 enable_data, enable_hwmon;
 	enable_data = read_fan1_enable();
-	if (enable_data == 1) {
+	if (enable_data == 1)
 		enable_hwmon = 1;
-	} else {
+	else
 		enable_hwmon = 2;
-	}
+
 	sysfs_emit(buffer, "%d\n", enable_hwmon);
 
 	return strlen(buffer);
@@ -294,11 +291,10 @@ static ssize_t fan1_pwm_enable_store(struct device *dev,
 	if (kstrtou8(buffer, 0, &enable_hwmon))
 		return -EINVAL;
 
-	if (enable_hwmon == 2) {
+	if (enable_hwmon == 2)
 		enable_data = 0;
-	} else {
+	else
 		enable_data = 1;
-	}
 
 	err = write_fan1_enable(enable_data);
 	if (err)
@@ -350,11 +346,11 @@ static ssize_t fan2_pwm_enable_show(struct device *dev,
 {
 	u8 enable_data, enable_hwmon;
 	enable_data = read_fan2_enable();
-	if (enable_data == 1) {
+	if (enable_data == 1)
 		enable_hwmon = 1;
-	} else {
+	else
 		enable_hwmon = 2;
-	}
+
 	sysfs_emit(buffer, "%d\n", enable_hwmon);
 
 	return strlen(buffer);
@@ -370,11 +366,10 @@ static ssize_t fan2_pwm_enable_store(struct device *dev,
 	if (kstrtou8(buffer, 0, &enable_hwmon))
 		return -EINVAL;
 
-	if (enable_hwmon == 2) {
+	if (enable_hwmon == 2)
 		enable_data = 0;
-	} else {
+	else
 		enable_data = 1;
-	}
 
 	err = write_fan2_enable(enable_data);
 	if (err)
