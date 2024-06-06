@@ -170,12 +170,17 @@ static const struct hwmon_chip_info tuxedo_nb05_hwmon_chip_info = {
 
 static int __init tuxedo_nb05_sensors_probe(struct platform_device *pdev) {
 	struct device *hwmon_dev;
+	const struct dmi_system_id *sysid;
 
 	pr_debug("driver_probe\n");
 
-	driver_data.fan_cpu_min=0;
+	sysid = nb05_match_device();
+	if (!sysid)
+		return -ENODEV;
 
-	if (dmi_match(DMI_PRODUCT_NAME, "DN50Z-140HC-YD")) {
+	driver_data.fan_cpu_min = 0;
+
+	if (!strcmp(sysid->ident, IFLX14I01)) {
 		driver_data.number_fans = 1;
 		driver_data.fan_cpu_max = 5600;
 	} else {
