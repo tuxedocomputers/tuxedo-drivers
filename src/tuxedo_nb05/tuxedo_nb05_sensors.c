@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2023-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-drivers.
  *
@@ -20,6 +20,7 @@
 #include <linux/module.h>
 #include <linux/hwmon.h>
 #include <linux/platform_device.h>
+#include <linux/dmi.h>
 #include "tuxedo_nb05_ec.h"
 
 static int read_cpu_temp(void)
@@ -57,6 +58,7 @@ static const char * const fan_labels[] = {
 struct driver_data_t {
 	int fan_cpu_max;
 	int fan_cpu_min;
+	int number_fans;
 };
 
 struct driver_data_t driver_data;
@@ -65,7 +67,19 @@ static umode_t
 tuxedo_nb05_hwmon_is_visible(const void *drvdata, enum hwmon_sensor_types type,
 			     u32 attr, int channel)
 {
-	return 0444;
+	struct driver_data_t *driver_data = (struct driver_data_t *) drvdata;
+
+	switch (type) {
+	case hwmon_temp:
+		return 0444;
+	case hwmon_fan:
+		if (channel < driver_data->number_fans)
+			return 0444;
+		break;
+	default:
+	}
+
+	return 0;
 }
 
 static int
@@ -159,8 +173,15 @@ static int __init tuxedo_nb05_sensors_probe(struct platform_device *pdev) {
 
 	pr_debug("driver_probe\n");
 
-	driver_data.fan_cpu_max=5400;
 	driver_data.fan_cpu_min=0;
+
+	if (dmi_match(DMI_PRODUCT_NAME, "DN50Z-140HC-YD")) {
+		driver_data.number_fans = 1;
+		driver_data.fan_cpu_max = 5600;
+	} else {
+		driver_data.number_fans = 2;
+		driver_data.fan_cpu_max = 5400;
+	}
 
 	hwmon_dev = devm_hwmon_device_register_with_info(&pdev->dev,
 							 "tuxedo",
