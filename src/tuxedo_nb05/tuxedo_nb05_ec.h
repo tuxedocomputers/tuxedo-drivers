@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2023-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-drivers.
  *
@@ -19,9 +19,16 @@
 #ifndef TUXEDO_NB05_EC_H
 #define TUXEDO_NB05_EC_H
 
+#define PULSE1403 "TUXEDO Pulse 14 Gen3"
+#define PULSE1404 "TUXEDO Pulse 14 Gen4"
+#define IFLX14I01 "TUXEDO InfinityFlex 14 Gen1"
+
 MODULE_ALIAS("platform:tuxedo_nb05_ec");
 
 void nb05_read_ec_ram(u16 addr, u8 *data);
 void nb05_write_ec_ram(u16 addr, u8 data);
 void nb05_read_ec_fw_version(u8 *major, u8 *minor);
+
+const struct dmi_system_id *nb05_match_device(void);
+
 #endif

@@ -124,9 +124,9 @@ static int __init dmi_check_callback(const struct dmi_system_id *id)
 	return 1;
 }
 
-static const struct dmi_system_id tuxedo_nb05_ec_id_table[] __initconst = {
+static const struct dmi_system_id tuxedo_nb05_id_table[] __initconst = {
 	{
-		.ident = "TUXEDO Pulse 14 Gen3",
+		.ident = PULSE1403,
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
 			DMI_MATCH(DMI_BOARD_VENDOR, "NB05"),
@@ -134,8 +134,8 @@ static const struct dmi_system_id tuxedo_nb05_ec_id_table[] __initconst = {
 		},
 		.callback = dmi_check_callback,
 	},
-{
-		.ident = "TUXEDO Pulse 14 Gen4",
+	{
+		.ident = PULSE1404,
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
 			DMI_MATCH(DMI_BOARD_VENDOR, "NB05"),
@@ -143,13 +143,29 @@ static const struct dmi_system_id tuxedo_nb05_ec_id_table[] __initconst = {
 		},
 		.callback = dmi_check_callback,
 	},
+	{
+		.ident = IFLX14I01,
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
+			DMI_MATCH(DMI_BOARD_VENDOR, "NB05"),
+			DMI_MATCH(DMI_PRODUCT_SKU, "IFLX14I01"),
+		},
+		.callback = dmi_check_callback,
+	},
 	{ },
 };
-MODULE_DEVICE_TABLE(dmi, tuxedo_nb05_ec_id_table);
+
+MODULE_DEVICE_TABLE(dmi, tuxedo_nb05_id_table);
+
+const struct dmi_system_id *nb05_match_device(void)
+{
+	return dmi_first_match(tuxedo_nb05_id_table);
+}
+EXPORT_SYMBOL(nb05_match_device);
 
 static int __init tuxedo_nb05_ec_init(void)
 {
-	if (!dmi_check_system(tuxedo_nb05_ec_id_table))
+	if (!dmi_check_system(tuxedo_nb05_id_table))
 		return -ENODEV;
 
 	if (!tuxedo_is_compatible())
