@@ -1,3 +1,10 @@
+tuxedo-drivers (4.5.1) jammy; urgency=medium
+
+  * Improve Pulse Gen3 and Gen4 fan control for newer firmware
+  * Add keyboard backlight color sclaing for Stellaris Lite Gen1
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Fri, 07 Jun 2024 17:12:06 +0200
+
 tuxedo-drivers (4.5.0) jammy; urgency=medium
 
   * Fix dynamic boost being stuck at 5W

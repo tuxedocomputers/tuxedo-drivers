@@ -157,6 +157,9 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Fri Jun 07 2024 Werner Sembach <tux@tuxedocomputers.com> 4.5.1-1
+- Improve Pulse Gen3 and Gen4 fan control for newer firmware
+- Add keyboard backlight color sclaing for Stellaris Lite Gen1
 * Sat May 25 2024 Werner Sembach <tux@tuxedocomputers.com> 4.5.0-1
 - Fix dynamic boost being stuck at 5W
 - Add Pulse Gen4 support
