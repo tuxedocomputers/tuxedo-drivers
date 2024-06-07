@@ -167,7 +167,7 @@ static int ite8291_zones_write_state(struct hid_device *);
 /**
  * Color scaling quirk list
  */
-static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
+static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue, bool row_col_set, u8 row, u8 col)
 {
 	struct ite8291_driver_data_t *driver_data = hid_get_drvdata(hdev);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
@@ -176,6 +176,12 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") && hdev->product == 0x600a) {
 		*red = (200 * *red) / 255;
 		*blue = (220 * *blue) / 255;
+
+		// top row: reduce some additional violett
+		if(row_col_set && row == 5) {
+			*red = ( 230 * *red) / 255;
+			*blue = ( 200 * *blue) / 255;
+		}
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XA05")) {
 		*red = (128 * *red) / 255;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XI05") &&
@@ -191,6 +197,22 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 		   hdev->product == 0x600a) {
 		*red = (200 * *red) / 255;
 		*blue = (220 * *blue) / 255;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLSL15I01") && hdev->product == 0x600b) {
+		// all keys: reduce pink
+		*red = (155 * *red) / 255;
+		*blue = (140 * *blue) / 255;
+
+		// bottom row: reduce green (adding red and blue)
+		if (row_col_set && row == 0) {
+			*red = (279 * *red) / 255;
+			*blue = (282 * *blue) / 255;
+		}
+
+		// top row: reduce violett
+		if(row_col_set && row == 5) {
+			*red = (148 * *red) / 255;
+			*blue = (137 * *blue) / 255;
+		}
 	} else {
 		*green = (126 * *green) / 255;
 		*blue = (120 * *blue) / 255;
@@ -214,7 +236,7 @@ static int row_data_set(struct hid_device *hdev, row_data_t row_data, int row, i
 {
 	int column_index_red, column_index_green, column_index_blue;
 
-	color_scaling(hdev, &red, &green, &blue);
+	color_scaling(hdev, &red, &green, &blue, true, row, column);
 
 	if (row < 0 || row >= ITE8291_NR_ROWS)
 		return -EINVAL;
@@ -675,7 +697,7 @@ static int ite8291_zones_write_state(struct hid_device *hdev)
 		red = mcled_cdev->subled_info[0].intensity;
 		green = mcled_cdev->subled_info[1].intensity;
 		blue = mcled_cdev->subled_info[2].intensity;
-		color_scaling(hdev, &red, &green, &blue);
+		color_scaling(hdev, &red, &green, &blue, false, 0, 0);
 		ite8291_write_control(hdev, (u8[]){ 0x14, 0x00, i + 1, red, green, blue, 0x00, 0x00 });
 	}
 
@@ -858,6 +880,7 @@ static const struct hid_device_id ite8291_device_table[] = {
 	{ HID_USB_DEVICE(0x048d, 0xce00) },
 	{ HID_USB_DEVICE(0x048d, 0x6004) },
 	{ HID_USB_DEVICE(0x048d, 0x600a) },
+	{ HID_USB_DEVICE(0x048d, 0x600b) },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, ite8291_device_table);
