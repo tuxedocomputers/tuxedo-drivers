@@ -29,8 +29,14 @@
 #define FAN_SET_RPM_HIGHTEMP 15
 #define FAN_SET_DUTY_HIGHTEMP ((FAN_SET_RPM_HIGHTEMP * FAN_SET_DUTY_MAX) / FAN_SET_RPM_MAX)
 
+#define PWM_TO_RPM(pwm_data) ((pwm_data * FAN_SET_RPM_MAX) / 0xff)
+#define PWM_TO_DUTY(pwm_data) ((pwm_data * FAN_SET_DUTY_MAX) / 0xff)
+#define RPM_TO_PWM(rpm_data) ((rpm_data * 0xff) / FAN_SET_RPM_MAX)
+#define DUTY_TO_PWM(duty_data) ((duty_data * 0xff) / FAN_SET_DUTY_MAX)
+
 struct driver_data_t {
 	struct platform_device *pdev;
+	bool write_rpm;
 };
 
 static ssize_t fan1_pwm_show(struct device *dev,
@@ -61,46 +67,58 @@ static ssize_t fan2_pwm_enable_store(struct device *dev,
 				     struct device_attribute *attr,
 				     const char *buffer, size_t size);
 
-static u8 read_fan1_rpm(void);
 static int write_fan1_rpm(u8 rpm_data);
+static u8 read_fan1_duty(void);
+static int write_fan1_duty(u8 rpm_data);
 static u8 read_fan1_enable(void);
 static int write_fan1_enable(u8 enable_data);
-static u8 read_fan2_rpm(void);
 static int write_fan2_rpm(u8 rpm_data);
+static u8 read_fan2_duty(void);
+static int write_fan2_duty(u8 rpm_data);
 static u8 read_fan2_enable(void);
 static int write_fan2_enable(u8 enable_data);
-
-static u8 read_fan1_rpm(void)
-{
-	u8 rpm_data;
-	nb05_read_ec_ram(0x2d0, &rpm_data);
-	return rpm_data;
-}
 
 static int write_fan1_rpm(u8 rpm_data)
 {
 	int reg;
-	u8 duty_data;
 
 	if (rpm_data > FAN_SET_RPM_MAX)
 		return -EINVAL;
 
-	duty_data = (rpm_data * FAN_SET_DUTY_MAX) / FAN_SET_RPM_MAX;
-	for (reg = 0x02c1; reg <= 0x02c7; ++reg) {
-		nb05_write_ec_ram(reg, duty_data);
-	}
-
-	for (reg = 0x02d0; reg <= 0x02d6; ++reg) {
+	for (reg = 0x02d0; reg <= 0x02d6; ++reg)
 		nb05_write_ec_ram(reg, rpm_data);
-	}
-	if (rpm_data < FAN_SET_RPM_HIGHTEMP) {
+
+	if (rpm_data < FAN_SET_RPM_HIGHTEMP)
 		rpm_data = FAN_SET_RPM_HIGHTEMP;
-		duty_data = FAN_SET_DUTY_HIGHTEMP;
-	}
-	nb05_write_ec_ram(0x02c8, duty_data);
-	nb05_write_ec_ram(0x02c9, duty_data);
+
 	nb05_write_ec_ram(0x02d7, rpm_data);
 	nb05_write_ec_ram(0x02d8, rpm_data);
+
+	return 0;
+}
+
+static u8 read_fan1_duty(void)
+{
+	u8 rpm_data;
+	nb05_read_ec_ram(0x2c1, &rpm_data);
+	return rpm_data;
+}
+
+static int write_fan1_duty(u8 duty_data)
+{
+	int reg;
+
+	if (duty_data > FAN_SET_DUTY_MAX)
+		return -EINVAL;
+
+	for (reg = 0x02c1; reg <= 0x02c7; ++reg)
+		nb05_write_ec_ram(reg, duty_data);
+
+	if (duty_data < FAN_SET_DUTY_HIGHTEMP)
+		duty_data = FAN_SET_DUTY_HIGHTEMP;
+
+	nb05_write_ec_ram(0x02c8, duty_data);
+	nb05_write_ec_ram(0x02c9, duty_data);
 
 	return 0;
 }
@@ -122,37 +140,47 @@ static int write_fan1_enable(u8 enable_data)
 	return 0;
 }
 
-static u8 read_fan2_rpm(void)
-{
-	u8 rpm_data;
-	nb05_read_ec_ram(0x250, &rpm_data);
-	return rpm_data;
-}
-
 static int write_fan2_rpm(u8 rpm_data)
 {
 	int reg;
-	u8 duty_data;
 
 	if (rpm_data > FAN_SET_RPM_MAX)
 		return -EINVAL;
 
-	duty_data = (rpm_data * FAN_SET_DUTY_MAX) / FAN_SET_RPM_MAX;
-	for (reg = 0x0241; reg <= 0x0247; ++reg) {
-		nb05_write_ec_ram(reg, duty_data);
-	}
-
-	for (reg = 0x0250; reg <= 0x0256; ++reg) {
+	for (reg = 0x0250; reg <= 0x0256; ++reg)
 		nb05_write_ec_ram(reg, rpm_data);
-	}
-	if (rpm_data < FAN_SET_RPM_HIGHTEMP) {
+
+	if (rpm_data < FAN_SET_RPM_HIGHTEMP)
 		rpm_data = FAN_SET_RPM_HIGHTEMP;
-		duty_data = FAN_SET_DUTY_HIGHTEMP;
-	}
-	nb05_write_ec_ram(0x0248, duty_data);
-	nb05_write_ec_ram(0x0249, duty_data);
+
 	nb05_write_ec_ram(0x0257, rpm_data);
 	nb05_write_ec_ram(0x0258, rpm_data);
+
+	return 0;
+}
+
+static u8 read_fan2_duty(void)
+{
+	u8 rpm_data;
+	nb05_read_ec_ram(0x0241, &rpm_data);
+	return rpm_data;
+}
+
+static int write_fan2_duty(u8 duty_data)
+{
+	int reg;
+
+	if (duty_data > FAN_SET_DUTY_MAX)
+		return -EINVAL;
+
+	for (reg = 0x0241; reg <= 0x0247; ++reg)
+		nb05_write_ec_ram(reg, duty_data);
+
+	if (duty_data < FAN_SET_DUTY_HIGHTEMP)
+		duty_data = FAN_SET_DUTY_HIGHTEMP;
+
+	nb05_write_ec_ram(0x0248, duty_data);
+	nb05_write_ec_ram(0x0249, duty_data);
 
 	return 0;
 }
@@ -203,9 +231,9 @@ static struct attribute_group fan_control_attr_group = {
 static ssize_t fan1_pwm_show(struct device *dev,
 			     struct device_attribute *attr, char *buffer)
 {
-	u8 pwm_data, rpm_data;
-	rpm_data = read_fan1_rpm();
-	pwm_data = (rpm_data * 0xff) / FAN_SET_RPM_MAX;
+	u8 pwm_data, duty_data;
+	duty_data = read_fan1_duty();
+	pwm_data = DUTY_TO_PWM(duty_data);
 	sysfs_emit(buffer, "%d\n", pwm_data);
 
 	return strlen(buffer);
@@ -215,17 +243,25 @@ static ssize_t fan1_pwm_store(struct device *dev,
 			      struct device_attribute *attr,
 			      const char *buffer, size_t size)
 {
-	u8 pwm_data, rpm_data;
+	u8 pwm_data, rpm_data, duty_data;
 	int err;
+	struct driver_data_t *driver_data = dev_get_drvdata(dev);
 
 	if (kstrtou8(buffer, 0, &pwm_data))
 		return -EINVAL;
 
-	rpm_data = (pwm_data * FAN_SET_RPM_MAX) / 0xff;
+	duty_data = PWM_TO_DUTY(pwm_data);
+	rpm_data = PWM_TO_RPM(pwm_data);
 
-	err = write_fan1_rpm(rpm_data);
+	err = write_fan1_duty(duty_data);
 	if (err)
 		return err;
+
+	if (driver_data->write_rpm) {
+		err = write_fan1_rpm(rpm_data);
+		if (err)
+			return err;
+	}
 
 	return size;
 }
@@ -235,11 +271,11 @@ static ssize_t fan1_pwm_enable_show(struct device *dev,
 {
 	u8 enable_data, enable_hwmon;
 	enable_data = read_fan1_enable();
-	if (enable_data == 1) {
+	if (enable_data == 1)
 		enable_hwmon = 1;
-	} else {
+	else
 		enable_hwmon = 2;
-	}
+
 	sysfs_emit(buffer, "%d\n", enable_hwmon);
 
 	return strlen(buffer);
@@ -255,11 +291,10 @@ static ssize_t fan1_pwm_enable_store(struct device *dev,
 	if (kstrtou8(buffer, 0, &enable_hwmon))
 		return -EINVAL;
 
-	if (enable_hwmon == 2) {
+	if (enable_hwmon == 2)
 		enable_data = 0;
-	} else {
+	else
 		enable_data = 1;
-	}
 
 	err = write_fan1_enable(enable_data);
 	if (err)
@@ -271,9 +306,9 @@ static ssize_t fan1_pwm_enable_store(struct device *dev,
 static ssize_t fan2_pwm_show(struct device *dev,
 			     struct device_attribute *attr, char *buffer)
 {
-	u8 pwm_data, rpm_data;
-	rpm_data = read_fan2_rpm();
-	pwm_data = (rpm_data * 0xff) / FAN_SET_RPM_MAX;
+	u8 pwm_data, duty_data;
+	duty_data = read_fan2_duty();
+	pwm_data = DUTY_TO_PWM(duty_data);
 	sysfs_emit(buffer, "%d\n", pwm_data);
 
 	return strlen(buffer);
@@ -283,16 +318,25 @@ static ssize_t fan2_pwm_store(struct device *dev,
 			      struct device_attribute *attr,
 			      const char *buffer, size_t size)
 {	
-	u8 pwm_data, rpm_data;
+	u8 pwm_data, rpm_data, duty_data;
 	int err;
+	struct driver_data_t *driver_data = dev_get_drvdata(dev);
 
 	if (kstrtou8(buffer, 0, &pwm_data))
 		return -EINVAL;
 
-	rpm_data = (pwm_data * FAN_SET_RPM_MAX) / 0xff;
-	err = write_fan2_rpm(rpm_data);
+	duty_data = PWM_TO_DUTY(pwm_data);
+	rpm_data = PWM_TO_RPM(pwm_data);
+
+	err = write_fan2_duty(duty_data);
 	if (err)
 		return err;
+
+	if (driver_data->write_rpm) {
+		err = write_fan2_rpm(rpm_data);
+		if (err)
+			return err;
+	}
 
 	return size;
 }
@@ -302,11 +346,11 @@ static ssize_t fan2_pwm_enable_show(struct device *dev,
 {
 	u8 enable_data, enable_hwmon;
 	enable_data = read_fan2_enable();
-	if (enable_data == 1) {
+	if (enable_data == 1)
 		enable_hwmon = 1;
-	} else {
+	else
 		enable_hwmon = 2;
-	}
+
 	sysfs_emit(buffer, "%d\n", enable_hwmon);
 
 	return strlen(buffer);
@@ -322,11 +366,10 @@ static ssize_t fan2_pwm_enable_store(struct device *dev,
 	if (kstrtou8(buffer, 0, &enable_hwmon))
 		return -EINVAL;
 
-	if (enable_hwmon == 2) {
+	if (enable_hwmon == 2)
 		enable_data = 0;
-	} else {
+	else
 		enable_data = 1;
-	}
 
 	err = write_fan2_enable(enable_data);
 	if (err)
@@ -338,6 +381,8 @@ static ssize_t fan2_pwm_enable_store(struct device *dev,
 static int __init tuxedo_nb05_fan_control_probe(struct platform_device *pdev)
 {
 	int err;
+	u8 ver_major, ver_minor;
+
 	struct driver_data_t *driver_data = devm_kzalloc(&pdev->dev, sizeof(*driver_data), GFP_KERNEL);
 	if (!driver_data)
 		return -ENOMEM;
@@ -347,6 +392,12 @@ static int __init tuxedo_nb05_fan_control_probe(struct platform_device *pdev)
 	dev_set_drvdata(&pdev->dev, driver_data);
 
 	driver_data->pdev = pdev;
+
+	nb05_read_ec_fw_version(&ver_major, &ver_minor);
+	if (ver_major >= 9 && ver_minor >= 10)
+		driver_data->write_rpm = false;
+	else
+		driver_data->write_rpm = true;
 
 	err = sysfs_create_group(&driver_data->pdev->dev.kobj, &fan_control_attr_group);
 	if (err) {

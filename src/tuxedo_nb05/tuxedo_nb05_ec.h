@@ -23,4 +23,5 @@ MODULE_ALIAS("platform:tuxedo_nb05_ec");
 
 void nb05_read_ec_ram(u16 addr, u8 *data);
 void nb05_write_ec_ram(u16 addr, u8 data);
+void nb05_read_ec_fw_version(u8 *major, u8 *minor);
 #endif
