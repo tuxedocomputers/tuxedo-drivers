@@ -34,6 +34,7 @@
 #define EVENT_STATUS_COMBO(event, status) (event | (status << 8)) 
 
 #define NB05_WMI_EVENT_TOUCHPAD_TOGGLE			0x02
+#define NB05_WMI_EVENT_KBD_BRT_CHANGE			0x03
 #define NB05_WMI_EVENT_KBD_BRT_MAX			0x07
 #define NB05_WMI_EVENT_KBD_BRT_MIDDLE			0x08
 #define NB05_WMI_EVENT_KBD_BRT_OFF			0x09
@@ -218,6 +219,9 @@ static void tuxedo_nb05_keyboard_notify(struct wmi_device *wdev, union acpi_obje
 			break;
 		case NB05_WMI_EVENT_KBD_BRT_OFF:
 			nb05_leds_notify_brightness_change_extern(0);
+			break;
+		case NB05_WMI_EVENT_KBD_BRT_CHANGE:
+			nb05_leds_notify_brightness_change_extern(device_status);
 			break;
 		default:
 			break;

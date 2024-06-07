@@ -21,6 +21,7 @@
 #include <linux/platform_device.h>
 #include <linux/leds.h>
 #include <linux/version.h>
+#include <linux/dmi.h>
 #include "tuxedo_nb05_kbd_backlight.h"
 #include "tuxedo_nb05_ec.h"
 
@@ -45,7 +46,12 @@ static void nb05_leds_set_brightness(struct led_classdev *led_cdev __always_unus
 	if (brightness < 0 || brightness > NB05_KBD_BRIGHTNESS_MAX_WHITE)
 		return;
 
-	nb05_write_ec_ram(0x0409, white_brightness_to_level_map[brightness]);
+	const struct dmi_system_id *sysid;
+	sysid = nb05_match_device();
+	if (!strcmp(sysid->ident, IFLX14I01))
+		nb05_write_ec_ram(0x03e2, white_brightness_to_level_map[brightness]);
+	else
+		nb05_write_ec_ram(0x0409, white_brightness_to_level_map[brightness]);
 }
 
 void nb05_leds_notify_brightness_change_extern(u8 step)
