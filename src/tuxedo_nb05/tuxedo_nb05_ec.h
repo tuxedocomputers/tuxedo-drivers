@@ -25,9 +25,21 @@
 
 MODULE_ALIAS("platform:tuxedo_nb05_ec");
 
+struct nb05_ec_data_t {
+	u8 ver_major;
+	u8 ver_minor;
+	struct nb05_device_data_t *dev_data;
+};
+
+struct nb05_device_data_t {
+	int number_fans;
+	bool fanctl_onereg;
+};
+
 void nb05_read_ec_ram(u16 addr, u8 *data);
 void nb05_write_ec_ram(u16 addr, u8 data);
 void nb05_read_ec_fw_version(u8 *major, u8 *minor);
+void nb05_get_ec_data(struct nb05_ec_data_t **ec_data);
 
 const struct dmi_system_id *nb05_match_device(void);
 

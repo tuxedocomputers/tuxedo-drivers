@@ -28,6 +28,8 @@
 #include "tuxedo_nb05_ec.h"
 #include "../tuxedo_compatibility_check/tuxedo_compatibility_check.h"
 
+static struct nb05_ec_data_t ec_data;
+
 #define EC_PORT_ADDR	0x4e
 #define EC_PORT_DATA	0x4f
 
@@ -106,6 +108,9 @@ static int tuxedo_nb05_ec_probe(struct platform_device *pdev)
 	nb05_read_ec_fw_version(&major, &minor);
 	pr_info("EC I/O driver loaded, firmware version %d.%d\n", major, minor);
 
+	ec_data.ver_major = major;
+	ec_data.ver_minor = minor;
+
 	return 0;
 }
 
@@ -118,11 +123,22 @@ static struct platform_driver tuxedo_nb05_ec_driver = {
 
 static struct platform_device *tuxedo_nb05_ec_device;
 
-static int __init dmi_check_callback(const struct dmi_system_id *id)
+static int dmi_check_callback(const struct dmi_system_id *id)
 {
 	printk(KERN_INFO KBUILD_MODNAME ": found model '%s'\n", id->ident);
+	ec_data.dev_data = id->driver_data;
 	return 1;
 }
+
+struct nb05_device_data_t data_pulse = {
+	.number_fans = 2,
+	.fanctl_onereg = false,
+};
+
+struct nb05_device_data_t data_infinityflex = {
+	.number_fans = 1,
+	.fanctl_onereg = true,
+};
 
 static const struct dmi_system_id tuxedo_nb05_id_table[] = {
 	{
@@ -133,6 +149,7 @@ static const struct dmi_system_id tuxedo_nb05_id_table[] = {
 			DMI_MATCH(DMI_PRODUCT_SKU, "PULSE1403"),
 		},
 		.callback = dmi_check_callback,
+		.driver_data = &data_pulse,
 	},
 	{
 		.ident = PULSE1404,
@@ -142,6 +159,7 @@ static const struct dmi_system_id tuxedo_nb05_id_table[] = {
 			DMI_MATCH(DMI_PRODUCT_SKU, "PULSE1404"),
 		},
 		.callback = dmi_check_callback,
+		.driver_data = &data_pulse,
 	},
 	{
 		.ident = IFLX14I01,
@@ -151,6 +169,7 @@ static const struct dmi_system_id tuxedo_nb05_id_table[] = {
 			DMI_MATCH(DMI_PRODUCT_SKU, "IFLX14I01"),
 		},
 		.callback = dmi_check_callback,
+		.driver_data = &data_infinityflex,
 	},
 	{ },
 };
@@ -162,6 +181,12 @@ const struct dmi_system_id *nb05_match_device(void)
 	return dmi_first_match(tuxedo_nb05_id_table);
 }
 EXPORT_SYMBOL(nb05_match_device);
+
+void nb05_get_ec_data(struct nb05_ec_data_t **ec_data_pp)
+{
+	*ec_data_pp = &ec_data;
+}
+EXPORT_SYMBOL(nb05_get_ec_data);
 
 static int __init tuxedo_nb05_ec_init(void)
 {
