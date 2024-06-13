@@ -197,7 +197,7 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue,
 		   hdev->product == 0x600a) {
 		*red = (200 * *red) / 255;
 		*blue = (220 * *blue) / 255;
-	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLSL15I01") && hdev->product == 0x600b) {
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLSL15I06") && hdev->product == 0x600b) {
 		// all keys: reduce pink
 		*red = (155 * *red) / 255;
 		*blue = (140 * *blue) / 255;
