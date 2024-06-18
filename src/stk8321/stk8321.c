@@ -32,12 +32,51 @@
 #define STK8321_DRIVER_NAME "stk8321"
 
 #define STK8321_REG_CHIP_ID		0x00
+#define STK8321_REG_XOUT1		0x02
+#define STK8321_REG_XOUT2		0x03
+#define STK8321_REG_YOUT1		0x04
+#define STK8321_REG_YOUT2		0x05
+#define STK8321_REG_ZOUT1		0x06
+#define STK8321_REG_ZOUT2		0x07
+#define STK8321_REG_RANGESEL		0x0f
+#define STK8321_REG_BWSEL		0x10
+#define STK8321_REG_POW_MODE		0x11
+#define STK8321_REG_DATASETUP		0x13
 #define STK8321_REG_SWRST		0x14
 
 struct stk8321_data {
 	struct i2c_client *client;
 	struct mutex lock;
 };
+
+static int stk8321_read_axis(struct i2c_client *client, u8 reg1, u8 reg2)
+{
+	int low_byte, high_byte, result;
+	low_byte = i2c_smbus_read_byte_data(client, reg1);
+	if (low_byte < 0)
+		return low_byte;
+	high_byte = i2c_smbus_read_byte_data(client, reg2);
+	if (high_byte < 0)
+		return high_byte;
+
+	result = (high_byte << 4) | (low_byte >> 4);
+	return result;
+}
+
+static int stk8321_read_x(struct i2c_client *client)
+{
+	return stk8321_read_axis(client, STK8321_REG_XOUT1, STK8321_REG_XOUT2);
+}
+
+static int stk8321_read_y(struct i2c_client *client)
+{
+	return stk8321_read_axis(client, STK8321_REG_YOUT1, STK8321_REG_YOUT2);
+}
+
+static int stk8321_read_z(struct i2c_client *client)
+{
+	return stk8321_read_axis(client, STK8321_REG_ZOUT1, STK8321_REG_ZOUT2);
+}
 
 static int stk8321_probe(struct i2c_client *client)
 {
