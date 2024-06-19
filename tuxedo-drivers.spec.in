@@ -157,6 +157,8 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Wed Jun 19 2024 Christoffer Sandberg <tux@tuxedocomputers.com> 4.5.2-1
+- Rename Stellaris Slim Gen1 => Gen6 for the release
 * Fri Jun 07 2024 Werner Sembach <tux@tuxedocomputers.com> 4.5.1-1
 - Improve Pulse Gen3 and Gen4 fan control for newer firmware
 - Add keyboard backlight color sclaing for Stellaris Lite Gen1

@@ -1,3 +1,9 @@
+tuxedo-drivers (4.5.2) jammy; urgency=medium
+
+  * Rename Stellaris Slim Gen1 => Gen6 for the release
+
+ -- Christoffer Sandberg <tux@tuxedocomputers.com>  Wed, 19 Jun 2024 09:36:12 +0200
+
 tuxedo-drivers (4.5.1) jammy; urgency=medium
 
   * Improve Pulse Gen3 and Gen4 fan control for newer firmware
