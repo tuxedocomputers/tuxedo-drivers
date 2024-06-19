@@ -225,7 +225,7 @@ static const struct dmi_system_id force_no_ec_led_control[] = {
 		},
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
-			DMI_MATCH(DMI_PRODUCT_SKU, "STELLSL15I01"),
+			DMI_MATCH(DMI_PRODUCT_SKU, "STELLSL15I06"),
 		},
 	},
 	{ }
