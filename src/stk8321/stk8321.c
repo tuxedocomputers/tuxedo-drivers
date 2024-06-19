@@ -40,7 +40,7 @@
 #define STK8321_REG_ZOUT2		0x07
 #define STK8321_REG_RANGESEL		0x0f
 #define STK8321_REG_BWSEL		0x10
-#define STK8321_REG_POW_MODE		0x11
+#define STK8321_REG_POWMODE		0x11
 #define STK8321_REG_DATASETUP		0x13
 #define STK8321_REG_SWRST		0x14
 
@@ -48,6 +48,12 @@ enum rangesel {
 	STK8321_RANGESEL_2G = 0x03,
 	STK8321_RANGESEL_4G = 0x05,
 	STK8321_RANGESEL_8G = 0x08,
+};
+
+enum powmode {
+	STK8321_POWMODE_NORMAL		= 0x00,
+	STK8321_POWMODE_SUSPEND		= 0x80,
+	STK8321_POWMODE_LOWPOWER	= 0x40,
 };
 
 struct stk8321_data {
@@ -87,6 +93,11 @@ static int stk8321_read_z(struct i2c_client *client)
 static int stk8321_set_range(struct i2c_client *client, enum rangesel range)
 {
 	return i2c_smbus_write_byte_data(client, STK8321_REG_RANGESEL, range);
+}
+
+static int stk8321_set_power_mode(struct i2c_client *client, enum powmode mode)
+{
+	return i2c_smbus_write_byte_data(client, STK8321_REG_POWMODE, mode);
 }
 
 #define STK8321_ACCEL_CHANNEL(index, axis) {				\
