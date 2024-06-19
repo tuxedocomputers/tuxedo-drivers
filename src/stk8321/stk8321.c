@@ -78,9 +78,67 @@ static int stk8321_read_z(struct i2c_client *client)
 	return stk8321_read_axis(client, STK8321_REG_ZOUT1, STK8321_REG_ZOUT2);
 }
 
+#define STK8321_ACCEL_CHANNEL(index, axis) {				\
+	.type = IIO_ACCEL,						\
+	.address = index,						\
+	.modified = 1,							\
+	.channel2 = IIO_MOD_##axis,					\
+	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),			\
+	.scan_type = {							\
+		.realbits = 12,						\
+	},								\
+}
+
+static const struct iio_chan_spec stk8321_channels[] = {
+	STK8321_ACCEL_CHANNEL(0, X),
+	STK8321_ACCEL_CHANNEL(1, Y),
+	STK8321_ACCEL_CHANNEL(2, Z),
+};
+
+static int stk8321_read_raw(struct iio_dev *indio_dev,
+			    struct iio_chan_spec const *chan,
+			    int *val, int *val2, long mask)
+{
+	struct stk8321_data *data = iio_priv(indio_dev);
+	int ret;
+
+	switch (mask) {
+	case IIO_CHAN_INFO_RAW:
+		switch (chan->address) {
+		case 0:
+			ret = stk8321_read_x(data->client);
+			break;
+		case 1:
+			ret = stk8321_read_y(data->client);
+			break;
+		case 2:
+			ret = stk8321_read_z(data->client);
+			break;
+		default:
+			return -EINVAL;
+		}
+
+		if (ret < 0)
+			return ret;
+
+		*val = sign_extend32(ret, chan->scan_type.realbits - 1);
+		// pr_debug("read chan(%d) info raw value = %d (0x%x)\n",
+		// 	 chan->address, *val, *val);
+		return IIO_VAL_INT;
+	default:
+		return -EINVAL;
+	}
+}
+
+static const struct iio_info stk8321_info = {
+	.read_raw	= stk8321_read_raw,
+};
+
 static int stk8321_probe(struct i2c_client *client)
 {
 	int ret;
+	struct iio_dev *indio_dev;
+	struct stk8321_data *data;
 	pr_debug("probe (addr: %02x)\n", client->addr);
 
 	ret = i2c_smbus_write_byte_data(client, STK8321_REG_SWRST, 0x00);
@@ -95,7 +153,23 @@ static int stk8321_probe(struct i2c_client *client)
 
 	pr_debug("chip id: 0x%02x\n", ret);
 
-	return 0;
+	// Initialize iio device
+	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+	if (!indio_dev) {
+		dev_err(&client->dev, "iio device allocation failed!\n");
+		return -ENOMEM;
+	}
+
+	data = iio_priv(indio_dev);
+	mutex_init(&data->lock);
+	data->client = client;
+	indio_dev->name = "stk8321";
+	indio_dev->info = &stk8321_info;
+	indio_dev->modes = INDIO_DIRECT_MODE;
+	indio_dev->channels = stk8321_channels;
+	indio_dev->num_channels = ARRAY_SIZE(stk8321_channels);
+
+	return devm_iio_device_register(&client->dev, indio_dev);
 }
 
 static void stk8321_remove(struct i2c_client *client)
