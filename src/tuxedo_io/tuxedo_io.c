@@ -625,11 +625,15 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
 			break;
 		case R_UW_FANSPEED:
 			uniwill_read_ec_ram(0x1804, &byte_data);
+			if (uw_feats->uniwill_has_universal_ec_fan_control && byte_data == 1)
+				byte_data = 0; // 1 is 0 behaviour see: uw_set_fan
 			result = byte_data;
 			copy_result = copy_to_user((void *) arg, &result, sizeof(result));
 			break;
 		case R_UW_FANSPEED2:
 			uniwill_read_ec_ram(0x1809, &byte_data);
+			if (uw_feats->uniwill_has_universal_ec_fan_control && byte_data == 1)
+				byte_data = 0; // 1 is 0 behaviour see: uw_set_fan
 			result = byte_data;
 			copy_result = copy_to_user((void *) arg, &result, sizeof(result));
 			break;
