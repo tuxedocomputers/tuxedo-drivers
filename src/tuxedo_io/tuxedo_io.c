@@ -387,12 +387,48 @@ static int uw_init_fan(void) {
 	return 0;
 }
 
-static u32 uw_set_fan(u32 fan_index, u8 fan_speed)
+static int direct_fan_control(u32 fan_index, u8 fan_speed, bool prevent_rampup)
 {
-	u32 i;
+	int i;
 	u8 mode_data;
+	u16 addr_for_fan;
 	u16 addr_fan0 = 0x1804;
 	u16 addr_fan1 = 0x1809;
+
+	if (fan_index == 0)
+		addr_for_fan = addr_fan0;
+	else if (fan_index == 1)
+		addr_for_fan = addr_fan1;
+	else
+		return -EINVAL;
+
+	if (prevent_rampup) {
+		// Check current mode
+		uniwill_read_ec_ram(0x0751, &mode_data);
+		prevent_rampup = !(mode_data & 0x40);
+	}
+
+	if (prevent_rampup) {
+		// If not "full fan mode" (i.e. 0x40 bit set) switch to it (required for fancontrol)
+		set_full_fan_mode(true);
+		// Attempt to write both fans as quick as possible before complete ramp-up
+		pr_debug("prevent ramp-up start\n");
+		for (i = 0; i < 10; ++i) {
+			uniwill_write_ec_ram(addr_fan0, fan_speed & 0xff);
+			uniwill_write_ec_ram(addr_fan1, fan_speed & 0xff);
+			msleep(10);
+		}
+		pr_debug("prevent ramp-up done\n");
+	} else {
+		// Otherwise just set the chosen fan
+		uniwill_write_ec_ram(addr_for_fan, fan_speed & 0xff);
+	}
+
+	return 0;
+}
+
+static u32 uw_set_fan(u32 fan_index, u8 fan_speed)
+{
 	u16 addr_for_fan;
 
 	u16 addr_cpu_custom_fan_table_fan_speed = 0x0f20;
@@ -419,32 +455,12 @@ static u32 uw_set_fan(u32 fan_index, u8 fan_speed)
 		}
 
 		uniwill_write_ec_ram(addr_for_fan, fan_speed & 0xff);
+
+		// Also write speed directly for fast response
+		direct_fan_control(fan_index, fan_speed, false);
 	}
 	else { // old workaround using full fan mode
-		if (fan_index == 0)
-			addr_for_fan = addr_fan0;
-		else if (fan_index == 1)
-			addr_for_fan = addr_fan1;
-		else
-			return -EINVAL;
-
-		// Check current mode
-		uniwill_read_ec_ram(0x0751, &mode_data);
-		if (!(mode_data & 0x40)) {
-			// If not "full fan mode" (i.e. 0x40 bit set) switch to it (required for fancontrol)
-			set_full_fan_mode(true);
-			// Attempt to write both fans as quick as possible before complete ramp-up
-			pr_debug("prevent ramp-up start\n");
-			for (i = 0; i < 10; ++i) {
-				uniwill_write_ec_ram(addr_fan0, fan_speed & 0xff);
-				uniwill_write_ec_ram(addr_fan1, fan_speed & 0xff);
-				msleep(10);
-			}
-			pr_debug("prevent ramp-up done\n");
-		} else {
-			// Otherwise just set the chosen fan
-			uniwill_write_ec_ram(addr_for_fan, fan_speed & 0xff);
-		}
+		direct_fan_control(fan_index, fan_speed, true);
 	}
 
 	return 0;
