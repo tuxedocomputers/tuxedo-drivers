@@ -56,6 +56,17 @@ enum powmode {
 	STK8321_POWMODE_LOWPOWER	= 0x40,
 };
 
+enum bandwidth {
+	STK8321_BW_HZ_7_81	= 0x08,
+	STK8321_BW_HZ_15_63 	= 0x09,
+	STK8321_BW_HZ_31_25 	= 0x0a,
+	STK8321_BW_HZ_62_5 	= 0x0b,
+	STK8321_BW_HZ_125 	= 0x0c,
+	STK8321_BW_HZ_250 	= 0x0d,
+	STK8321_BW_HZ_500 	= 0x0e,
+	STK8321_BW_HZ_1000 	= 0x0f,
+};
+
 struct stk8321_data {
 	struct i2c_client *client;
 	struct mutex lock;
@@ -98,6 +109,11 @@ static int stk8321_set_range(struct i2c_client *client, enum rangesel range)
 static int stk8321_set_power_mode(struct i2c_client *client, enum powmode mode)
 {
 	return i2c_smbus_write_byte_data(client, STK8321_REG_POWMODE, mode);
+}
+
+static int stk8321_set_bandwidth(struct i2c_client *client, enum bandwidth bw)
+{
+	return i2c_smbus_write_byte_data(client, STK8321_REG_BWSEL, bw);
 }
 
 #define STK8321_ACCEL_CHANNEL(index, axis) {				\
