@@ -338,8 +338,7 @@ static int set_full_fan_mode(bool enable) {
 static bool fans_initialized = false;
 
 static int uw_init_fan(void) {
-	int i;
-	int temp_offset;
+	int i, temp_offset;
 
 	u16 addr_use_custom_fan_table_0 = 0x07c5; // use different tables for both fans (0x0f00-0x0f2f and 0x0f30-0x0f5f respectivly)
 	u16 addr_use_custom_fan_table_1 = 0x07c6; // enable 0x0fxx fantables
@@ -363,22 +362,22 @@ static int uw_init_fan(void) {
 		}
 
 		// Setup
-		// - one controllable zone 0-120 deg
-		// - rest 121-122, 122-123 etc single non reachable dummy zones
+		// - one controllable zone 0-115 deg
+		// - rest 116-117, 117-118 etc single non reachable dummy zones
 		//   with increasing ranges and max fan (same or increasing)
-		uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_end_temp, 120, 3);
+		uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_end_temp, 115, 3);
 		uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_start_temp, 0, 3);
 		uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_fan_speed, 0x00, 3);
 		uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_end_temp, 120, 3);
 		uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_start_temp, 0, 3);
 		uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_fan_speed, 0x00, 3);
-		temp_offset = 121;
-		for (i = 0x1; i <= 0xf; ++i, temp_offset += 2) {
-			uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_end_temp + i, temp_offset + 1, 3);
-			uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_start_temp + i, temp_offset, 3);
+		temp_offset = 115;
+		for (i = 0x1; i <= 0xf; ++i) {
+			uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_end_temp + i, temp_offset + i + 1, 3);
+			uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_start_temp + i, temp_offset + i, 3);
 			uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_fan_speed + i, 0xc8, 3);
-			uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_end_temp + i, temp_offset + 1, 3);
-			uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_start_temp + i, temp_offset, 3);
+			uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_end_temp + i, temp_offset + i + 1, 3);
+			uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_start_temp + i, temp_offset + i, 3);
 			uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_fan_speed + i, 0xc8, 3);
 		}
 
