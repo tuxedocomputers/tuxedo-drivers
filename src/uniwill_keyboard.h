@@ -224,6 +224,10 @@ EXPORT_SYMBOL(uniwill_get_active_interface_id);
 
 static void key_event_work(struct work_struct *work)
 {
+	// Delay sometimes needed to make userspace reliably separate
+	// the touchpadtoggle key events from the custom key events
+	// coming from firmware
+	msleep(50);
 	sparse_keymap_report_known_event(
 		uniwill_keyboard_driver.input_device,
 		UNIWILL_OSD_TOUCHPADWORKAROUND,
