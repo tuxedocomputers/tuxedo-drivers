@@ -1,3 +1,11 @@
+tuxedo-drivers (4.5.3) jammy; urgency=medium
+
+  * Fix touchpad toggle key sometimes not working
+  * Fix fans having realy slow ramp up speed
+  * Fix fans sometimes shutting off under sustained load
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 27 Jun 2024 17:32:18 +0200
+
 tuxedo-drivers (4.5.2) jammy; urgency=medium
 
   * Rename Stellaris Slim Gen1 => Gen6 for the release
