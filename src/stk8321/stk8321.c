@@ -44,6 +44,9 @@
 #define STK8321_REG_DATASETUP		0x13
 #define STK8321_REG_SWRST		0x14
 
+#define STK8321_DATA_FILTER_MASK	0x80
+#define STK8321_DATA_PROTECT_MASK	0x40
+
 enum rangesel {
 	STK8321_RANGESEL_2G = 0x03,
 	STK8321_RANGESEL_4G = 0x05,
@@ -160,8 +163,8 @@ static int stk8321_read_raw(struct iio_dev *indio_dev,
 			return ret;
 
 		*val = sign_extend32(ret, chan->scan_type.realbits - 1);
-		// pr_debug("read chan(%d) info raw value = %d (0x%x)\n",
-		// 	 chan->address, *val, *val);
+		pr_debug("[%02x] read chan(%d) info raw value = %d (0x%x)\n",
+			 data->client->addr, chan->address, *val, *val);
 		return IIO_VAL_INT;
 	default:
 		return -EINVAL;
@@ -190,6 +193,13 @@ static int stk8321_probe(struct i2c_client *client)
 		return ret;
 
 	pr_debug("chip id: 0x%02x\n", ret);
+
+	// Setup sensor in suspend mode
+	stk8321_set_power_mode(client, STK8321_POWMODE_SUSPEND);
+	stk8321_set_range(client, STK8321_RANGESEL_8G);
+	stk8321_set_bandwidth(client, STK8321_BW_HZ_1000);
+	i2c_smbus_write_byte_data(client, STK8321_REG_DATASETUP, 0);
+	stk8321_set_power_mode(client, STK8321_POWMODE_NORMAL);
 
 	// Initialize iio device
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
