@@ -157,6 +157,8 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Wed Jul 10 2024 Werner Sembach <tux@tuxedocomputers.com> 4.5.4-1
+- Fix keyboard backlight quirk list error for Stellaris Gen5 and Gen6
 * Thu Jun 27 2024 Werner Sembach <tux@tuxedocomputers.com> 4.5.3-1
 - Fix touchpad toggle key sometimes not working
 - Fix fans having realy slow ramp up speed
