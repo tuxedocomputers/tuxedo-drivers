@@ -72,7 +72,16 @@ enum bandwidth {
 
 struct stk8321_data {
 	struct i2c_client *client;
+	struct iio_mount_matrix orientation;
 	struct mutex lock;
+};
+
+static const struct iio_mount_matrix iio_mount_idmatrix = {
+	.rotation = {
+		"1", "0", "0",
+		"0", "1", "0",
+		"0", "0", "1"
+	}
 };
 
 static int stk8321_read_axis(struct i2c_client *client, u8 reg1, u8 reg2)
@@ -119,6 +128,19 @@ static int stk8321_set_bandwidth(struct i2c_client *client, enum bandwidth bw)
 	return i2c_smbus_write_byte_data(client, STK8321_REG_BWSEL, bw);
 }
 
+static const struct iio_mount_matrix *
+stk8321_accel_get_mount_matrix(const struct iio_dev *indio_dev,
+			       const struct iio_chan_spec *chan)
+{
+	struct stk8321_data *data = iio_priv(indio_dev);
+	return &data->orientation;
+}
+
+static const struct iio_chan_spec_ext_info stk8321_ext_info[] = {
+	IIO_MOUNT_MATRIX(IIO_SHARED_BY_DIR, stk8321_accel_get_mount_matrix),
+	{ }
+};
+
 #define STK8321_ACCEL_CHANNEL(index, axis) {				\
 	.type = IIO_ACCEL,						\
 	.address = index,						\
@@ -128,6 +150,7 @@ static int stk8321_set_bandwidth(struct i2c_client *client, enum bandwidth bw)
 	.scan_type = {							\
 		.realbits = 12,						\
 	},								\
+	.ext_info = stk8321_ext_info,					\
 }
 
 static const struct iio_chan_spec stk8321_channels[] = {
@@ -163,8 +186,6 @@ static int stk8321_read_raw(struct iio_dev *indio_dev,
 			return ret;
 
 		*val = sign_extend32(ret, chan->scan_type.realbits - 1);
-		pr_debug("[%02x] read chan(%d) info raw value = %d (0x%x)\n",
-			 data->client->addr, chan->address, *val, *val);
 		return IIO_VAL_INT;
 	default:
 		return -EINVAL;
@@ -174,6 +195,114 @@ static int stk8321_read_raw(struct iio_dev *indio_dev,
 static const struct iio_info stk8321_info = {
 	.read_raw	= stk8321_read_raw,
 };
+
+#ifdef CONFIG_ACPI
+static int stk8321_apply_acpi_orientation(struct device *dev,
+					  char *method_name,
+					  struct iio_mount_matrix *orientation)
+{
+	// struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+	// union acpi_object *obj;
+	// acpi_status status;
+	// struct acpi_device *adev = ACPI_COMPANION(dev);
+	// int i;
+
+	// if (!adev) {
+	// 	pr_debug("no acpi object %p for %p\n", adev, dev);
+	// 	return -ENODEV;
+	// }
+
+	// if (!acpi_has_method(adev->handle, method_name)) {
+	// 	pr_debug("acpi object (%s) does not have method\n", acpi_device_name(adev));
+	// 	return -ENODEV;
+	// }
+
+	// status = acpi_evaluate_object(adev->handle, method_name, NULL, &buffer);
+	// if (ACPI_FAILURE(status))
+	// 	return -EIO;
+
+	// obj = (union acpi_object *) buffer.pointer;
+	// if (!obj || obj->type != ACPI_TYPE_BUFFER || obj->buffer.length != 3) {
+	// 	pr_err("not expected object\n");
+	// 	kfree(buffer.pointer);
+	// 	return -EIO;
+	// }
+
+	// *orientation = iio_mount_idmatrix;
+
+	// for (i = 0; i < 2; ++i) {
+	// 	if ((obj->buffer.pointer[i] >> 4))
+	// 		orientation->rotation[i*2] = "-1";
+	// }
+
+	// kfree(buffer.pointer);
+
+	// No reference for ACPI device, hard code matrices for now
+	const struct iio_mount_matrix stk8321_orientation_display = {
+		.rotation = {
+			"-1", "0", "0",
+			"0", "-1", "0",
+			"0", "0", "-1"
+		},
+	};
+
+	const struct iio_mount_matrix stk8321_orientation_base = {
+		.rotation = {
+			"1", "0", "0",
+			"0", "-1", "0",
+			"0", "0", "1"
+		},
+	};
+
+	// const struct iio_mount_matrix stk8321_orientation_base = {
+	// 	.rotation = {
+	// 		"1", "0", "0",
+	// 		"0", "0", "1",
+	// 		"0", "1", "0"
+	// 	},
+	// };
+
+	if (strstr(method_name, "GETO"))
+		*orientation = stk8321_orientation_base;
+	else if (strstr(method_name, "GETR"))
+		*orientation = stk8321_orientation_display;
+	else
+		return -ENODEV;
+
+	return 0;
+}
+#else
+static int stk8321_apply_acpi_orientation(struct acpi_device *adev,
+					  const char *method_name,
+					  struct iio_mount_matrix *orientation)
+{
+	return -ENODEV;
+}
+#endif
+
+static int stk8321_apply_orientation(struct iio_dev *indio_dev)
+{
+	struct stk8321_data *data = iio_priv(indio_dev);
+	struct i2c_client *client = data->client;
+	struct device *dev = &client->dev;
+	int ret = 1;
+
+	if (strstr(dev_name(&client->dev), "base")) {
+		indio_dev->label = "accel-base";
+		ret = stk8321_apply_acpi_orientation(dev, "GETO", &data->orientation);
+	} else if (strstr(dev_name(&client->dev), "display")) {
+		indio_dev->label = "accel-display";
+		ret = stk8321_apply_acpi_orientation(dev, "GETR", &data->orientation);
+	}
+
+	// If no ACPI info is available, default to reading mount matrix from kernel
+	if (ret) {
+		pr_debug("no acpi method found or error calling it (%d)\n", ret);
+		ret = iio_read_mount_matrix(&client->dev, &data->orientation);
+	}
+
+	return ret;
+}
 
 static int stk8321_probe(struct i2c_client *client)
 {
@@ -216,6 +345,10 @@ static int stk8321_probe(struct i2c_client *client)
 	indio_dev->modes = INDIO_DIRECT_MODE;
 	indio_dev->channels = stk8321_channels;
 	indio_dev->num_channels = ARRAY_SIZE(stk8321_channels);
+
+	ret = stk8321_apply_orientation(indio_dev);
+	if (ret)
+		return ret;
 
 	return devm_iio_device_register(&client->dev, indio_dev);
 }
