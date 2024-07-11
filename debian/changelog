@@ -1,3 +1,9 @@
+tuxedo-drivers (4.6.0) jammy; urgency=medium
+
+  * Enable fn_lock on Aura Gen3 refresh
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 11 Jul 2024 21:56:59 +0200
+
 tuxedo-drivers (4.5.4) jammy; urgency=medium
 
   * Fix keyboard backlight quirk list error for Stellaris Gen5 and Gen6
