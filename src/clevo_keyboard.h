@@ -47,6 +47,8 @@
 
 #define CLEVO_EVENT_GAUGE_KEY			0x59
 
+#define CLEVO_EVENT_FN_LOCK_TOGGLE		0x25
+
 #define CLEVO_KB_MODE_DEFAULT			0 // "CUSTOM"/Static Color
 
 static struct clevo_interfaces_t {
@@ -127,6 +129,10 @@ static struct kbd_backlight_mode_t {
         { .key = 6, .value = 0x90000000, .name = "TEMPO"},
         { .key = 7, .value = 0xB0000000, .name = "WAVE"}
 };
+
+// forward declaration
+static int clevo_acpi_fn_get(u8 *on, u8 *kbstatus1, u8 *kbstatus2);
+static int clevo_acpi_fn_lock_set(int on);
 
 int clevo_evaluate_method2(u8 cmd, u32 arg, union acpi_object **result)
 {
@@ -297,6 +303,20 @@ static void clevo_keyboard_event_callb(u32 event)
 		case CLEVO_EVENT_KB_LEDS_CYCLE_BRIGHTNESS:
 			clevo_leds_notify_brightness_change_extern();
 			break;
+		case CLEVO_EVENT_FN_LOCK_TOGGLE:
+			int err;
+			u8 on, kbstatus1, kbstatus2;
+			err = clevo_acpi_fn_get(&on, &kbstatus1, &kbstatus2);
+			if (err) {
+				TUXEDO_ERROR("Error while reading ACPI fn lock; ignoring toggle request");
+			}
+			else {
+				if (on == 1)
+					clevo_acpi_fn_lock_set(0);
+				else
+					clevo_acpi_fn_lock_set(1);
+			}
+			break;
 		default:
 			break;
 	}
@@ -443,8 +463,11 @@ bool clevo_fn_lock_available(void){
 	u8 fnlock;
 
 	// no sysfs device for Aura Gen3 due to Fn Lock interference (via keyboard)
-	if (dmi_match(DMI_PRODUCT_SKU, "AURA14GEN3") ||
-	    dmi_match(DMI_PRODUCT_SKU, "AURA15GEN3"))
+	// but Aura Gen3 refresh (NL45AU2 und NL57AU) has working Fn Lock
+	if ((dmi_match(DMI_PRODUCT_SKU, "AURA14GEN3") ||
+	     dmi_match(DMI_PRODUCT_SKU, "AURA15GEN3")) &&
+	    (dmi_match(DMI_BOARD_NAME, "NL57PU") ||
+	     dmi_match(DMI_BOARD_NAME, "NL45PU2")))
 			return 0;
 
 	// check Fn lock for WMI
