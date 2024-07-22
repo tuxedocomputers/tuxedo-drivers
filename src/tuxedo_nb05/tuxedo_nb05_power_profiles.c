@@ -226,7 +226,7 @@ static ssize_t platform_profile_show(struct device *dev,
 	return -EIO;
 }
 
-static int rewrite_last_profile_internal()
+static int rewrite_last_profile_internal(void)
 {
 	struct driver_data_t *driver_data = dev_get_drvdata(&__wmi_dev->dev);
 	u64 current_profile;
@@ -245,13 +245,13 @@ static int rewrite_last_profile_internal()
 	return 0;
 }
 
-void rewrite_last_profile()
+void rewrite_last_profile(void)
 {
 	schedule_work(&nb05_rewrite_profile_work);
 }
 EXPORT_SYMBOL(rewrite_last_profile);
 
-bool profile_changed_by_driver()
+bool profile_changed_by_driver(void)
 {
 	return profile_changed_by_driver_flag;
 }

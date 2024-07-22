@@ -33,7 +33,7 @@ static DEFINE_MUTEX(nb04_wmi_bs_access_lock);
 
 static struct wmi_device *__wmi_dev;
 
-bool nb04_wmi_bs_available()
+bool nb04_wmi_bs_available(void)
 {
 	if (__wmi_dev)
 		return true;
