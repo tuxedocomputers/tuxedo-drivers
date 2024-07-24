@@ -285,6 +285,8 @@ static void clevo_send_cc_combo(void)
 
 static void clevo_keyboard_event_callb(u32 event)
 {
+	int err;
+	u8 on, kbstatus1, kbstatus2;
 	u32 key_event = event;
 
 	TUXEDO_DEBUG("Clevo event: %0#6x\n", event);
@@ -304,8 +306,6 @@ static void clevo_keyboard_event_callb(u32 event)
 			clevo_leds_notify_brightness_change_extern();
 			break;
 		case CLEVO_EVENT_FN_LOCK_TOGGLE:
-			int err;
-			u8 on, kbstatus1, kbstatus2;
 			err = clevo_acpi_fn_get(&on, &kbstatus1, &kbstatus2);
 			if (err) {
 				TUXEDO_ERROR("Error while reading ACPI fn lock; ignoring toggle request");
