@@ -157,6 +157,9 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Wed Jul 24 2024 Werner Sembach <tux@tuxedocomputers.com> 4.6.1-1
+- Fix compiler warnings with `Wstrict-prototypes`
+- Fix compile error on openSUSE
 * Thu Jul 11 2024 Werner Sembach <tux@tuxedocomputers.com> 4.6.0-1
 - Enable fn_lock on Aura Gen3 refresh
 * Wed Jul 10 2024 Werner Sembach <tux@tuxedocomputers.com> 4.5.4-1

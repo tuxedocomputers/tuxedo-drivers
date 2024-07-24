@@ -1,3 +1,10 @@
+tuxedo-drivers (4.6.1) jammy; urgency=medium
+
+  * Fix compiler warnings with `Wstrict-prototypes`
+  * Fix compile error on openSUSE
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 24 Jul 2024 21:45:21 +0200
+
 tuxedo-drivers (4.6.0) jammy; urgency=medium
 
   * Enable fn_lock on Aura Gen3 refresh
