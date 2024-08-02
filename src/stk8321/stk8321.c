@@ -250,8 +250,8 @@ static int stk8321_apply_acpi_orientation(struct device *dev,
 	const struct iio_mount_matrix stk8321_orientation_base = {
 		.rotation = {
 			"1", "0", "0",
-			"0", "-1", "0",
-			"0", "0", "1"
+			"0", "1", "0",
+			"0", "0", "-1"
 		},
 	};
 
@@ -352,8 +352,8 @@ static int stk8321_probe(struct i2c_client *client)
 
 	// Setup sensor in suspend mode
 	stk8321_set_power_mode(client, STK8321_POWMODE_SUSPEND);
-	stk8321_set_range(client, STK8321_RANGESEL_8G);
-	stk8321_set_bandwidth(client, STK8321_BW_HZ_1000);
+	stk8321_set_range(client, STK8321_RANGESEL_2G);
+	stk8321_set_bandwidth(client, STK8321_BW_HZ_7_81);
 	i2c_smbus_write_byte_data(client, STK8321_REG_DATASETUP, 0);
 	stk8321_set_power_mode(client, STK8321_POWMODE_NORMAL);
 

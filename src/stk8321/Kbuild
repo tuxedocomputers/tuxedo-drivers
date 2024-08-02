@@ -1,1 +1,2 @@
+EXTRA_CFLAGS:=-DDEBUG
 obj-m += stk8321.o
