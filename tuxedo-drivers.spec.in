@@ -157,6 +157,8 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Tue Aug 13 2024 Werner Sembach <tux@tuxedocomputers.com> 4.6.2-1
+- Fix compile for kernel 6.10
 * Wed Jul 24 2024 Werner Sembach <tux@tuxedocomputers.com> 4.6.1-1
 - Fix compiler warnings with `Wstrict-prototypes`
 - Fix compile error on openSUSE
