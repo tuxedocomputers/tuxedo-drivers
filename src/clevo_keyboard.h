@@ -1023,12 +1023,18 @@ static void clevo_keyboard_remove_device_interface(struct platform_device *dev)
 	}
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int clevo_keyboard_remove(struct platform_device *dev)
+#else
+static void clevo_keyboard_remove(struct platform_device *dev)
+#endif
 {
 	clevo_flexicharger_remove();
 	clevo_keyboard_remove_device_interface(dev);
 	clevo_leds_remove(dev);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static int clevo_keyboard_suspend(struct platform_device *dev, pm_message_t state)
