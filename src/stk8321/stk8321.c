@@ -72,6 +72,7 @@ enum bandwidth {
 
 struct stk8321_data {
 	struct i2c_client *client;
+	struct i2c_client *second_client;
 	struct iio_mount_matrix orientation;
 	struct mutex lock;
 };
@@ -287,10 +288,10 @@ static int stk8321_apply_orientation(struct iio_dev *indio_dev)
 	struct device *dev = &client->dev;
 	int ret = 1;
 
-	if (strstr(dev_name(&client->dev), "base")) {
+	if (strstr(dev_name(&client->dev), ":01")) {
 		indio_dev->label = "accel-base";
 		ret = stk8321_apply_acpi_orientation(dev, "GETO", &data->orientation);
-	} else if (strstr(dev_name(&client->dev), "display")) {
+	} else if (strstr(dev_name(&client->dev), ":00")) {
 		indio_dev->label = "accel-display";
 		ret = stk8321_apply_acpi_orientation(dev, "GETR", &data->orientation);
 	}
@@ -304,12 +305,38 @@ static int stk8321_apply_orientation(struct iio_dev *indio_dev)
 	return ret;
 }
 
+static void stk8321_dual_probe(struct i2c_client *client)
+{
+	struct stk8321_data *data = iio_priv(i2c_get_clientdata(client));
+	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
+	char dev_name[16];
+	struct i2c_board_info board_info = {
+		.type = "stk8321",
+		.dev_name = dev_name,
+		.fwnode = client->dev.fwnode,
+	};
+
+	snprintf(dev_name, sizeof(dev_name), "%s:01", acpi_device_hid(adev));
+
+	data->second_client = i2c_acpi_new_device(&client->dev, 1, &board_info);
+}
+
+static void stk8321_dual_remove(struct i2c_client *client)
+{
+	struct stk8321_data *data = iio_priv(i2c_get_clientdata(client));
+	if (!IS_ERR_OR_NULL(data->second_client))
+		i2c_unregister_device(data->second_client);
+}
+
 static int stk8321_probe(struct i2c_client *client)
 {
 	int ret;
 	struct iio_dev *indio_dev;
 	struct stk8321_data *data;
+	const struct i2c_device_id *id = i2c_client_get_device_id(client);
+
 	pr_debug("probe (addr: %02x)\n", client->addr);
+	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
 
 	ret = i2c_smbus_write_byte_data(client, STK8321_REG_SWRST, 0x00);
 	if (ret < 0) {
@@ -338,6 +365,7 @@ static int stk8321_probe(struct i2c_client *client)
 	}
 
 	data = iio_priv(indio_dev);
+	dev_set_drvdata(&client->dev, indio_dev);
 	mutex_init(&data->lock);
 	data->client = client;
 	indio_dev->name = "stk8321";
@@ -350,12 +378,16 @@ static int stk8321_probe(struct i2c_client *client)
 	if (ret)
 		return ret;
 
+	if (!id && has_acpi_companion(&client->dev))
+		stk8321_dual_probe(client);
+
 	return devm_iio_device_register(&client->dev, indio_dev);
 }
 
 static void stk8321_remove(struct i2c_client *client)
 {
 	pr_debug("remove (%02x)\n", client->addr);
+	stk8321_dual_remove(client);
 }
 
 static int stk8321_suspend(struct device *dev)
@@ -381,10 +413,16 @@ static const struct i2c_device_id stk8321_i2c_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, stk8321_i2c_id);
 
+static const struct acpi_device_id stk8321_acpi_match[] = {
+	{ "STKH8321" },
+	{ }
+};
+
 static struct i2c_driver stk8321_driver = {
 	.driver = {
 		.name = STK8321_DRIVER_NAME,
 		.pm = pm_sleep_ptr(&stk8321_pm_ops),
+		.acpi_match_table = stk8321_acpi_match,
 	},
 	.probe = stk8321_probe,
 	.remove = stk8321_remove,
