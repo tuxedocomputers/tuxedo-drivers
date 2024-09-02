@@ -110,12 +110,18 @@ static int __init tuxedo_nb04_kbd_backlight_probe(struct platform_device *pdev)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int tuxedo_nb04_kbd_backlight_remove(struct platform_device *pdev)
+#else
+static void tuxedo_nb04_kbd_backlight_remove(struct platform_device *pdev)
+#endif
 {
 	struct driver_data_t *driver_data = dev_get_drvdata(&pdev->dev);
 	devm_led_classdev_multicolor_unregister(&pdev->dev, &driver_data->mcled_cdev_keyboard);
 	pr_debug("driver remove\n");
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct platform_device *tuxedo_nb04_kbd_backlight_device;

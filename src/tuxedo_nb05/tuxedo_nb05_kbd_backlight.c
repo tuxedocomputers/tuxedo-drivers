@@ -105,13 +105,19 @@ static int __init tuxedo_nb05_kbd_backlight_probe(struct platform_device *pdev)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int tuxedo_nb05_kbd_backlight_remove(struct platform_device *pdev)
+#else
+static void tuxedo_nb05_kbd_backlight_remove(struct platform_device *pdev)
+#endif
 {
 	struct driver_data_t *driver_data = dev_get_drvdata(&pdev->dev);
 	led_classdev_unregister(&driver_data->nb05_kbd_led_cdev);
 	__nb05_kbd_led_cdev = NULL;
 	pr_debug("driver remove\n");
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct platform_device *tuxedo_nb05_kbd_backlight_device;

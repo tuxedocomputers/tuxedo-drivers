@@ -22,6 +22,7 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/dmi.h>
+#include <linux/version.h>
 #include "tuxedo_nb04_wmi_bs.h"
 
 #define DEFAULT_PROFILE		WMI_SYSTEM_MODE_BEAST
@@ -214,13 +215,18 @@ static int __init tuxedo_nb04_power_profiles_probe(struct platform_device *pdev)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int tuxedo_nb04_power_profiles_remove(struct platform_device *pdev)
+#else
+static void tuxedo_nb04_power_profiles_remove(struct platform_device *pdev)
+#endif
 {
 	pr_debug("driver remove\n");
 	struct driver_data_t *driver_data = dev_get_drvdata(&pdev->dev);
 	sysfs_remove_group(&driver_data->pdev->dev.kobj, &platform_profile_attr_group);
-
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct platform_device *tuxedo_nb04_power_profiles_device;
