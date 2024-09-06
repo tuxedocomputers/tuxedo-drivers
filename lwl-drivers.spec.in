@@ -1,7 +1,7 @@
 Name:           lwl-drivers
 Version:        #MODULE_VERSION#
 Release:        1%{?dist}
-Summary:        Kernel modules for LWL devices
+Summary:        Kernel modules for some laptops sold by Laptop With Linux
 
 License:        GPLv3+
 Url:            https://www.lwlcomputers.com

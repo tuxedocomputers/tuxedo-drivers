@@ -150,6 +150,6 @@ bool lwl_is_compatible(void) {
 }
 EXPORT_SYMBOL(lwl_is_compatible);
 
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("Comexr B.V. <info@comexr.com>");
 MODULE_DESCRIPTION("Provide check for other modules if driver package is known compatible");
 MODULE_LICENSE("GPL");
