@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2019-2022 LWL Computers GmbH <tux@lwlcomputers.com>
+ * Copyright (c) 2019-2022 LWL Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of lwl-io.
  *

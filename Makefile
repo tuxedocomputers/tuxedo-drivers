@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018-2020 LWL Computers GmbH <tux@lwlcomputers.com>
+# Copyright (c) 2018-2020 LWL Computers GmbH <tux@tuxedocomputers.com>
 #
 # This file is part of lwl-drivers.
 #

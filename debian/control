@@ -1,13 +1,13 @@
 Source: lwl-drivers
 Section: devel
 Priority: optional
-Maintainer: LWL Computers GmbH <tux@lwlcomputers.com>
+Maintainer: Comexr B.V. <info@comexr.com>
 Build-Depends: debhelper-compat (= 13), dh-sequence-dkms
 Rules-Requires-Root: no
 Standards-Version: 4.6.0
-Homepage: https://lwlcomputers.com
-Vcs-Browser: https://github.com/lwlcomputers/lwl-drivers
-Vcs-Git: https://github.com/lwlcomputers/lwl-drivers.git
+Homepage: https://laptopwithlinux.com.com
+Vcs-Browser: https://github.com/comexr/lwl-drivers
+Vcs-Git: https://github.com/comexr/lwl-drivers.git
 
 Package: lwl-drivers
 Architecture: all

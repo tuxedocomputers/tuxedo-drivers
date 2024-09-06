@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2019-2024 LWL Computers GmbH <tux@lwlcomputers.com>
+ * Copyright (c) 2019-2024 LWL Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of lwl-drivers.
  *
@@ -33,7 +33,7 @@
 #include "lwl_io_ioctl.h"
 
 MODULE_DESCRIPTION("Hardware interface for LWL laptops");
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_VERSION("0.3.9");
 MODULE_LICENSE("GPL");
 

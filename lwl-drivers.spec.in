@@ -1,10 +1,10 @@
 Name:           lwl-drivers
 Version:        #MODULE_VERSION#
 Release:        1%{?dist}
-Summary:        Kernel modules for some laptops sold by Laptop With Linux
+Summary:        Kernel modules for some laptops sold by Laptop With Linux.
 
 License:        GPLv3+
-Url:            https://www.lwlcomputers.com
+Url:            https://www.laptopwithlinux.com
 Source0:        %{name}-%{version}.tar.xz
 
 Requires:       dkms >= 2.1
@@ -29,10 +29,10 @@ Obsoletes:      lwl-xp-xc-airplane-mode-fix < 4.0.0~
 Obsoletes:      lwl-xp-xc-touchpad-key-fix < 4.0.0~
 
 Group:          Hardware/Other
-Packager:       LWL Computers GmbH <tux@lwlcomputers.com>
+Packager:       Comexr B.V. <info@comexr.com>
 
 %description
-Drivers for several platform devices for LWL notebooks meant for DKMS.
+Kernel modules for some laptops sold by Laptop With Linux.
 
 %prep
 %setup -q

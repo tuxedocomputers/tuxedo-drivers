@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2024 LWL Computers GmbH <tux@lwlcomputers.com>
+ * Copyright (c) 2024 LWL Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of lwl-drivers.
  *
@@ -451,6 +451,6 @@ static void __exit lwl_nb05_fan_control_exit(void)
 module_init(lwl_nb05_fan_control_init);
 module_exit(lwl_nb05_fan_control_exit);
 
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("LWL Computers NB05 fan control");
 MODULE_LICENSE("GPL");

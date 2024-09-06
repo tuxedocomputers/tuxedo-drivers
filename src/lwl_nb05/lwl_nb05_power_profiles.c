@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2023-2024 LWL Computers GmbH <tux@lwlcomputers.com>
+ * Copyright (c) 2023-2024 LWL Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of lwl-drivers.
  *
@@ -383,7 +383,7 @@ static struct wmi_driver lwl_nb05_power_profiles_driver = {
 
 module_wmi_driver(lwl_nb05_power_profiles_driver);
 
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for NB05 power profiles");
 MODULE_LICENSE("GPL");
 

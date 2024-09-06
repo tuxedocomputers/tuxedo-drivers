@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2023 LWL Computers GmbH <tux@lwlcomputers.com>
+ * Copyright (c) 2023 LWL Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of lwl-drivers.
  *
@@ -259,6 +259,6 @@ static void __exit lwl_nb04_power_profiles_exit(void)
 module_init(lwl_nb04_power_profiles_init);
 module_exit(lwl_nb04_power_profiles_exit);
 
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("LWL Computers NB04 platform profile driver");
 MODULE_LICENSE("GPL");

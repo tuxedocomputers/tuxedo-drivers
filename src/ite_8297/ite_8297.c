@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2020 LWL Computers GmbH <tux@lwlcomputers.com>
+ * Copyright (c) 2020 LWL Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of lwl-drivers.
  *
@@ -259,6 +259,6 @@ static struct hid_driver ite8297_driver = {
 };
 module_hid_driver(ite8297_driver);
 
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for IT8297 RGB LED Controller");
 MODULE_LICENSE("GPL");

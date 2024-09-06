@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2018-2020 LWL Computers GmbH <tux@lwlcomputers.com>
+ * Copyright (c) 2018-2020 LWL Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of lwl-drivers.
  *
@@ -27,7 +27,7 @@
 #include <asm/intel-family.h>
 #include <linux/mod_devicetable.h>
 
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("LWL Computers keyboard & keyboard backlight Driver");
 MODULE_LICENSE("GPL");
 

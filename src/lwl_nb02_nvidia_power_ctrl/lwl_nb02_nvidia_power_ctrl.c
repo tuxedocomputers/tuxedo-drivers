@@ -353,7 +353,7 @@ static void __exit lwl_nb02_nvidia_power_ctrl_exit(void)
 module_init(lwl_nb02_nvidia_power_ctrl_init);
 module_exit(lwl_nb02_nvidia_power_ctrl_exit);
 
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("LWL Computers Dynamic Boost and cTGP control driver for NVIDIA silicon for devices marked with board_vendor NB02");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:lwl_keyboard");

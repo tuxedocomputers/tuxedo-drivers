@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2019-2023 LWL Computers GmbH <tux@lwlcomputers.com>
+ * Copyright (c) 2019-2023 LWL Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of lwl-drivers.
  *
@@ -33,7 +33,7 @@
 #include <linux/led-class-multicolor.h>
 
 MODULE_DESCRIPTION("LWL Computers, ITE backlight driver");
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_LICENSE("GPL");
 
 #define KEYBOARD_ROWS       6

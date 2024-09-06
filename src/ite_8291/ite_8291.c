@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2020-2024 LWL Computers GmbH <tux@lwlcomputers.com>
+ * Copyright (c) 2020-2024 LWL Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of lwl-drivers.
  *
@@ -898,6 +898,6 @@ static struct hid_driver ite8291_driver = {
 };
 module_hid_driver(ite8291_driver);
 
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for ITE Device(8291) RGB LED keyboard backlight.");
 MODULE_LICENSE("GPL");

@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2020 LWL Computers GmbH <tux@lwlcomputers.com>
+ * Copyright (c) 2020 LWL Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of lwl-drivers.
  *
@@ -172,7 +172,7 @@ static struct wmi_driver clevo_wmi_driver = {
 
 module_wmi_driver(clevo_wmi_driver);
 
-MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for Clevo WMI interface");
 MODULE_LICENSE("GPL");
 
