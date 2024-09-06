@@ -202,73 +202,41 @@ static int stk8321_apply_acpi_orientation(struct device *dev,
 					  char *method_name,
 					  struct iio_mount_matrix *orientation)
 {
-	// struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-	// union acpi_object *obj;
-	// acpi_status status;
-	// struct acpi_device *adev = ACPI_COMPANION(dev);
-	// int i;
+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+	union acpi_object *obj;
+	acpi_status status;
+	struct acpi_device *adev = ACPI_COMPANION(dev);
+	int i;
 
-	// if (!adev) {
-	// 	pr_debug("no acpi object %p for %p\n", adev, dev);
-	// 	return -ENODEV;
-	// }
-
-	// if (!acpi_has_method(adev->handle, method_name)) {
-	// 	pr_debug("acpi object (%s) does not have method\n", acpi_device_name(adev));
-	// 	return -ENODEV;
-	// }
-
-	// status = acpi_evaluate_object(adev->handle, method_name, NULL, &buffer);
-	// if (ACPI_FAILURE(status))
-	// 	return -EIO;
-
-	// obj = (union acpi_object *) buffer.pointer;
-	// if (!obj || obj->type != ACPI_TYPE_BUFFER || obj->buffer.length != 3) {
-	// 	pr_err("not expected object\n");
-	// 	kfree(buffer.pointer);
-	// 	return -EIO;
-	// }
-
-	// *orientation = iio_mount_idmatrix;
-
-	// for (i = 0; i < 2; ++i) {
-	// 	if ((obj->buffer.pointer[i] >> 4))
-	// 		orientation->rotation[i*2] = "-1";
-	// }
-
-	// kfree(buffer.pointer);
-
-	// No reference for ACPI device, hard code matrices for now
-	const struct iio_mount_matrix stk8321_orientation_display = {
-		.rotation = {
-			"-1", "0", "0",
-			"0", "-1", "0",
-			"0", "0", "-1"
-		},
-	};
-
-	const struct iio_mount_matrix stk8321_orientation_base = {
-		.rotation = {
-			"1", "0", "0",
-			"0", "1", "0",
-			"0", "0", "-1"
-		},
-	};
-
-	// const struct iio_mount_matrix stk8321_orientation_base = {
-	// 	.rotation = {
-	// 		"1", "0", "0",
-	// 		"0", "0", "1",
-	// 		"0", "1", "0"
-	// 	},
-	// };
-
-	if (strstr(method_name, "GETO"))
-		*orientation = stk8321_orientation_base;
-	else if (strstr(method_name, "GETR"))
-		*orientation = stk8321_orientation_display;
-	else
+	if (!adev) {
+		pr_debug("no acpi object %p for %p\n", adev, dev);
 		return -ENODEV;
+	}
+
+	if (!acpi_has_method(adev->handle, method_name)) {
+		pr_debug("acpi object (%s) does not have method\n", acpi_device_name(adev));
+		return -ENODEV;
+	}
+
+	status = acpi_evaluate_object(adev->handle, method_name, NULL, &buffer);
+	if (ACPI_FAILURE(status))
+		return -EIO;
+
+	obj = (union acpi_object *) buffer.pointer;
+	if (!obj || obj->type != ACPI_TYPE_BUFFER || obj->buffer.length != 3) {
+		pr_err("not expected object\n");
+		kfree(buffer.pointer);
+		return -EIO;
+	}
+
+	*orientation = iio_mount_idmatrix;
+
+	for (i = 0; i < 2; ++i) {
+		if ((obj->buffer.pointer[i] >> 4))
+			orientation->rotation[i*2] = "-1";
+	}
+
+	kfree(buffer.pointer);
 
 	return 0;
 }
@@ -336,7 +304,6 @@ static int stk8321_probe(struct i2c_client *client)
 	const struct i2c_device_id *id = i2c_client_get_device_id(client);
 
 	pr_debug("probe (addr: %02x)\n", client->addr);
-	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
 
 	ret = i2c_smbus_write_byte_data(client, STK8321_REG_SWRST, 0x00);
 	if (ret < 0) {
