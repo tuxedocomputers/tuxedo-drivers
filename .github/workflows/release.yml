@@ -1,0 +1,34 @@
+name: Run the Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  Create_Packages:
+    name: Create Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: sudo apt install -y git devscripts dh-sequence-dkms debhelper rpm
+
+      - name: Build DEB Package
+        run: make package-deb
+
+      - name: Build RPM Package
+        run: make package-rpm
+
+      - name: Confirm builds complete
+        run: mkdir release && sudo install -m 644 -o runner -g runner $(find .. -type f -name *.deb && find /home/runner/rpmbuild/RPMS/noarch -type f -name *.rpm) release/
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*
