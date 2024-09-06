@@ -1,14 +1,14 @@
 obj-m += clevo_acpi.o
 obj-m += clevo_wmi.o
-obj-m += tuxedo_keyboard.o
+obj-m += lwl_keyboard.o
 obj-m += uniwill_wmi.o
 
 obj-y += ite_8291/
 obj-y += ite_8291_lb/
 obj-y += ite_8297/
 obj-y += ite_829x/
-obj-y += tuxedo_compatibility_check/
-obj-y += tuxedo_io/
-obj-y += tuxedo_nb02_nvidia_power_ctrl/
-obj-y += tuxedo_nb05/
-obj-y += tuxedo_nb04/
+obj-y += lwl_compatibility_check/
+obj-y += lwl_io/
+obj-y += lwl_nb02_nvidia_power_ctrl/
+obj-y += lwl_nb05/
+obj-y += lwl_nb04/

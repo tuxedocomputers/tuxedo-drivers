@@ -1,9 +1,9 @@
 /*!
- * Copyright (c) 2018-2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2018-2020 LWL Computers GmbH <tux@lwlcomputers.com>
  *
- * This file is part of tuxedo-drivers.
+ * This file is part of lwl-drivers.
  *
- * tuxedo-drivers is free software: you can redistribute it and/or modify
+ * lwl-drivers is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -42,7 +42,7 @@ void clevo_leds_notify_brightness_change_extern(void);
 void clevo_leds_set_brightness_extern(enum led_brightness brightness);
 void clevo_leds_set_color_extern(u32 color);
 
-// TODO The following should go into a seperate .c file, but for this to work more reworking is required in the tuxedo_keyboard structure.
+// TODO The following should go into a seperate .c file, but for this to work more reworking is required in the lwl_keyboard structure.
 
 #include "clevo_leds.h"
 
@@ -106,7 +106,7 @@ static int clevo_evaluate_set_rgb_color(u32 zone, u32 color)
 static int clevo_evaluate_set_keyboard_status(u8 state)
 {
 	u32 cmd = 0xE0000000;
-	TUXEDO_INFO("Set keyboard enabled to: %d\n", state);
+	LWL_INFO("Set keyboard enabled to: %d\n", state);
 
 	if (state == 0) {
 		cmd |= 0x003001;

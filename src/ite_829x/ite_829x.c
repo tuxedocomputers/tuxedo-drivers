@@ -1,9 +1,9 @@
 /*!
- * Copyright (c) 2019-2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2019-2023 LWL Computers GmbH <tux@lwlcomputers.com>
  *
- * This file is part of tuxedo-drivers.
+ * This file is part of lwl-drivers.
  *
- * tuxedo-drivers is free software: you can redistribute it and/or modify
+ * lwl-drivers is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -32,8 +32,8 @@
 #include <linux/dmi.h>
 #include <linux/led-class-multicolor.h>
 
-MODULE_DESCRIPTION("TUXEDO Computers, ITE backlight driver");
-MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
+MODULE_DESCRIPTION("LWL Computers, ITE backlight driver");
+MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
 MODULE_LICENSE("GPL");
 
 #define KEYBOARD_ROWS       6
@@ -132,7 +132,7 @@ static void send_mode(struct hid_device *dev, int mode)
 		color_blue = (mode_to_color[mode] >> 0x00) & 0xff;
 		keyb_set_all(dev, color_red, color_green, color_blue);
 	} else if (mode == MODE_MAP_LENGTH) {
-		// White background, TUXEDO letters in red
+		// White background, LWL letters in red
 		for (row = 0; row < KEYBOARD_ROWS; ++row) {
 			for (col = 0; col < KEYBOARD_COLUMNS; ++col) {
 				if (
@@ -384,7 +384,7 @@ static int __init ite8291_init(void)
 	pr_debug("module init\n");
 
 	// Known not compatible/broken device, do not even load module
-	if (dmi_match(DMI_SYS_VENDOR, "TUXEDO") &&
+	if (dmi_match(DMI_SYS_VENDOR, "LWL") &&
 	    (dmi_match(DMI_PRODUCT_SKU, "SIRIUS1601") || dmi_match(DMI_PRODUCT_SKU, "SIRIUS1602")))
 		return -ENODEV;
 

@@ -1,27 +1,27 @@
-Source: tuxedo-drivers
+Source: lwl-drivers
 Section: devel
 Priority: optional
-Maintainer: TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+Maintainer: LWL Computers GmbH <tux@lwlcomputers.com>
 Build-Depends: debhelper-compat (= 13), dh-sequence-dkms
 Rules-Requires-Root: no
 Standards-Version: 4.6.0
-Homepage: https://tuxedocomputers.com
-Vcs-Browser: https://github.com/tuxedocomputers/tuxedo-drivers
-Vcs-Git: https://github.com/tuxedocomputers/tuxedo-drivers.git
+Homepage: https://lwlcomputers.com
+Vcs-Browser: https://github.com/lwlcomputers/lwl-drivers
+Vcs-Git: https://github.com/lwlcomputers/lwl-drivers.git
 
-Package: tuxedo-drivers
+Package: lwl-drivers
 Architecture: all
 Depends: ${misc:Depends}
-Provides: tuxedo-keyboard (= 4.0.0)
-Replaces: tuxedo-cc-wmi (<< 4.0.0~), tuxedo-keyboard (<< 4.0.0~),
- tuxedo-keyboard-dkms (<< 4.0.0~), tuxedo-keyboard-ite (<< 4.0.0~),
- tuxedo-touchpad-fix (<< 4.0.0~), tuxedo-wmi-dkms (<< 4.0.0~),
- tuxedo-xp-xc-airplane-mode-fix (<< 4.0.0~),
- tuxedo-xp-xc-touchpad-key-fix (<< 4.0.0~)
-Breaks: tuxedo-cc-wmi (<< 4.0.0~), tuxedo-keyboard (<< 4.0.0~),
- tuxedo-keyboard-dkms (<< 4.0.0~), tuxedo-keyboard-ite (<< 4.0.0~),
- tuxedo-touchpad-fix (<< 4.0.0~), tuxedo-wmi-dkms (<< 4.0.0~),
- tuxedo-xp-xc-airplane-mode-fix (<< 4.0.0~),
- tuxedo-xp-xc-touchpad-key-fix (<< 4.0.0~)
-Description: Kernel modules for TUXEDO devices
- Drivers for several platform devices for TUXEDO notebooks meant for DKMS.
+Provides: lwl-keyboard (= 4.0.0)
+Replaces: lwl-cc-wmi (<< 4.0.0~), lwl-keyboard (<< 4.0.0~),
+ lwl-keyboard-dkms (<< 4.0.0~), lwl-keyboard-ite (<< 4.0.0~),
+ lwl-touchpad-fix (<< 4.0.0~), lwl-wmi-dkms (<< 4.0.0~),
+ lwl-xp-xc-airplane-mode-fix (<< 4.0.0~),
+ lwl-xp-xc-touchpad-key-fix (<< 4.0.0~)
+Breaks: lwl-cc-wmi (<< 4.0.0~), lwl-keyboard (<< 4.0.0~),
+ lwl-keyboard-dkms (<< 4.0.0~), lwl-keyboard-ite (<< 4.0.0~),
+ lwl-touchpad-fix (<< 4.0.0~), lwl-wmi-dkms (<< 4.0.0~),
+ lwl-xp-xc-airplane-mode-fix (<< 4.0.0~),
+ lwl-xp-xc-touchpad-key-fix (<< 4.0.0~)
+Description: Kernel modules for LWL devices
+ Drivers for several platform devices for LWL notebooks meant for DKMS.

@@ -14,19 +14,19 @@ modules.order
 /debian/*.substvars
 /debian/debhelper-build-stamp
 /debian/files
-/debian/tuxedo-cc-wmi
-/debian/tuxedo-drivers
-/debian/tuxedo-keyboard
-/debian/tuxedo-keyboard-dkms
-/debian/tuxedo-keyboard-ite
-/debian/tuxedo-touchpad-fix
-/debian/tuxedo-wmi-dkms
-/debian/tuxedo-xp-xc-airplane-mode-fix
-/debian/tuxedo-xp-xc-touchpad-key-fix
+/debian/lwl-cc-wmi
+/debian/lwl-drivers
+/debian/lwl-keyboard
+/debian/lwl-keyboard-dkms
+/debian/lwl-keyboard-ite
+/debian/lwl-touchpad-fix
+/debian/lwl-wmi-dkms
+/debian/lwl-xp-xc-airplane-mode-fix
+/debian/lwl-xp-xc-touchpad-key-fix
 
 # rpmbuild artifacts
 /src/dkms.conf
-/tuxedo-drivers.spec
+/lwl-drivers.spec
 
 # IDE artifacts
 *.kate-swp

@@ -1,10 +1,10 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: tuxedo-drivers
-Upstream-Contact: tux@tuxedocomputers.com
-Source: https://github.com/tuxedocomputers/tuxedo-drivers
+Upstream-Name: lwl-drivers
+Upstream-Contact: tux@lwlcomputers.com
+Source: https://github.com/lwlcomputers/lwl-drivers
 
 Files: *
-Copyright: 2022 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+Copyright: 2022 LWL Computers GmbH <tux@lwlcomputers.com>
 License: GPL-3.0+
 
 License: GPL-3.0+

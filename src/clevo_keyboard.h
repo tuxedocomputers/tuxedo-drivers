@@ -1,9 +1,9 @@
 /*!
- * Copyright (c) 2018-2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2018-2020 LWL Computers GmbH <tux@lwlcomputers.com>
  *
- * This file is part of tuxedo-drivers.
+ * This file is part of lwl-drivers.
  *
- * tuxedo-drivers is free software: you can redistribute it and/or modify
+ * lwl-drivers is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -23,7 +23,7 @@
 #include <acpi/battery.h>
 #include <linux/version.h>
 
-#include "tuxedo_keyboard_common.h"
+#include "lwl_keyboard_common.h"
 #include "clevo_interfaces.h"
 #include "clevo_leds.h"
 
@@ -58,7 +58,7 @@ static struct clevo_interfaces_t {
 
 static struct clevo_interface_t *active_clevo_interface;
 
-static struct tuxedo_keyboard_driver clevo_keyboard_driver;
+static struct lwl_keyboard_driver clevo_keyboard_driver;
 
 static DEFINE_MUTEX(clevo_keyboard_interface_modification_lock);
 
@@ -202,7 +202,7 @@ static void set_next_color_whole_kb(void)
 	}
 	new_color_code = color_list.colors[new_color_id].code;
 
-	TUXEDO_INFO("set_next_color_whole_kb(): new_color_id: %i, new_color_code %X", 
+	LWL_INFO("set_next_color_whole_kb(): new_color_id: %i, new_color_code %X", 
 		    new_color_id, new_color_code);
 
 	/* Set color on all four regions*/
@@ -212,7 +212,7 @@ static void set_next_color_whole_kb(void)
 
 static void set_kbd_backlight_mode(u8 kbd_backlight_mode)
 {
-	TUXEDO_INFO("Set keyboard backlight mode on %s", kbd_backlight_modes[kbd_backlight_mode].name);
+	LWL_INFO("Set keyboard backlight mode on %s", kbd_backlight_modes[kbd_backlight_mode].name);
 
 	if (!clevo_evaluate_method(CLEVO_CMD_SET_KB_RGB_LEDS, kbd_backlight_modes[kbd_backlight_mode].value, NULL)) {
 		// method was succesfull so update ur internal state struct
@@ -289,7 +289,7 @@ static void clevo_keyboard_event_callb(u32 event)
 	u8 on, kbstatus1, kbstatus2;
 	u32 key_event = event;
 
-	TUXEDO_DEBUG("Clevo event: %0#6x\n", event);
+	LWL_DEBUG("Clevo event: %0#6x\n", event);
 
 	switch (key_event) {
 		case CLEVO_EVENT_GAUGE_KEY:
@@ -308,7 +308,7 @@ static void clevo_keyboard_event_callb(u32 event)
 		case CLEVO_EVENT_FN_LOCK_TOGGLE:
 			err = clevo_acpi_fn_get(&on, &kbstatus1, &kbstatus2);
 			if (err) {
-				TUXEDO_ERROR("Error while reading ACPI fn lock; ignoring toggle request");
+				LWL_ERROR("Error while reading ACPI fn lock; ignoring toggle request");
 			}
 			else {
 				if (on == 1)
@@ -323,7 +323,7 @@ static void clevo_keyboard_event_callb(u32 event)
 
 	if (current_driver != NULL && current_driver->input_device != NULL) {
 		if (!sparse_keymap_report_known_event(current_driver->input_device, key_event, 1, true)) {
-			TUXEDO_DEBUG("Unknown key - %d (%0#6x)\n", key_event, key_event);
+			LWL_DEBUG("Unknown key - %d (%0#6x)\n", key_event, key_event);
 		}
 	}
 }
@@ -333,7 +333,7 @@ static void clevo_keyboard_init_device_interface(struct platform_device *dev)
 	// Setup sysfs
 	if (clevo_leds_get_backlight_type() == CLEVO_KB_BACKLIGHT_TYPE_3_ZONE_RGB) {
 		if (device_create_file(&dev->dev, &dev_attr_kbd_backlight_mode) != 0) {
-			TUXEDO_ERROR("Sysfs attribute file creation failed for blinking pattern\n");
+			LWL_ERROR("Sysfs attribute file creation failed for blinking pattern\n");
 		}
 		else {
 			kbd_led_state.has_mode = 1;
@@ -959,7 +959,7 @@ static int clevo_battery_remove(struct power_supply *battery, struct acpi_batter
 static struct acpi_battery_hook battery_hook = {
 	.add_battery = clevo_battery_add,
 	.remove_battery = clevo_battery_remove,
-	.name = "TUXEDO Flexicharger Extension",
+	.name = "LWL Flexicharger Extension",
 };
 
 static void clevo_flexicharger_init(void)
@@ -998,7 +998,7 @@ static void clevo_keyboard_init(void)
 		|| dmi_string_in(DMI_BOARD_NAME, "L14xMU")
 		;
 	if (performance_profile_set_workaround) {
-		TUXEDO_INFO("Performance profile 'performance' set workaround applied\n");
+		LWL_INFO("Performance profile 'performance' set workaround applied\n");
 		clevo_evaluate_method(CLEVO_CMD_OPT, 0x19000002, NULL);
 	}
 
@@ -1063,7 +1063,7 @@ static struct platform_driver platform_driver_clevo = {
 		},
 };
 
-static struct tuxedo_keyboard_driver clevo_keyboard_driver = {
+static struct lwl_keyboard_driver clevo_keyboard_driver = {
 	.platform_driver = &platform_driver_clevo,
 	.probe = clevo_keyboard_probe,
 	.key_map = clevo_keymap,
@@ -1104,7 +1104,7 @@ int clevo_keyboard_add_interface(struct clevo_interface_t *new_interface)
 	mutex_unlock(&clevo_keyboard_interface_modification_lock);
 
 	if (active_clevo_interface != NULL)
-		tuxedo_keyboard_init_driver(&clevo_keyboard_driver);
+		lwl_keyboard_init_driver(&clevo_keyboard_driver);
 
 	return 0;
 }
@@ -1124,7 +1124,7 @@ int clevo_keyboard_remove_interface(struct clevo_interface_t *interface)
 	}
 
 	if (active_clevo_interface == interface) {
-		tuxedo_keyboard_remove_driver(&clevo_keyboard_driver);
+		lwl_keyboard_remove_driver(&clevo_keyboard_driver);
 		active_clevo_interface = NULL;
 	}
 

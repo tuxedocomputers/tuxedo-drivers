@@ -23,52 +23,52 @@ case "$1" in
 
         # (Re-)load modules
         echo "(Re)load modules if possible"
-        rmmod tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
-        rmmod tuxedo_io > /dev/null 2>&1 || true
+        rmmod lwl_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
+        rmmod lwl_io > /dev/null 2>&1 || true
         rmmod uniwill_wmi > /dev/null 2>&1 || true
         rmmod clevo_wmi > /dev/null 2>&1 || true
         rmmod clevo_acpi > /dev/null 2>&1 || true
-        rmmod tuxedo_keyboard > /dev/null 2>&1 || true
+        rmmod lwl_keyboard > /dev/null 2>&1 || true
         rmmod ite_8291 > /dev/null 2>&1 || true
         rmmod ite_8291_lb > /dev/null 2>&1 || true
         rmmod ite_8297 > /dev/null 2>&1 || true
         rmmod ite_829x > /dev/null 2>&1 || true
-        rmmod tuxedo_nb05_fan_control > /dev/null 2>&1 || true
-        rmmod tuxedo_nb05_kbd_backlight > /dev/null 2>&1 || true
-        rmmod tuxedo_nb05_keyboard > /dev/null 2>&1 || true
-        rmmod tuxedo_nb05_sensors > /dev/null 2>&1 || true
-        rmmod tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
-        rmmod tuxedo_nb05_ec > /dev/null 2>&1 || true
-        rmmod tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
-        rmmod tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
-        rmmod tuxedo_nb04_sensors > /dev/null 2>&1 || true
-        rmmod tuxedo_nb04_keyboard > /dev/null 2>&1 || true
-        rmmod tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
-        rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
-        rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
-        modprobe tuxedo_compatibility_check > /dev/null 2>&1 || true
-        modprobe tuxedo_keyboard > /dev/null 2>&1 || true
+        rmmod lwl_nb05_fan_control > /dev/null 2>&1 || true
+        rmmod lwl_nb05_kbd_backlight > /dev/null 2>&1 || true
+        rmmod lwl_nb05_keyboard > /dev/null 2>&1 || true
+        rmmod lwl_nb05_sensors > /dev/null 2>&1 || true
+        rmmod lwl_nb05_power_profiles > /dev/null 2>&1 || true
+        rmmod lwl_nb05_ec > /dev/null 2>&1 || true
+        rmmod lwl_nb04_kbd_backlight > /dev/null 2>&1 || true
+        rmmod lwl_nb04_power_profiles > /dev/null 2>&1 || true
+        rmmod lwl_nb04_sensors > /dev/null 2>&1 || true
+        rmmod lwl_nb04_keyboard > /dev/null 2>&1 || true
+        rmmod lwl_nb04_wmi_ab > /dev/null 2>&1 || true
+        rmmod lwl_nb04_wmi_bs > /dev/null 2>&1 || true
+        rmmod lwl_compatibility_check > /dev/null 2>&1 || true
+        modprobe lwl_compatibility_check > /dev/null 2>&1 || true
+        modprobe lwl_keyboard > /dev/null 2>&1 || true
         modprobe clevo_acpi > /dev/null 2>&1 || true
         modprobe clevo_wmi > /dev/null 2>&1 || true
         modprobe uniwill_wmi > /dev/null 2>&1 || true
-        modprobe tuxedo_io > /dev/null 2>&1 || true
-        modprobe tuxedo_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
+        modprobe lwl_io > /dev/null 2>&1 || true
+        modprobe lwl_nb02_nvidia_power_ctrl > /dev/null 2>&1 || true
         modprobe ite_8291 > /dev/null 2>&1 || true
         modprobe ite_8291_lb > /dev/null 2>&1 || true
         modprobe ite_8297 > /dev/null 2>&1 || true
         modprobe ite_829x > /dev/null 2>&1 || true
-        modprobe tuxedo_nb05_ec > /dev/null 2>&1 || true
-        modprobe tuxedo_nb05_power_profiles > /dev/null 2>&1 || true
-        modprobe tuxedo_nb05_sensors > /dev/null 2>&1 || true
-        modprobe tuxedo_nb05_keyboard > /dev/null 2>&1 || true
-        modprobe tuxedo_nb05_kbd_backlight > /dev/null 2>&1 || true
-        modprobe tuxedo_nb05_fan_control > /dev/null 2>&1 || true
-        modprobe tuxedo_nb04_keyboard > /dev/null 2>&1 || true
-        modprobe tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
-        modprobe tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
-        modprobe tuxedo_nb04_sensors > /dev/null 2>&1 || true
-        modprobe tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
-        modprobe tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
+        modprobe lwl_nb05_ec > /dev/null 2>&1 || true
+        modprobe lwl_nb05_power_profiles > /dev/null 2>&1 || true
+        modprobe lwl_nb05_sensors > /dev/null 2>&1 || true
+        modprobe lwl_nb05_keyboard > /dev/null 2>&1 || true
+        modprobe lwl_nb05_kbd_backlight > /dev/null 2>&1 || true
+        modprobe lwl_nb05_fan_control > /dev/null 2>&1 || true
+        modprobe lwl_nb04_keyboard > /dev/null 2>&1 || true
+        modprobe lwl_nb04_wmi_ab > /dev/null 2>&1 || true
+        modprobe lwl_nb04_wmi_bs > /dev/null 2>&1 || true
+        modprobe lwl_nb04_sensors > /dev/null 2>&1 || true
+        modprobe lwl_nb04_power_profiles > /dev/null 2>&1 || true
+        modprobe lwl_nb04_kbd_backlight > /dev/null 2>&1 || true
 
         # Restart UPower
         echo "Start UPower again"

@@ -4,36 +4,36 @@
 - <a href="#troubleshooting">Troubleshooting</a>
 
 # Description <a name="description"></a>
-Drivers for several platform devices for TUXEDO notebooks meant for the DKMS.
+Drivers for several platform devices for LWL notebooks meant for the DKMS.
 
 ## Features
 - Driver for Fn-keys
-- SysFS control of brightness/color/mode for most TUXEDO keyboards
+- SysFS control of brightness/color/mode for most LWL keyboards
     - [https://docs.kernel.org/leds/leds-class.html](https://docs.kernel.org/leds/leds-class.html)
     - [https://docs.kernel.org/leds/leds-class-multicolor.html](https://docs.kernel.org/leds/leds-class-multicolor.html)
-- Hardware I/O driver for TUXEDO Control Center
+- Hardware I/O driver for LWL Control Center
 
 ## Modules included in this package
-- tuxedo_compatibility_check
-- tuxedo_keyboard
+- lwl_compatibility_check
+- lwl_keyboard
 - clevo_acpi
 - clevo_wmi
 - uniwill_wmi
-- tuxedo_io
+- lwl_io
 - ite_8291
 - ite_8291_lb
 - ite_8297
 - ite_829x
-- tuxedo_nb05_ec
-- tuxedo_nb05_power_profiles
-- tuxedo_nb05_sensors
-- tuxedo_nb05_keyboard
-- tuxedo_nb04_keyboard
-- tuxedo_nb04_wmi_ab
-- tuxedo_nb04_wmi_bs
-- tuxedo_nb04_sensors
-- tuxedo_nb04_power_profiles
-- tuxedo_nb04_kbd_backlight
+- lwl_nb05_ec
+- lwl_nb05_power_profiles
+- lwl_nb05_sensors
+- lwl_nb05_keyboard
+- lwl_nb04_keyboard
+- lwl_nb04_wmi_ab
+- lwl_nb04_wmi_bs
+- lwl_nb04_sensors
+- lwl_nb04_power_profiles
+- lwl_nb04_kbd_backlight
 
 # Building and Install <a name="building"></a>
 

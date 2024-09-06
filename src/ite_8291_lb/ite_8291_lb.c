@@ -1,9 +1,9 @@
 /*!
- * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2023 LWL Computers GmbH <tux@lwlcomputers.com>
  *
- * This file is part of tuxedo-drivers.
+ * This file is part of lwl-drivers.
  *
- * tuxedo-drivers is free software: you can redistribute it and/or modify
+ * lwl-drivers is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -626,6 +626,6 @@ static struct hid_driver ite8291_driver = {
 };
 module_hid_driver(ite8291_driver);
 
-MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
+MODULE_AUTHOR("LWL Computers GmbH <tux@lwlcomputers.com>");
 MODULE_DESCRIPTION("Driver for ITE RGB lightbars");
 MODULE_LICENSE("GPL");
