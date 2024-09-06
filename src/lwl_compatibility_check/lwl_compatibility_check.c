@@ -146,12 +146,7 @@ static const struct dmi_system_id lwl_dmi_string_match[] = {
 };
 
 bool lwl_is_compatible(void) {
-	if (dmi_check_system(lwl_dmi_string_match)
-	    || (x86_match_cpu(skip_lwl_dmi_string_check_match)
-	    && !x86_match_cpu(force_lwl_dmi_string_check_match))) {
-		return true;
-	}
-	return false;
+	return true;
 }
 EXPORT_SYMBOL(lwl_is_compatible);
 
