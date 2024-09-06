@@ -77,11 +77,11 @@ struct stk8321_data {
 	struct mutex lock;
 };
 
-static const struct iio_mount_matrix iio_mount_idmatrix = {
+static const struct iio_mount_matrix iio_mount_zeromatrix = {
 	.rotation = {
-		"1", "0", "0",
-		"0", "1", "0",
-		"0", "0", "1"
+		"0", "0", "0",
+		"0", "0", "0",
+		"0", "0", "0"
 	}
 };
 
@@ -206,7 +206,8 @@ static int stk8321_apply_acpi_orientation(struct device *dev,
 	union acpi_object *obj;
 	acpi_status status;
 	struct acpi_device *adev = ACPI_COMPANION(dev);
-	int i;
+	int i, axis;
+	char *value;
 
 	if (!adev) {
 		pr_debug("no acpi object %p for %p\n", adev, dev);
@@ -229,11 +230,19 @@ static int stk8321_apply_acpi_orientation(struct device *dev,
 		return -EIO;
 	}
 
-	*orientation = iio_mount_idmatrix;
+	*orientation = iio_mount_zeromatrix;
 
-	for (i = 0; i < 2; ++i) {
-		if ((obj->buffer.pointer[i] >> 4))
-			orientation->rotation[i*2] = "-1";
+	// Format is: three values, one for each axis, where each value
+	// map to selected axis (bits 0-1) and possibly flips the sign
+	// (bit 4)
+	for (i = 0; i < 3; ++i) {
+		axis = (obj->buffer.pointer[i] & 0x3) * 3;
+		if (obj->buffer.pointer[i] & (1 << 4))
+			value = "-1";
+		else
+			value = "1";
+
+		orientation->rotation[i + axis] = value;
 	}
 
 	kfree(buffer.pointer);
@@ -255,13 +264,14 @@ static int stk8321_apply_orientation(struct iio_dev *indio_dev)
 	struct i2c_client *client = data->client;
 	struct device *dev = &client->dev;
 	int ret = 1;
+	struct iio_mount_matrix *ori = &data->orientation;
 
 	if (strstr(dev_name(&client->dev), ":01")) {
 		indio_dev->label = "accel-base";
-		ret = stk8321_apply_acpi_orientation(dev, "GETO", &data->orientation);
+		ret = stk8321_apply_acpi_orientation(dev, "GETR", &data->orientation);
 	} else if (strstr(dev_name(&client->dev), ":00")) {
 		indio_dev->label = "accel-display";
-		ret = stk8321_apply_acpi_orientation(dev, "GETR", &data->orientation);
+		ret = stk8321_apply_acpi_orientation(dev, "GETO", &data->orientation);
 	}
 
 	// If no ACPI info is available, default to reading mount matrix from kernel
