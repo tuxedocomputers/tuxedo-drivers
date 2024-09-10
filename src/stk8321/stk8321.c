@@ -372,7 +372,7 @@ static void stk8321_remove(struct i2c_client *client)
 
 static int stk8321_suspend(struct device *dev)
 {
-	struct stk8321_data *data = dev_get_drvdata(dev);
+	struct stk8321_data *data = iio_priv(dev_get_drvdata(dev));
 	struct i2c_client *client = data->client;
 	pr_debug("suspend\n");
 	stk8321_set_power_mode(client, STK8321_POWMODE_SUSPEND);
@@ -381,7 +381,7 @@ static int stk8321_suspend(struct device *dev)
 
 static int stk8321_resume(struct device *dev)
 {
-	struct stk8321_data *data = dev_get_drvdata(dev);
+	struct stk8321_data *data = iio_priv(dev_get_drvdata(dev));
 	struct i2c_client *client = data->client;
 	pr_debug("resume\n");
 	stk8321_set_power_mode(client, STK8321_POWMODE_NORMAL);
