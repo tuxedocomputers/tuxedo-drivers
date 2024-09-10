@@ -402,6 +402,7 @@ static const struct acpi_device_id stk8321_acpi_match[] = {
 	{ "STKH8321" },
 	{ }
 };
+MODULE_DEVICE_TABLE(acpi, stk8321_acpi_match);
 
 static struct i2c_driver stk8321_driver = {
 	.driver = {
