@@ -266,12 +266,14 @@ static int stk8321_apply_orientation(struct iio_dev *indio_dev)
 	int ret = 1;
 	struct iio_mount_matrix *ori = &data->orientation;
 
-	if (strstr(dev_name(&client->dev), ":01")) {
-		indio_dev->label = "accel-base";
-		ret = stk8321_apply_acpi_orientation(dev, "GETR", &data->orientation);
-	} else if (strstr(dev_name(&client->dev), ":00")) {
+	if (strstr(dev_name(&client->dev), ":00")) {
 		indio_dev->label = "accel-display";
 		ret = stk8321_apply_acpi_orientation(dev, "GETO", &data->orientation);
+	} else if (strstr(dev_name(&client->dev), ":01")) {
+		// Note: There is a GETR ACPI method that doesn't comply with the
+		// Linux defined orientation for base accelerometers, this mount
+		// matrix need to be configured in 60-sensors.hwdb
+		indio_dev->label = "accel-base";
 	}
 
 	// If no ACPI info is available, default to reading mount matrix from kernel
@@ -289,7 +291,7 @@ static void stk8321_dual_probe(struct i2c_client *client)
 	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
 	char dev_name[16];
 	struct i2c_board_info board_info = {
-		.type = "stk8321",
+		.type = "stkh8321",
 		.dev_name = dev_name,
 		.fwnode = client->dev.fwnode,
 	};
@@ -384,8 +386,7 @@ static DEFINE_SIMPLE_DEV_PM_OPS(stk8321_pm_ops, stk8321_suspend,
 
 static const struct i2c_device_id stk8321_i2c_id[] = {
 	{ "stk8321", 0 },
-	{ "stk8321-display", 0 },
-	{ "stk8321-base", 0 },
+	{ "stkh8321", 0 },
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, stk8321_i2c_id);
