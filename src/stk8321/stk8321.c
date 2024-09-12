@@ -320,7 +320,7 @@ static int stk8321_apply_acpi_orientation(struct device *dev,
 	return 0;
 }
 #else
-static int stk8321_apply_acpi_orientation(struct acpi_device *adev,
+static int stk8321_apply_acpi_orientation(struct device *dev,
 					  const char *method_name,
 					  struct iio_mount_matrix *orientation)
 {
