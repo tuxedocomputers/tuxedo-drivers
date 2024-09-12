@@ -70,11 +70,38 @@ enum bandwidth {
 	STK8321_BW_HZ_1000 	= 0x0f,
 };
 
+static const struct {
+	int val;
+	int val2;
+	u8 reg_bits;
+} stk8321_samp_freq_table[] = {
+	{ 7, 810000, STK8321_BW_HZ_7_81 },
+	{ 15, 630000, STK8321_BW_HZ_15_63 },
+	{ 31, 250000, STK8321_BW_HZ_31_25 },
+	{ 62, 500000, STK8321_BW_HZ_62_5 },
+	{ 125, 0, STK8321_BW_HZ_125 },
+	{ 250, 0, STK8321_BW_HZ_250 },
+	{ 500, 0, STK8321_BW_HZ_500 },
+	{ 1000, 0, STK8321_BW_HZ_1000 },
+};
+
+static IIO_CONST_ATTR_SAMP_FREQ_AVAIL("7.810000 15.630000 31.250000 62.500000 125 250 500 1000");
+
+static struct attribute *stk8321_accel_attributes[] = {
+	&iio_const_attr_sampling_frequency_available.dev_attr.attr,
+	NULL,
+};
+
+static const struct attribute_group stk8321_accel_attrs_group = {
+	.attrs = stk8321_accel_attributes,
+};
+
 struct stk8321_data {
 	struct i2c_client *client;
 	struct i2c_client *second_client;
 	struct iio_mount_matrix orientation;
 	struct mutex lock;
+	int samp_freq;
 };
 
 static const struct iio_mount_matrix iio_mount_zeromatrix = {
@@ -148,6 +175,7 @@ static const struct iio_chan_spec_ext_info stk8321_ext_info[] = {
 	.modified = 1,							\
 	.channel2 = IIO_MOD_##axis,					\
 	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),			\
+	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SAMP_FREQ),	\
 	.scan_type = {							\
 		.realbits = 12,						\
 	},								\
@@ -188,13 +216,50 @@ static int stk8321_read_raw(struct iio_dev *indio_dev,
 
 		*val = sign_extend32(ret, chan->scan_type.realbits - 1);
 		return IIO_VAL_INT;
+	case IIO_CHAN_INFO_SAMP_FREQ:
+		*val = stk8321_samp_freq_table[data->samp_freq].val;
+		*val2 = stk8321_samp_freq_table[data->samp_freq].val2;
+		return IIO_VAL_INT_PLUS_MICRO;
+	default:
+		return -EINVAL;
+	}
+}
+
+static int stk8321_write_raw(struct iio_dev *indio_dev,
+			    struct iio_chan_spec const *chan,
+			    int val, int val2, long mask)
+{
+	struct stk8321_data *data = iio_priv(indio_dev);
+	int i, ret, matching_index;
+
+	switch (mask) {
+	case IIO_CHAN_INFO_SAMP_FREQ:
+		matching_index = -1;
+		for (i = 0; i < ARRAY_SIZE(stk8321_samp_freq_table); ++i) {
+			if (val == stk8321_samp_freq_table[i].val &&
+			    val2 == stk8321_samp_freq_table[i].val2) {
+				matching_index = i;
+			}
+		}
+		if (matching_index < 0)
+			return -EINVAL;
+
+		data->samp_freq = matching_index;
+		stk8321_set_power_mode(data->client, STK8321_POWMODE_SUSPEND);
+		ret = stk8321_set_bandwidth(
+			data->client,
+			stk8321_samp_freq_table[data->samp_freq].reg_bits);
+		stk8321_set_power_mode(data->client, STK8321_POWMODE_NORMAL);
+		return ret;
 	default:
 		return -EINVAL;
 	}
 }
 
 static const struct iio_info stk8321_info = {
+	.attrs		= &stk8321_accel_attrs_group,
 	.read_raw	= stk8321_read_raw,
+	.write_raw	= stk8321_write_raw,
 };
 
 #ifdef CONFIG_ACPI
@@ -329,13 +394,6 @@ static int stk8321_probe(struct i2c_client *client)
 
 	pr_debug("chip id: 0x%02x\n", ret);
 
-	// Setup sensor in suspend mode
-	stk8321_set_power_mode(client, STK8321_POWMODE_SUSPEND);
-	stk8321_set_range(client, STK8321_RANGESEL_2G);
-	stk8321_set_bandwidth(client, STK8321_BW_HZ_7_81);
-	i2c_smbus_write_byte_data(client, STK8321_REG_DATASETUP, 0);
-	stk8321_set_power_mode(client, STK8321_POWMODE_NORMAL);
-
 	// Initialize iio device
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
 	if (!indio_dev) {
@@ -347,6 +405,15 @@ static int stk8321_probe(struct i2c_client *client)
 	dev_set_drvdata(&client->dev, indio_dev);
 	mutex_init(&data->lock);
 	data->client = client;
+	data->samp_freq = 0;
+
+	// Setup sensor in suspend mode
+	stk8321_set_power_mode(client, STK8321_POWMODE_SUSPEND);
+	stk8321_set_range(client, STK8321_RANGESEL_2G);
+	stk8321_set_bandwidth(client, stk8321_samp_freq_table[data->samp_freq].reg_bits);
+	i2c_smbus_write_byte_data(client, STK8321_REG_DATASETUP, 0);
+	stk8321_set_power_mode(client, STK8321_POWMODE_NORMAL);
+
 	indio_dev->name = "stk8321";
 	indio_dev->info = &stk8321_info;
 	indio_dev->modes = INDIO_DIRECT_MODE;
