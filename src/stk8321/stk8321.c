@@ -334,7 +334,6 @@ static int stk8321_apply_orientation(struct iio_dev *indio_dev)
 	struct i2c_client *client = data->client;
 	struct device *dev = &client->dev;
 	int ret = 1;
-	struct iio_mount_matrix *ori = &data->orientation;
 
 	if (strstr(dev_name(&client->dev), ":00")) {
 		indio_dev->label = "accel-display";
