@@ -199,13 +199,19 @@ static int stk8321_read_raw(struct iio_dev *indio_dev,
 	case IIO_CHAN_INFO_RAW:
 		switch (chan->address) {
 		case 0:
+			mutex_lock(&data->lock);
 			ret = stk8321_read_x(data->client);
+			mutex_unlock(&data->lock);
 			break;
 		case 1:
+			mutex_lock(&data->lock);
 			ret = stk8321_read_y(data->client);
+			mutex_unlock(&data->lock);
 			break;
 		case 2:
+			mutex_lock(&data->lock);
 			ret = stk8321_read_z(data->client);
+			mutex_unlock(&data->lock);
 			break;
 		default:
 			return -EINVAL;
@@ -244,12 +250,14 @@ static int stk8321_write_raw(struct iio_dev *indio_dev,
 		if (matching_index < 0)
 			return -EINVAL;
 
+		mutex_lock(&data->lock);
 		data->samp_freq = matching_index;
 		stk8321_set_power_mode(data->client, STK8321_POWMODE_SUSPEND);
 		ret = stk8321_set_bandwidth(
 			data->client,
 			stk8321_samp_freq_table[data->samp_freq].reg_bits);
 		stk8321_set_power_mode(data->client, STK8321_POWMODE_NORMAL);
+		mutex_unlock(&data->lock);
 		return ret;
 	default:
 		return -EINVAL;
@@ -442,7 +450,9 @@ static int stk8321_suspend(struct device *dev)
 	struct stk8321_data *data = iio_priv(dev_get_drvdata(dev));
 	struct i2c_client *client = data->client;
 	pr_debug("suspend\n");
+	mutex_lock(&data->lock);
 	stk8321_set_power_mode(client, STK8321_POWMODE_SUSPEND);
+	mutex_unlock(&data->lock);
 	return 0;
 }
 
@@ -451,7 +461,9 @@ static int stk8321_resume(struct device *dev)
 	struct stk8321_data *data = iio_priv(dev_get_drvdata(dev));
 	struct i2c_client *client = data->client;
 	pr_debug("resume\n");
+	mutex_lock(&data->lock);
 	stk8321_set_power_mode(client, STK8321_POWMODE_NORMAL);
+	mutex_unlock(&data->lock);
 	return 0;
 }
 
