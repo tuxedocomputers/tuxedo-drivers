@@ -18,16 +18,12 @@
  */
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 #include <linux/i2c.h>
-#include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/iio/buffer.h>
 #include <linux/iio/iio.h>
 #include <linux/iio/sysfs.h>
-#include <linux/iio/trigger.h>
-#include <linux/iio/triggered_buffer.h>
-#include <linux/iio/trigger_consumer.h>
 
 #define STK8321_DRIVER_NAME "stk8321"
 
@@ -85,7 +81,8 @@ static const struct {
 	{ 1000, 0, STK8321_BW_HZ_1000 },
 };
 
-static IIO_CONST_ATTR_SAMP_FREQ_AVAIL("7.810000 15.630000 31.250000 62.500000 125 250 500 1000");
+static IIO_CONST_ATTR_SAMP_FREQ_AVAIL(
+	"7.810000 15.630000 31.250000 62.500000 125 250 500 1000");
 
 static struct attribute *stk8321_accel_attributes[] = {
 	&iio_const_attr_sampling_frequency_available.dev_attr.attr,
@@ -296,7 +293,7 @@ static int stk8321_apply_acpi_orientation(struct device *dev,
 	if (ACPI_FAILURE(status))
 		return -EIO;
 
-	obj = (union acpi_object *) buffer.pointer;
+	obj = (union acpi_object *)buffer.pointer;
 	if (!obj || obj->type != ACPI_TYPE_BUFFER || obj->buffer.length != 3) {
 		pr_err("unexpected object\n");
 		kfree(buffer.pointer);
@@ -341,11 +338,12 @@ static int stk8321_apply_orientation(struct iio_dev *indio_dev)
 
 	if (strstr(dev_name(&client->dev), ":00")) {
 		indio_dev->label = "accel-display";
-		ret = stk8321_apply_acpi_orientation(dev, "GETO", &data->orientation);
+		ret = stk8321_apply_acpi_orientation(dev, "GETO",
+						     &data->orientation);
 	} else if (strstr(dev_name(&client->dev), ":01")) {
-		// Note: There is a GETR ACPI method that doesn't comply with the
-		// Linux defined orientation for base accelerometers, this mount
-		// matrix need to be configured in 60-sensors.hwdb
+		// Note: There is a GETR ACPI method that doesn't comply with
+		// the Linux defined orientation for base accelerometers, this
+		// mount matrix need to be configured in 60-sensors.hwdb
 		indio_dev->label = "accel-base";
 	}
 
@@ -411,7 +409,8 @@ static int stk8321_probe(struct i2c_client *client)
 	// Setup sensor in suspend mode
 	stk8321_set_power_mode(client, STK8321_POWMODE_SUSPEND);
 	stk8321_set_range(client, STK8321_RANGESEL_2G);
-	stk8321_set_bandwidth(client, stk8321_samp_freq_table[data->samp_freq].reg_bits);
+	stk8321_set_bandwidth(
+		client, stk8321_samp_freq_table[data->samp_freq].reg_bits);
 	i2c_smbus_write_byte_data(client, STK8321_REG_DATASETUP, 0);
 	stk8321_set_power_mode(client, STK8321_POWMODE_NORMAL);
 
