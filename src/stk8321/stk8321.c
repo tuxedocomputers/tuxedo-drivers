@@ -283,12 +283,12 @@ static int stk8321_apply_acpi_orientation(struct device *dev,
 	char *value;
 
 	if (!adev) {
-		pr_debug("no acpi object %p for %p\n", adev, dev);
+		pr_debug("no acpi object\n");
 		return -ENODEV;
 	}
 
 	if (!acpi_has_method(adev->handle, method_name)) {
-		pr_debug("acpi object (%s) does not have method\n", acpi_device_name(adev));
+		pr_debug("acpi object does not have method\n");
 		return -ENODEV;
 	}
 
@@ -298,7 +298,7 @@ static int stk8321_apply_acpi_orientation(struct device *dev,
 
 	obj = (union acpi_object *) buffer.pointer;
 	if (!obj || obj->type != ACPI_TYPE_BUFFER || obj->buffer.length != 3) {
-		pr_err("not expected object\n");
+		pr_err("unexpected object\n");
 		kfree(buffer.pointer);
 		return -EIO;
 	}
@@ -351,7 +351,7 @@ static int stk8321_apply_orientation(struct iio_dev *indio_dev)
 
 	// If no ACPI info is available, default to reading mount matrix from kernel
 	if (ret) {
-		pr_debug("no acpi method found or error calling it (%d)\n", ret);
+		pr_debug("[%02x] no acpi method found\n", client->addr);
 		ret = iio_read_mount_matrix(&client->dev, &data->orientation);
 	}
 
@@ -388,20 +388,6 @@ static int stk8321_probe(struct i2c_client *client)
 	struct stk8321_data *data;
 	const struct i2c_device_id *id = i2c_client_get_device_id(client);
 
-	pr_debug("probe (addr: %02x)\n", client->addr);
-
-	ret = i2c_smbus_write_byte_data(client, STK8321_REG_SWRST, 0x00);
-	if (ret < 0) {
-		pr_err("failed to reset sensor\n");
-		return ret;
-	}
-
-	ret = i2c_smbus_read_byte_data(client, STK8321_REG_CHIP_ID);
-	if (ret < 0)
-		return ret;
-
-	pr_debug("chip id: 0x%02x\n", ret);
-
 	// Initialize iio device
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
 	if (!indio_dev) {
@@ -411,6 +397,13 @@ static int stk8321_probe(struct i2c_client *client)
 
 	data = iio_priv(indio_dev);
 	dev_set_drvdata(&client->dev, indio_dev);
+
+	ret = i2c_smbus_write_byte_data(client, STK8321_REG_SWRST, 0x00);
+	if (ret < 0) {
+		pr_err("[%02x] failed to reset sensor\n", client->addr);
+		return ret;
+	}
+
 	mutex_init(&data->lock);
 	data->client = client;
 	data->samp_freq = 0;
@@ -440,7 +433,6 @@ static int stk8321_probe(struct i2c_client *client)
 
 static void stk8321_remove(struct i2c_client *client)
 {
-	pr_debug("remove (%02x)\n", client->addr);
 	stk8321_dual_remove(client);
 	stk8321_set_power_mode(client, STK8321_POWMODE_SUSPEND);
 }
@@ -449,7 +441,6 @@ static int stk8321_suspend(struct device *dev)
 {
 	struct stk8321_data *data = iio_priv(dev_get_drvdata(dev));
 	struct i2c_client *client = data->client;
-	pr_debug("suspend\n");
 	mutex_lock(&data->lock);
 	stk8321_set_power_mode(client, STK8321_POWMODE_SUSPEND);
 	mutex_unlock(&data->lock);
@@ -460,7 +451,6 @@ static int stk8321_resume(struct device *dev)
 {
 	struct stk8321_data *data = iio_priv(dev_get_drvdata(dev));
 	struct i2c_client *client = data->client;
-	pr_debug("resume\n");
 	mutex_lock(&data->lock);
 	stk8321_set_power_mode(client, STK8321_POWMODE_NORMAL);
 	mutex_unlock(&data->lock);
