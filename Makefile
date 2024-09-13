@@ -77,6 +77,7 @@ package-rpm:
 		--transform="s/tuxedo_keyboard.conf/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/etc\/modprobe.d\/tuxedo_keyboard.conf/"\
 		--transform="s/debian\/copyright/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/LICENSE/"\
 		--transform="s/99-z-tuxedo-systemd-fix.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-z-tuxedo-systemd-fix.rules/"\
+		--transform="s/61-sensor-infinityflex.hwdb/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/61-sensor-infinityflex.hwdb/"\
 		--exclude=*.cmd\
 		--exclude=*.d\
 		--exclude=*.ko\
@@ -84,5 +85,5 @@ package-rpm:
 		--exclude=*.mod.c\
 		--exclude=*.o\
 		--exclude=modules.order\
-		src tuxedo_keyboard.conf debian/copyright 99-z-tuxedo-systemd-fix.rules
+		src tuxedo_keyboard.conf debian/copyright 99-z-tuxedo-systemd-fix.rules 61-sensor-infinityflex.hwdb
 	rpmbuild -ba tuxedo-drivers.spec

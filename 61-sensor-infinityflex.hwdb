@@ -1,0 +1,2 @@
+sensor:accel-base:modalias:i2c:stkh8321:dmi:*:svnTUXEDO:*:skuIFLX14I01:*
+ ACCEL_MOUNT_MATRIX=1, 0, 0; 0, 1, 0; 0, 0, -1
