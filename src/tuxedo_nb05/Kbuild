@@ -1,4 +1,3 @@
-EXTRA_CFLAGS:=-DDEBUG
 obj-m += tuxedo_nb05_keyboard.o
 obj-m += tuxedo_nb05_kbd_backlight.o
 obj-m += tuxedo_nb05_power_profiles.o
