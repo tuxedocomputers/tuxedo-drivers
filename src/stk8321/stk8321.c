@@ -24,6 +24,17 @@
 #include <linux/iio/buffer.h>
 #include <linux/iio/iio.h>
 #include <linux/iio/sysfs.h>
+#include <linux/version.h>
+
+// Backport
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+const struct i2c_device_id *i2c_client_get_device_id(const struct i2c_client *client)
+{
+	const struct i2c_driver *drv = to_i2c_driver(client->dev.driver);
+
+	return i2c_match_id(drv->id_table, client);
+}
+#endif
 
 #define STK8321_DRIVER_NAME "stk8321"
 
@@ -378,7 +389,11 @@ static void stk8321_dual_remove(struct i2c_client *client)
 		i2c_unregister_device(data->second_client);
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+static int stk8321_probe(struct i2c_client *client, const struct i2c_device_id *dummy_id)
+#else
 static int stk8321_probe(struct i2c_client *client)
+#endif
 {
 	int ret;
 	struct iio_dev *indio_dev;
@@ -429,10 +444,17 @@ static int stk8321_probe(struct i2c_client *client)
 	return devm_iio_device_register(&client->dev, indio_dev);
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0)
+static int stk8321_remove(struct i2c_client *client)
+#else
 static void stk8321_remove(struct i2c_client *client)
+#endif
 {
 	stk8321_dual_remove(client);
 	stk8321_set_power_mode(client, STK8321_POWMODE_SUSPEND);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0)
+	return 0;
+#endif
 }
 
 static int stk8321_suspend(struct device *dev)
