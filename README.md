@@ -1,10 +1,10 @@
 # Table of Content
 - <a href="#description">Description</a>
-- <a href="#building">Building and Install</a>
+- <a href="#building-and-install">Building and Install</a>
 - <a href="#troubleshooting">Troubleshooting</a>
-- <a href="#upstreaming">Regarding upstreaming of tuxedo-drivers</a>
+- <a href="#regarding-upstreaming-of-tuxedo-drivers">Regarding upstreaming of tuxedo-drivers</a>
 
-# Description <a name="description"></a>
+# Description
 Drivers for several platform devices for TUXEDO notebooks meant for the DKMS.
 
 ## Features
@@ -37,7 +37,7 @@ Drivers for several platform devices for TUXEDO notebooks meant for the DKMS.
 - tuxedo_nb04_power_profiles
 - tuxedo_nb04_kbd_backlight
 
-# Building and Install <a name="building"></a>
+# Building and Install
 
 ## Warning when installing the module:
 
@@ -64,7 +64,7 @@ All:
 `make package-rpm`:
 - rpm
 
-# Troubleshooting <a name="troubleshooting"></a>
+# Troubleshooting
 
 ## The keyboard backlight control and/or touchpad toggle key combinations do not work
 For all devices with a touchpad toggle key(-combo) and some devices with keyboard backlight control key-combos the driver does nothing more then to send the corresponding key event to userspace where it is the desktop environments duty to carry out the action. Some smaller desktop environments however don't bind an action to these keys by default so it seems that these keys don't work.
@@ -75,7 +75,7 @@ For keyboard brightness control you should use the D-Bus interface of UPower as 
 
 For touchpad toggle on X11 you can use `xinput` to enable/disable the touchpad, on Wayland the correct way is desktop environment specific.
 
-# Regarding upstreaming of tuxedo-drivers <a name="upstreaming"></a>
+# Regarding upstreaming of tuxedo-drivers
 The code, while perfectly functional, is currently not in an upstreamable state, so it is not a simple matter of changing the license and sending it to the LKML. That being said we don't oppose upstreaming and even started an effort ourself for the first small part with the keyboard backlight control for the Sirius 16 Gen 1 & 2, which will be followed by more once it is accepted.
 
 If you want to hack away at this matter yourself there are some precautions that must be taken and guidelines that must be followed to avoid breakages on both software and hardware level:
