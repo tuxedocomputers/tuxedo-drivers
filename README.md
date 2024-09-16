@@ -2,6 +2,7 @@
 - <a href="#description">Description</a>
 - <a href="#building">Building and Install</a>
 - <a href="#troubleshooting">Troubleshooting</a>
+- <a href="#upstreaming">Regarding upstreaming of tuxedo-drivers</a>
 
 # Description <a name="description"></a>
 Drivers for several platform devices for TUXEDO notebooks meant for the DKMS.
@@ -72,3 +73,13 @@ Please refer to your desktop environments documentation on how to set custom key
 For keyboard brightness control you should use the D-Bus interface of UPower as actions for the key presses.
 
 For touchpad toggle on X11 you can use `xinput` to enable/disable the touchpad, on Wayland the correct way is desktop environment specific.
+
+# Regarding upstreaming of tuxedo-drivers <a name="upstreaming"></a>
+The code, while perfectly functional, is currently not in an upstreamable state, so it is not a simple matter of changing the license and sending it to the LKML. That being said we don't oppose upstreaming and even started an effort ourself for the first small part with the keyboard backlight control for the Sirius 16 Gen 1 & 2, which will be followed by more once it is accepted.
+
+If you want to hack away at this matter yourself there are some precautions that must be taken and guidelines that must be followed to avoid breakages on both software and hardware level:
+- Involve us in the whole process. Nothing is won if at some point tuxedo-control-center or the dkms variant of tuxedo-drivers stops working. Especially when you send something to the LKML, set us in the cc.
+- We can relicense code snipetts or parts of tuxedo-drivers when you talk to us and have a serious effort of bringing parts upstream.
+- We mostly can't share documentation, but we can answer questions.
+- Code interacting with the EC, which is most of tuxedo-drivers, can brick devices and therefore must be ensured to only run on compatible and tested devices.
+- If you use tuxedo-driver as a reference, a "Codeveloped-by:<name>@tuxedocomputers.de" must be included in your upstream commit, with <name> depending on the actual part of tuxedo-drivers. Talk to us regarding this.
