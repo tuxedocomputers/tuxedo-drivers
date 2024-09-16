@@ -1,3 +1,9 @@
+tuxedo-drivers (4.7.0) jammy; urgency=medium
+
+  * Add Support for the TUXEDO InfinityFlex Gen1
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Mon, 16 Sep 2024 09:50:49 +0200
+
 tuxedo-drivers (4.6.3) jammy; urgency=medium
 
   * Fix compile for kernel 6.11

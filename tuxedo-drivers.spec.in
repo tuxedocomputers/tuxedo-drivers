@@ -161,6 +161,8 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Mon Sep 16 2024 Werner Sembach <tux@tuxedocomputers.com> 4.7.0-1
+- Add Support for the TUXEDO InfinityFlex Gen1
 * Mon Sep 02 2024 Werner Sembach <tux@tuxedocomputers.com> 4.6.3-1
 - Fix compile for kernel 6.11
 * Tue Aug 13 2024 Werner Sembach <tux@tuxedocomputers.com> 4.6.2-1
