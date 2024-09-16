@@ -25,6 +25,7 @@ Drivers for several platform devices for TUXEDO notebooks meant for the DKMS.
 - ite_8291_lb
 - ite_8297
 - ite_829x
+- stk8321
 - tuxedo_nb05_ec
 - tuxedo_nb05_power_profiles
 - tuxedo_nb05_sensors
