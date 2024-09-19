@@ -83,4 +83,4 @@ If you want to hack away at this matter yourself there are some precautions that
 - We can relicense code snipetts or parts of tuxedo-drivers when you talk to us and have a serious effort of bringing parts upstream.
 - We mostly can't share documentation, but we can answer questions.
 - Code interacting with the EC, which is most of tuxedo-drivers, can brick devices and therefore must be ensured to only run on compatible and tested devices.
-- If you use tuxedo-driver as a reference, a "Codeveloped-by:<name>@tuxedocomputers.de" must be included in your upstream commit, with <name> depending on the actual part of tuxedo-drivers. Talk to us regarding this.
+- If you use tuxedo-driver as a reference, a "Codeveloped-by:\<name\>@tuxedocomputers.de" must be included in your upstream commit, with \<name\> depending on the actual part of tuxedo-drivers. Talk to us regarding this.
