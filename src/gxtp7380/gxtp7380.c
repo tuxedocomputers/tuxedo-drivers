@@ -24,10 +24,6 @@
 
 #define DRIVER_NAME "gxtp7380"
 
-struct gxtp7380_driver_data_t {
-	struct acpi_device *adev;
-};
-
 static int gxtp7380_add(struct acpi_device *device)
 {
 	kobject_uevent(&device->dev.kobj, KOBJ_ADD);
