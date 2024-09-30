@@ -165,6 +165,9 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Mon Sep 30 2024 Werner Sembach <tux@tuxedocomputers.com> 4.8.0-1
+- Add support for InfinityFlex toggle touchscreen button
+- Update ReadMe
 * Mon Sep 16 2024 Werner Sembach <tux@tuxedocomputers.com> 4.7.0-1
 - Add Support for the TUXEDO InfinityFlex Gen1
 * Mon Sep 02 2024 Werner Sembach <tux@tuxedocomputers.com> 4.6.3-1

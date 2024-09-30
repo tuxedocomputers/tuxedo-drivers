@@ -1,3 +1,10 @@
+tuxedo-drivers (4.8.0) jammy; urgency=medium
+
+  * Add support for InfinityFlex toggle touchscreen button
+  * Update ReadMe
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Mon, 30 Sep 2024 14:29:25 +0200
+
 tuxedo-drivers (4.7.0) jammy; urgency=medium
 
   * Add Support for the TUXEDO InfinityFlex Gen1
