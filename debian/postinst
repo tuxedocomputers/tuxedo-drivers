@@ -47,6 +47,7 @@ case "$1" in
         rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
         rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
         rmmod stk8321 > /dev/null 2>&1 || true
+        rmmod gxtp7380 > /dev/null 2>&1 || true
         modprobe tuxedo_compatibility_check > /dev/null 2>&1 || true
         modprobe tuxedo_keyboard > /dev/null 2>&1 || true
         modprobe clevo_acpi > /dev/null 2>&1 || true
@@ -71,6 +72,7 @@ case "$1" in
         modprobe tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
         modprobe tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
         modprobe stk8321 > /dev/null 2>&1 || true
+        modprobe gxtp7380 > /dev/null 2>&1 || true
 
         # Restart UPower
         echo "Start UPower again"

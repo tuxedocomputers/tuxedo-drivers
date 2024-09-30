@@ -46,6 +46,7 @@ cp -r %{_builddir}/%{name}-%{version}/etc %{buildroot}
 %config(noreplace) %{_sysconfdir}/modprobe.d/tuxedo_keyboard.conf
 %license LICENSE
 /usr/lib/udev/rules.d/99-z-tuxedo-systemd-fix.rules
+/usr/lib/udev/rules.d/99-infinityflex-touchpanel-toggle.rules
 /usr/lib/udev/hwdb.d/61-sensor-infinityflex.hwdb
 
 %post
@@ -91,6 +92,7 @@ rmmod tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
 rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
 rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 rmmod stk8321 > /dev/null 2>&1 || true
+rmmod gxtp7380 > /dev/null 2>&1 || true
 modprobe tuxedo_compatibility_check > /dev/null 2>&1 || true
 modprobe tuxedo_keyboard > /dev/null 2>&1 || true
 modprobe clevo_acpi > /dev/null 2>&1 || true
@@ -115,6 +117,7 @@ modprobe tuxedo_nb04_sensors > /dev/null 2>&1 || true
 modprobe tuxedo_nb04_power_profiles > /dev/null 2>&1 || true
 modprobe tuxedo_nb04_kbd_backlight > /dev/null 2>&1 || true
 modprobe stk8321 > /dev/null 2>&1 || true
+modprobe gxtp7380 > /dev/null 2>&1 || true
 # Restart UPower
 echo "Start UPower again"
 systemctl restart upower 2>&1 || true
@@ -154,6 +157,7 @@ rmmod tuxedo_nb04_wmi_ab > /dev/null 2>&1 || true
 rmmod tuxedo_nb04_wmi_bs > /dev/null 2>&1 || true
 rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
 rmmod stk8321 > /dev/null 2>&1 || true
+rmmod gxtp7380 > /dev/null 2>&1 || true
 # Remove modules via DKMS
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 # Restart UPower

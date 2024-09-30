@@ -13,3 +13,4 @@ obj-y += tuxedo_nb02_nvidia_power_ctrl/
 obj-y += tuxedo_nb05/
 obj-y += tuxedo_nb04/
 obj-y += stk8321/
+obj-y += gxtp7380/
