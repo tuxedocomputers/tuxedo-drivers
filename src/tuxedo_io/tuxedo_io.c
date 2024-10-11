@@ -125,6 +125,9 @@ static int tdp_max_gmxpxxx[] = { 0x82, 0x82, 0xc8 };
 static int tdp_min_gmxxgxx[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxxgxx[] = { 0x50, 0x50, 0x64 };
 
+static int tdp_min_gmxixxb[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxixxb[] = { 0xa0, 0xa0, 0xfa };
+
 static int tdp_min_gmxixxn[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxixxn[] = { 0xa0, 0xa0, 0xfa };
 
@@ -189,8 +192,8 @@ void uw_id_tdp(void)
 		tdp_min_defs = tdp_min_gmxxgxx;
 		tdp_max_defs = tdp_max_gmxxgxx;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06")) {
-		tdp_min_defs = tdp_min_gmxixxn;
-		tdp_max_defs = tdp_max_gmxixxn;
+		tdp_min_defs = tdp_min_gmxixxb;
+		tdp_max_defs = tdp_max_gmxixxb;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06")) {
 		tdp_min_defs = tdp_min_gmxixxn;
 		tdp_max_defs = tdp_max_gmxixxn;
@@ -556,11 +559,18 @@ static int uw_set_tdp(u8 tdp_index, u8 tdp_data)
 	int tdp_min, tdp_max;
 	u16 tdp_base_addr = 0x0783;
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
+	u8 data;
 
-	// Ensure that "custom" profile is chosen to enable TDP set
-	// for devices that require this
-	if (uw_feats->uniwill_profile_custom_change_tdp_only)
+	if (uw_feats->uniwill_profile_custom_change_tdp_only) {
+		// Ensure that balanced profile is chosen when using TDP set
+		// for devices that require this
 		uw_set_performance_profile_v1(0x00);
+
+		// Also make sure custom TDP mode is set
+		uniwill_read_ec_ram(0x0727, &data);
+		data |= (1 << 6);
+		uniwill_write_ec_ram(0x0727, data);
+	}
 
 	// Use min tdp to detect support for chosen tdp parameter
 	int min_tdp_status = uw_get_tdp_min(tdp_index);
