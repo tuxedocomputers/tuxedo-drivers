@@ -131,6 +131,12 @@ static int tdp_max_gmxixxb[] = { 0xa0, 0xa0, 0xfa };
 static int tdp_min_gmxixxn[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxixxn[] = { 0xa0, 0xa0, 0xfa };
 
+static int tdp_min_gmxixxa[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxixxa[] = { 0x8c, 0x8c, 0xc8 };
+
+static int tdp_min_gmxhgxa[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxhgxa[] = { 0x5a, 0x5a, 0x64 };
+
 static int *tdp_min_defs = NULL;
 static int *tdp_max_defs = NULL;
 
@@ -197,6 +203,12 @@ void uw_id_tdp(void)
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06")) {
 		tdp_min_defs = tdp_min_gmxixxn;
 		tdp_max_defs = tdp_max_gmxixxn;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLSL15I06")) {
+		tdp_min_defs = tdp_min_gmxixxa;
+		tdp_max_defs = tdp_max_gmxixxa;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLSL15A06")) {
+		tdp_min_defs = tdp_min_gmxhgxa;
+		tdp_max_defs = tdp_max_gmxhgxa;
 #endif
 	} else {
 		tdp_min_defs = NULL;
