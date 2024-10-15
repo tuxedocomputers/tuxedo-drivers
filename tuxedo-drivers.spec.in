@@ -165,6 +165,10 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Tue Oct 15 2024 Werner Sembach <tux@tuxedocomputers.com> 4.9.0-1
+- Add power profiles support for IBP Gen9
+- Add Stellaris Slim Gen6 TDP support
+- Fix TDP set for Stellaris Gen6 devices
 * Mon Sep 30 2024 Werner Sembach <tux@tuxedocomputers.com> 4.8.0-1
 - Add support for InfinityFlex toggle touchscreen button
 - Update ReadMe
