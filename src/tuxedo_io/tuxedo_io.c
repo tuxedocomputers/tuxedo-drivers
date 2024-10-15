@@ -462,7 +462,10 @@ static u32 uw_set_fan(u32 fan_index, u8 fan_speed)
 		uniwill_write_ec_ram(addr_for_fan, fan_speed & 0xff);
 
 		// Also write speed directly for fast response
-		direct_fan_control(fan_index, fan_speed, false);
+		// except for IBP Gen9
+		if (!dmi_match(DMI_BOARD_NAME, "GXxHRXx") &&
+		    !dmi_match(DMI_BOARD_NAME, "GXxMRXx"))
+			direct_fan_control(fan_index, fan_speed, false);
 	}
 	else { // old workaround using full fan mode
 		direct_fan_control(fan_index, fan_speed, true);
