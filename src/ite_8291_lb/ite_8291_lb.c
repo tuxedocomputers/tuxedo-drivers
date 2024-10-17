@@ -211,6 +211,11 @@ static int ite8291_write_lightbar_mono(struct hid_device *hdev, u8 red, u8 green
 		ite8291_write_control(hdev, (u8[]){ 0x08, 0x21, 0x01, 0x01, brightness, 0x01, 0x00, 0x00 });
 		break;
 
+	case 0x7001:
+		ite8291_write_control(hdev, (u8[]){ 0x14, 0x00, 0x01, red, green, blue, 0x00, 0x00 });
+		ite8291_write_control(hdev, (u8[]){ 0x08, 0x22, 0x01, 0x01, brightness, 0x01, 0x00, 0x00 });
+		break;
+
 	default:
 		return -ENOSYS;
 	}
@@ -609,6 +614,7 @@ static int driver_reset_resume_callb(struct hid_device *hdev)
 static const struct hid_device_id ite8291_device_table[] = {
 	{ HID_USB_DEVICE(0x048d, 0x6010) },
 	{ HID_USB_DEVICE(0x048d, 0x7000) },
+	{ HID_USB_DEVICE(0x048d, 0x7001) },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, ite8291_device_table);
