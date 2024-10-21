@@ -1049,12 +1049,14 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 #endif
 	;
 
-	uw_feats->uniwill_profile_custom_change_tdp_only = false
+	uw_feats->uniwill_custom_profile_mode_needed = false
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06")
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06")
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLSL15I06")
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLSL15A06")
+		|| dmi_match(DMI_BOARD_NAME, "GXxMRXx")
+		|| dmi_match(DMI_BOARD_NAME, "GXxHRXx")
 #endif
 	;
 
@@ -1197,6 +1199,19 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 			uniwill_read_ec_ram(0x0786 + i, &data);
 			uniwill_write_ec_ram(0x0743 + i, data);
 		}
+	}
+
+	// Make sure custom TDP/custom fan curve mode is set. Using the
+	// custom profile mode flag to ID this set of devices.
+	if (uw_feats->uniwill_custom_profile_mode_needed) {
+		// Certain devices seem to need this first reset to
+		// zero on boot to have it properly applied
+		uniwill_read_ec_ram(0x0727, &data);
+		data &= ~(1 << 6);
+		uniwill_write_ec_ram(0x0727, data);
+		msleep(50);
+		data |= (1 << 6);
+		uniwill_write_ec_ram(0x0727, data);
 	}
 
 	// Enable manual mode

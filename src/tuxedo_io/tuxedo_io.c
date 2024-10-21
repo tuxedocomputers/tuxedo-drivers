@@ -464,7 +464,8 @@ static u32 uw_set_fan(u32 fan_index, u8 fan_speed)
 		else
 			return -EINVAL;
 
-		if (fan_speed == 0) {
+		if (fan_speed == 0 &&
+		    !dmi_match(DMI_BOARD_NAME, "GXxMRXx")) {
 			// Avoid hard coded EC behaviour: Setting fan speed = 0x00 spins the fan up
 			// to 0x3c (30%) for 3 minutes before going to 0x00. Setting fan speed = 1
 			// also causes the fan to stop since on 2020 or later TF devices the
@@ -476,11 +477,7 @@ static u32 uw_set_fan(u32 fan_index, u8 fan_speed)
 
 		uniwill_write_ec_ram(addr_for_fan, fan_speed & 0xff);
 
-		// Also write speed directly for fast response
-		// except for IBP Gen9
-		if (!dmi_match(DMI_BOARD_NAME, "GXxHRXx") &&
-		    !dmi_match(DMI_BOARD_NAME, "GXxMRXx"))
-			direct_fan_control(fan_index, fan_speed, false);
+		direct_fan_control(fan_index, fan_speed, false);
 	}
 	else { // old workaround using full fan mode
 		direct_fan_control(fan_index, fan_speed, true);
@@ -576,15 +573,10 @@ static int uw_set_tdp(u8 tdp_index, u8 tdp_data)
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
 	u8 data;
 
-	if (uw_feats->uniwill_profile_custom_change_tdp_only) {
+	if (uw_feats->uniwill_custom_profile_mode_needed) {
 		// Ensure that balanced profile is chosen when using TDP set
 		// for devices that require this
 		uw_set_performance_profile_v1(0x00);
-
-		// Also make sure custom TDP mode is set
-		uniwill_read_ec_ram(0x0727, &data);
-		data |= (1 << 6);
-		uniwill_write_ec_ram(0x0727, data);
 	}
 
 	// Use min tdp to detect support for chosen tdp parameter
