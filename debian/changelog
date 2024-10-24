@@ -1,3 +1,10 @@
+tuxedo-drivers (4.10.0) jammy; urgency=medium
+
+  * Fix IBP Gen9 fan control hickups
+  * Add basic lightbar support for new devices
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 24 Oct 2024 16:46:17 +0200
+
 tuxedo-drivers (4.9.0) jammy; urgency=medium
 
   * Add power profiles support for IBP Gen9
