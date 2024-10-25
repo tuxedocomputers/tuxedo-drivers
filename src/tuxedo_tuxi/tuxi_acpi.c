@@ -249,7 +249,7 @@ static void tuxi_acpi_remove(struct acpi_device *device)
 #endif
 }
 
-void tuxi_acpi_notify(struct acpi_device *device, u32 event)
+static void tuxi_acpi_notify(struct acpi_device *device, u32 event)
 {
 	pr_debug("event: %d\n", event);
 }
@@ -278,7 +278,9 @@ static const struct acpi_device_id tuxi_acpi_device_ids[] = {
 static struct acpi_driver tuxi_acpi_driver = {
 	.name = DRIVER_NAME,
 	.class = DRIVER_NAME,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0)
 	.owner = THIS_MODULE,
+#endif
 	.ids = tuxi_acpi_device_ids,
 	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
 	.ops = {
