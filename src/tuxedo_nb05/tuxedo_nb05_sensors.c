@@ -76,6 +76,8 @@ tuxedo_nb05_hwmon_is_visible(const void *drvdata, enum hwmon_sensor_types type,
 		if (channel < driver_data->number_fans)
 			return 0444;
 		break;
+	default:
+		break;
 	}
 
 	return 0;

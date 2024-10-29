@@ -455,7 +455,7 @@ static int ite8291_write_state(struct hid_device *hdev)
 					   ite8291_driver_data->mcled_cdev_lightbar.led_cdev.brightness);
 }
 
-void leds_set_brightness_mc_lightbar(struct led_classdev *led_cdev, enum led_brightness brightness) {
+static void leds_set_brightness_mc_lightbar(struct led_classdev *led_cdev, enum led_brightness brightness) {
 	struct device *dev = led_cdev->dev->parent;
 	struct hid_device *hdev = to_hid_device(dev);
 

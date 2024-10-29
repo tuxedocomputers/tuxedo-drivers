@@ -140,7 +140,7 @@ static int tdp_max_gmxhgxa[] = { 0x5a, 0x5a, 0x64 };
 static int *tdp_min_defs = NULL;
 static int *tdp_max_defs = NULL;
 
-void uw_id_tdp(void)
+static void uw_id_tdp(void)
 {
 	if (uw_feats->model == UW_MODEL_PH4TUX) {
 		tdp_min_defs = tdp_min_ph4tux;
@@ -571,7 +571,6 @@ static int uw_set_tdp(u8 tdp_index, u8 tdp_data)
 	int tdp_min, tdp_max;
 	u16 tdp_base_addr = 0x0783;
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
-	u8 data;
 
 	if (uw_feats->uniwill_custom_profile_mode_needed) {
 		// Ensure that balanced profile is chosen when using TDP set

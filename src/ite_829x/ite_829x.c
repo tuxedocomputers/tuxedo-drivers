@@ -103,7 +103,7 @@ static int keyb_send_data(struct hid_device *dev, u8 cmd, u8 d0, u8 d1, u8 d2, u
 	return result;
 }
 
-void keyb_set_all(struct hid_device *dev, u8 color_red, u8 color_green, u8 color_blue)
+static void keyb_set_all(struct hid_device *dev, u8 color_red, u8 color_green, u8 color_blue)
 {
 	int row, col;
 	for (row = 0; row < KEYBOARD_ROWS; ++row) {
@@ -194,7 +194,7 @@ err_stop_hw:
 	return result;
 }
 
-void leds_set_brightness_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
+static void leds_set_brightness_mc(struct led_classdev *led_cdev, enum led_brightness brightness) {
 	int i, j;
 	struct led_classdev_mc *led_cdev_mc = lcdev_to_mccdev(led_cdev);
 
@@ -240,7 +240,7 @@ static void key_actions(unsigned long key_code)
 
 static volatile unsigned long last_key = 0;
 
-void ite_829x_key_work_handler(struct work_struct *work)
+static void ite_829x_key_work_handler(struct work_struct *work)
 {
 	key_actions(last_key);
 }

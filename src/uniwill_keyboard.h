@@ -1157,7 +1157,7 @@ static ssize_t uniwill_fn_lock_store(struct device *dev,
 	return size;
 }
 
-bool uniwill_fn_lock_available(void){
+static bool uniwill_fn_lock_available(void){
 	int err, on;
 
 	// Fn lock does not work for XMG Fusion

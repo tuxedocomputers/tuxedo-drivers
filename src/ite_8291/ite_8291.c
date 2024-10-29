@@ -430,7 +430,7 @@ err_stop_hw:
 }
 
 /*
-void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness brightness) {
+static void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness brightness) {
 	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
 	struct device *dev = led_cdev->dev->parent;
 	struct hid_device *hdev = to_hid_device(dev);
@@ -446,7 +446,7 @@ void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness 
 }
 */
 
-void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness brightness) {
+static void leds_set_brightness_mc (struct led_classdev *led_cdev, enum led_brightness brightness) {
 	int i, j;
 	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
 	struct device *dev = led_cdev->dev->parent;

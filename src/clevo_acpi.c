@@ -125,7 +125,7 @@ static int clevo_acpi_evaluate_pkgbuf(struct acpi_device *device, u8 cmd, u8 *ar
 	return status;
 }
 
-int clevo_acpi_interface_method_call(u8 cmd, u32 arg, union acpi_object **result_value)
+static int clevo_acpi_interface_method_call(u8 cmd, u32 arg, union acpi_object **result_value)
 {
 	int status = 0;
 
@@ -141,7 +141,7 @@ int clevo_acpi_interface_method_call(u8 cmd, u32 arg, union acpi_object **result
 	return status;
 }
 
-int clevo_acpi_interface_method_call_pkgbuf(u8 cmd, u8 *arg, u32 length, union acpi_object **result_value)
+static int clevo_acpi_interface_method_call_pkgbuf(u8 cmd, u8 *arg, u32 length, union acpi_object **result_value)
 {
 	int status = 0;
 
@@ -199,7 +199,7 @@ static void clevo_acpi_remove(struct acpi_device *device)
 #endif
 }
 
-void clevo_acpi_notify(struct acpi_device *device, u32 event)
+static void clevo_acpi_notify(struct acpi_device *device, u32 event)
 {
 	u32 event_value;
 	union acpi_object *out_obj;

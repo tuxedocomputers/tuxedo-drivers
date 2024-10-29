@@ -45,7 +45,7 @@ static struct wmi_device *__wmi_dev;
 
 static int rewrite_last_profile_internal(void);
 
-void nb05_rewrite_profile_work_handler(struct work_struct *work)
+static void nb05_rewrite_profile_work_handler(struct work_struct *work)
 {
 	rewrite_last_profile_internal();
 }
@@ -109,14 +109,13 @@ static int __nb05_wmi_aa_method(struct wmi_device *wdev, u32 wmi_method_id,
 	return 0;
 }
 
-int nb05_wmi_aa_method(u32 wmi_method_id, u64 *in, u64 *out)
+static int nb05_wmi_aa_method(u32 wmi_method_id, u64 *in, u64 *out)
 {
 	if (__wmi_dev)
 		return __nb05_wmi_aa_method(__wmi_dev, wmi_method_id, in, out);
 	else
 		return -ENODEV;
 }
-EXPORT_SYMBOL(nb05_wmi_aa_method);
 
 static int write_profile(u64 profile)
 {

@@ -55,12 +55,12 @@ static int clevo_wmi_evaluate(u32 wmi_method_id, u32 wmi_arg, union acpi_object 
 	return return_status;
 }
 
-int clevo_wmi_interface_method_call(u8 cmd, u32 arg, union acpi_object **result_value)
+static int clevo_wmi_interface_method_call(u8 cmd, u32 arg, union acpi_object **result_value)
 {
 	return clevo_wmi_evaluate(cmd, arg, result_value);
 }
 
-int clevo_wmi_interface_method_call_pkgbuf(u8 cmd, u8 *arg, u32 length, union acpi_object **result_value)
+static int clevo_wmi_interface_method_call_pkgbuf(u8 cmd, u8 *arg, u32 length, union acpi_object **result_value)
 {
 	pr_info("%s: unsupported wmi method call; ignoring cmd 0x%02x; please use acpi interface\n",
 			__func__, cmd);

@@ -35,7 +35,7 @@ struct driver_data_t {
 	struct device_keyboard_status_t device_status;
 };
 
-void leds_set_brightness_mc_keyboard(struct led_classdev *led_cdev, enum led_brightness brightness)
+static void leds_set_brightness_mc_keyboard(struct led_classdev *led_cdev, enum led_brightness brightness)
 {
 	struct led_classdev_mc *mcled_cdev = lcdev_to_mccdev(led_cdev);
 	u8 red = mcled_cdev->subled_info[0].intensity;
