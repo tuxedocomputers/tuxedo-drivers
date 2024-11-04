@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0+ */
 /*!
  * Copyright (c) 2018-2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -391,6 +392,6 @@ bool uniwill_leds_notify_brightness_change_extern(void) {
 	return false;
 }
 
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v3");
 
 #endif // UNIWILL_LEDS_H

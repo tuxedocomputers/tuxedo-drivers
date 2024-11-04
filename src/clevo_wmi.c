@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -174,7 +175,7 @@ module_wmi_driver(clevo_wmi_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for Clevo WMI interface");
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v3");
 
 MODULE_DEVICE_TABLE(wmi, clevo_wmi_device_ids);
 MODULE_ALIAS_CLEVO_WMI();

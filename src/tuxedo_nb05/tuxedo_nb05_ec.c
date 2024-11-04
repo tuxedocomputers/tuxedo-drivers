@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2023-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -215,4 +216,4 @@ module_exit(tuxedo_nb05_ec_exit);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for NB05 EC I/O");
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v3");

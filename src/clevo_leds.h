@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0+ */
 /*!
  * Copyright (c) 2018-2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -548,6 +549,6 @@ void clevo_leds_set_color_extern(u32 color) {
 }
 EXPORT_SYMBOL(clevo_leds_set_color_extern);
 
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v3");
 
 #endif // CLEVO_LEDS_H

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -68,6 +69,6 @@ module_acpi_driver(gxtp7380_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Touch panel disable, notify driver");
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v3");
 
 MODULE_DEVICE_TABLE(acpi, gxtp7380_device_ids);

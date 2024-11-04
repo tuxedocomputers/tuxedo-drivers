@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -267,6 +268,6 @@ module_acpi_driver(clevo_acpi_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for Clevo ACPI interface");
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v3");
 
 MODULE_DEVICE_TABLE(acpi, clevo_acpi_device_ids);
