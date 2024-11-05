@@ -200,6 +200,27 @@ int tuxi_get_fan_type(u8 fan_index, enum tuxi_fan_type *type)
 }
 EXPORT_SYMBOL(tuxi_get_fan_type);
 
+int tuxi_get_fan_temp(u8 index, u16 *temp)
+{
+	unsigned long long int retval;
+	long long int args[] = { index };
+	int err;
+	err = evaluate_intparams(tuxi_driver_data->tfan_handle,
+				 "GTMP",
+				 args, ARRAY_SIZE(args),
+				 &retval);
+	if (err)
+		return err;
+
+	if (retval < 0)
+		return -EINVAL;
+
+	*temp = (u16) retval;
+
+	return 0;
+}
+EXPORT_SYMBOL(tuxi_get_fan_temp);
+
 static int get_tfan(struct acpi_device *tuxi_dev, acpi_handle *tfan_handle)
 {
 	acpi_status status;

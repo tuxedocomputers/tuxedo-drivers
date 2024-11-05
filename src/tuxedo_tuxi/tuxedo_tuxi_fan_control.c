@@ -23,6 +23,7 @@
 #include <linux/slab.h>
 #include <linux/dmi.h>
 #include <linux/version.h>
+#include <linux/hwmon.h>
 #include "tuxi_acpi.h"
 
 #define FAN_SET_DUTY_MAX 255
@@ -225,9 +226,81 @@ static ssize_t fan2_pwm_enable_store(struct device *dev,
 	return size;
 }
 
+static umode_t
+hwm_is_visible(const void __always_unused *drvdata,
+	       enum hwmon_sensor_types __always_unused type,
+	       u32 __always_unused attr, int __always_unused channel)
+{
+	return 0444;
+}
+
+static int
+hwm_read(struct device __always_unused *dev, enum hwmon_sensor_types type,
+	 u32 __always_unused attr, int channel, long *val)
+{
+	int err;
+	u16 temp;
+
+	switch (type) {
+	case hwmon_temp:
+		err = tuxi_get_fan_temp(channel, &temp);
+		if (err)
+			return err;
+		*val = (temp - 2730) * 100; // temp is in tenth Kelvin, hovever
+					    // the last digit is always 0, so
+					    // the conversion is also rounded to
+					    // whole °C.
+		return 0;
+	default:
+		break;
+	}
+
+	return -EOPNOTSUPP;
+}
+
+static const char * const hwm_temp_labels[] = {
+	"cpu0",
+	"gpu0"
+};
+
+static int
+hwm_read_string(struct device __always_unused *dev,
+		enum hwmon_sensor_types type, u32 __always_unused attr,
+		int channel, const char **str)
+{
+	switch (type) {
+	case hwmon_temp:
+		*str = hwm_temp_labels[channel];
+		return 0;
+	default:
+		break;
+	}
+
+	return -EOPNOTSUPP;
+}
+
+static const struct hwmon_ops hwmops = {
+	.is_visible = hwm_is_visible,
+	.read = hwm_read,
+	.read_string = hwm_read_string
+};
+
+static const struct hwmon_channel_info *const hwmcinfo[] = {
+	HWMON_CHANNEL_INFO(temp,
+			   HWMON_T_INPUT | HWMON_T_LABEL,
+			   HWMON_T_INPUT | HWMON_T_LABEL),
+	NULL
+};
+
+static const struct hwmon_chip_info hwminfo = {
+	.ops = &hwmops,
+	.info = hwmcinfo
+};
+
 static int __init tuxedo_tuxi_fan_control_probe(struct platform_device *pdev)
 {
 	int err;
+	struct device *hwmdev;
 	struct driver_data_t *driver_data = devm_kzalloc(&pdev->dev, sizeof(*driver_data), GFP_KERNEL);
 	if (!driver_data)
 		return -ENOMEM;
@@ -245,7 +318,12 @@ static int __init tuxedo_tuxi_fan_control_probe(struct platform_device *pdev)
 		return err;
 	}
 
-	return 0;
+	hwmdev = devm_hwmon_device_register_with_info(&pdev->dev,
+						      "tuxedo",
+						      NULL,
+						      &hwminfo,
+						      NULL);
+	return PTR_ERR_OR_ZERO(hwmdev);
 }
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
