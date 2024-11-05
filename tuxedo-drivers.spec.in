@@ -165,6 +165,9 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Tue Nov 05 2024 Werner Sembach <tux@tuxedocomputers.com> 4.10.1-1
+- Fix compile errors with linux 6.12
+- Fix compile warnings
 * Thu Oct 24 2024 Werner Sembach <tux@tuxedocomputers.com> 4.10.0-1
 - Fix IBP Gen9 fan control hickups
 - Add basic lightbar support for new devices

@@ -1,3 +1,10 @@
+tuxedo-drivers (4.10.1) noble; urgency=medium
+
+  * Fix compile errors with linux 6.12
+  * Fix compile warnings
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 05 Nov 2024 17:12:42 +0100
+
 tuxedo-drivers (4.10.0) jammy; urgency=medium
 
   * Fix IBP Gen9 fan control hickups
