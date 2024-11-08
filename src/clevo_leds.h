@@ -41,6 +41,7 @@ void clevo_leds_restore_state_extern(void);
 void clevo_leds_notify_brightness_change_extern(void);
 void clevo_leds_set_brightness_extern(enum led_brightness brightness);
 void clevo_leds_set_color_extern(u32 color);
+static bool dmi_string_in(enum dmi_field f, const char *str);
 
 // TODO The following should go into a seperate .c file, but for this to work more reworking is required in the tuxedo_keyboard structure.
 
@@ -50,6 +51,7 @@ void clevo_leds_set_color_extern(u32 color);
 
 #include <linux/led-class-multicolor.h>
 #include <linux/delay.h>
+#include <linux/dmi.h>
 
 #define CLEVO_KBD_BRIGHTNESS_MAX			0xff
 #define CLEVO_KBD_BRIGHTNESS_DEFAULT			0x00
@@ -359,6 +361,15 @@ int clevo_leds_init(struct platform_device *dev)
 		}
 	}
 	pr_debug("Keyboard backlight type: 0x%02x\n", clevo_kb_backlight_type);
+
+	// detection of N14xWUs white keyboard backlight with five steps fails
+	// old DMI strings may have trailing spaces (dmi_string_in for substring match)
+	if (dmi_string_in(DMI_BOARD_NAME, "N14xWU") ||
+	    dmi_string_in(DMI_BOARD_NAME, "N13xWU")) {
+		pr_notice("Use keyboard backlight quirk for TUXEDO IBP v3\n");
+		clevo_led_cdev.max_brightness = CLEVO_KBD_BRIGHTNESS_WHITE_MAX_5;
+		clevo_led_cdev.brightness = CLEVO_KBD_BRIGHTNESS_WHITE_MAX_5_DEFAULT;
+	}
 
 	if (clevo_kb_backlight_type == CLEVO_KB_BACKLIGHT_TYPE_FIXED_COLOR)
 		clevo_leds_set_brightness_extern(clevo_led_cdev.brightness);
