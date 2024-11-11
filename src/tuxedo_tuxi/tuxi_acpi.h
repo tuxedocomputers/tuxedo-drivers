@@ -41,5 +41,6 @@ int tuxi_set_fan_mode(enum tuxi_fan_mode mode);
 int tuxi_get_fan_mode(enum tuxi_fan_mode *mode);
 int tuxi_get_fan_type(u8 fan_index, enum tuxi_fan_type *type);
 int tuxi_get_fan_temp(u8 index, u16 *temp);
+int tuxi_get_fan_rpm(u8 index, u16 *rpm);
 
 #endif

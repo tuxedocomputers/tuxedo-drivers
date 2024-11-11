@@ -221,6 +221,27 @@ int tuxi_get_fan_temp(u8 index, u16 *temp)
 }
 EXPORT_SYMBOL(tuxi_get_fan_temp);
 
+int tuxi_get_fan_rpm(u8 index, u16 *rpm)
+{
+	unsigned long long int retval;
+	long long int args[] = { index };
+	int err;
+	err = evaluate_intparams(tuxi_driver_data->tfan_handle,
+				 "GRPM",
+				 args, ARRAY_SIZE(args),
+				 &retval);
+	if (err)
+		return err;
+
+	if (retval < 0)
+		return -EINVAL;
+
+	*rpm = (u16) retval;
+
+	return 0;
+}
+EXPORT_SYMBOL(tuxi_get_fan_rpm);
+
 static int get_tfan(struct acpi_device *tuxi_dev, acpi_handle *tfan_handle)
 {
 	acpi_status status;

@@ -240,6 +240,7 @@ hwm_read(struct device __always_unused *dev, enum hwmon_sensor_types type,
 {
 	int err;
 	u16 temp;
+	u16 rpm;
 
 	switch (type) {
 	case hwmon_temp:
@@ -251,6 +252,23 @@ hwm_read(struct device __always_unused *dev, enum hwmon_sensor_types type,
 					    // the conversion is also rounded to
 					    // whole °C.
 		return 0;
+	case hwmon_fan:
+		switch (attr) {
+		case hwmon_fan_min:
+			*val = 0;
+			return 0;
+		case hwmon_fan_max:
+			*val = 6000; // FIXME Return value read from firmware.
+			return 0;
+		case hwmon_fan_input:
+			err = tuxi_get_fan_rpm(channel, &rpm);
+			if (err)
+				return err;
+			*val = rpm;
+			return 0;
+		default:
+			break;
+		}
 	default:
 		break;
 	}
@@ -263,6 +281,11 @@ static const char * const hwm_temp_labels[] = {
 	"gpu0"
 };
 
+static const char * const hwm_fan_labels[] = {
+	"cpu0",
+	"gpu0"
+};
+
 static int
 hwm_read_string(struct device __always_unused *dev,
 		enum hwmon_sensor_types type, u32 __always_unused attr,
@@ -271,6 +294,9 @@ hwm_read_string(struct device __always_unused *dev,
 	switch (type) {
 	case hwmon_temp:
 		*str = hwm_temp_labels[channel];
+		return 0;
+	case hwmon_fan:
+		*str = hwm_fan_labels[channel];
 		return 0;
 	default:
 		break;
@@ -289,6 +315,9 @@ static const struct hwmon_channel_info *const hwmcinfo[] = {
 	HWMON_CHANNEL_INFO(temp,
 			   HWMON_T_INPUT | HWMON_T_LABEL,
 			   HWMON_T_INPUT | HWMON_T_LABEL),
+	HWMON_CHANNEL_INFO(fan,
+			   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_MIN | HWMON_F_MAX,
+			   HWMON_F_INPUT | HWMON_F_LABEL | HWMON_F_MIN | HWMON_F_MAX),
 	NULL
 };
 
@@ -300,6 +329,7 @@ static const struct hwmon_chip_info hwminfo = {
 static int __init tuxedo_tuxi_fan_control_probe(struct platform_device *pdev)
 {
 	int err;
+	u16 temp, rpm;
 	struct device *hwmdev;
 	struct driver_data_t *driver_data = devm_kzalloc(&pdev->dev, sizeof(*driver_data), GFP_KERNEL);
 	if (!driver_data)
@@ -318,12 +348,18 @@ static int __init tuxedo_tuxi_fan_control_probe(struct platform_device *pdev)
 		return err;
 	}
 
-	hwmdev = devm_hwmon_device_register_with_info(&pdev->dev,
-						      "tuxedo",
-						      NULL,
-						      &hwminfo,
-						      NULL);
-	return PTR_ERR_OR_ZERO(hwmdev);
+	if(tuxi_get_fan_temp(0, &temp) == 0 && tuxi_get_fan_rpm(0, &rpm) == 0) {
+		hwmdev = devm_hwmon_device_register_with_info(&pdev->dev,
+							      "tuxedo_tuxi_sensors",
+							      NULL,
+							      &hwminfo,
+							      NULL);
+		return PTR_ERR_OR_ZERO(hwmdev);
+	}
+	pr_debug("Old tuxi interface with missing temp and rpm functions detected.\n");
+	pr_debug("Skipping hwmon creation.\n");
+
+	return 0;
 }
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
