@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0+
 #include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/delay.h>
@@ -355,5 +356,5 @@ module_exit(tuxedo_nb02_nvidia_power_ctrl_exit);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("TUXEDO Computers Dynamic Boost and cTGP control driver for NVIDIA silicon for devices marked with board_vendor NB02");
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v3");
 MODULE_ALIAS("platform:tuxedo_keyboard");

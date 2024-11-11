@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2020-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -901,4 +902,4 @@ module_hid_driver(ite8291_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for ITE Device(8291) RGB LED keyboard backlight.");
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v3");

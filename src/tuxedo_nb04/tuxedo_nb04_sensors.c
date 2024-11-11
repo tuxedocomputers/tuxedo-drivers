@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -285,4 +286,4 @@ module_exit(tuxedo_nb04_sensors_exit);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("TUXEDO Computers NB04 sensors driver");
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v3");

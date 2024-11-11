@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2021 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -381,7 +382,7 @@ module_wmi_driver(uniwill_wmi_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for Uniwill WMI interface");
-MODULE_LICENSE("GPL");
+MODULE_LICENSE("GPL v3");
 
 /*
  * If set to true, the module will use the replicated WMI functions
