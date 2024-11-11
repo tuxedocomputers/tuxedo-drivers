@@ -58,7 +58,7 @@ static u32 uw_set_fan_auto(void);
 static int uw_get_tdp_min(u8 tdp_index);
 static int uw_get_tdp_max(u8 tdp_index);
 static int uw_get_tdp(u8 tdp_index);
-static int uw_set_tdp(u8 tdp_index, u8 tdp_data);
+static int uw_set_tdp(u8 tdp_index, int tdp_value);
 static u32 uw_set_performance_profile_v1(u8 profile_index);
 
 /**
@@ -127,8 +127,11 @@ static int tdp_max_gmxpxxx[] = { 0x82, 0x82, 0xc8 };
 static int tdp_min_gmxxgxx[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxxgxx[] = { 0x50, 0x50, 0x64 };
 
-static int tdp_min_gmxixxb[] = { 0x05, 0x05, 0x05 };
-static int tdp_max_gmxixxb[] = { 0xa0, 0xa0, 0xfa };
+static int tdp_min_gmxixxb_mb1[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxixxb_mb1[] = { 0xcd, 0xcd, 0x190 };
+
+static int tdp_min_gmxixxb_mb2[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxixxb_mb2[] = { 0xa0, 0xa0, 0xfa };
 
 static int tdp_min_gmxixxn[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxixxn[] = { 0xa0, 0xa0, 0xfa };
@@ -199,9 +202,14 @@ static void uw_id_tdp(void)
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XA05")) {
 		tdp_min_defs = tdp_min_gmxxgxx;
 		tdp_max_defs = tdp_max_gmxxgxx;
-	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06")) {
-		tdp_min_defs = tdp_min_gmxixxb;
-		tdp_max_defs = tdp_max_gmxixxb;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06") &&
+		   dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB1")) {
+		tdp_min_defs = tdp_min_gmxixxb_mb1;
+		tdp_max_defs = tdp_max_gmxixxb_mb1;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06") &&
+		   dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB2")) {
+		tdp_min_defs = tdp_min_gmxixxb_mb2;
+		tdp_max_defs = tdp_max_gmxixxb_mb2;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06")) {
 		tdp_min_defs = tdp_min_gmxixxn;
 		tdp_max_defs = tdp_max_gmxixxn;
@@ -552,6 +560,7 @@ static int uw_get_tdp_max(u8 tdp_index)
 static int uw_get_tdp(u8 tdp_index)
 {
 	u8 tdp_data;
+	int tdp_value;
 	u16 tdp_base_addr = 0x0783;
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
 	int status;
@@ -565,12 +574,18 @@ static int uw_get_tdp(u8 tdp_index)
 	if (status < 0)
 		return status;
 
-	return tdp_data;
+	if (tdp_index == 2 && uw_feats->uniwill_custom_profile_mode_needed)
+		tdp_value = (int)tdp_data * 2;
+	else
+		tdp_value = tdp_data;
+
+	return tdp_value;
 }
 
-static int uw_set_tdp(u8 tdp_index, u8 tdp_data)
+static int uw_set_tdp(u8 tdp_index, int tdp_value)
 {
 	int tdp_min, tdp_max;
+	u8 tdp_data;
 	u16 tdp_base_addr = 0x0783;
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
 
@@ -587,8 +602,13 @@ static int uw_set_tdp(u8 tdp_index, u8 tdp_data)
 
 	tdp_min = uw_get_tdp_min(tdp_index);
 	tdp_max = uw_get_tdp_max(tdp_index);
-	if (tdp_data < tdp_min || tdp_data > tdp_max)
+	if (tdp_value < tdp_min || tdp_value > tdp_max)
 		return -EINVAL;
+
+	if (tdp_index == 2 && uw_feats->uniwill_custom_profile_mode_needed)
+		tdp_data = tdp_value / 2;
+	else
+		tdp_data = tdp_value;
 
 	uniwill_write_ec_ram(tdp_current_addr, tdp_data);
 
