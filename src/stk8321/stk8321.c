@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -509,4 +508,4 @@ module_i2c_driver(stk8321_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("STK8321 3-Axis Accelerometer driver");
-MODULE_LICENSE("GPL v3");
+MODULE_LICENSE("GPL");

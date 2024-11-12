@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -227,4 +226,4 @@ EXPORT_SYMBOL(tuxedo_is_compatible);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Provide check for other modules if driver package is known compatible");
-MODULE_LICENSE("GPL v3");
+MODULE_LICENSE("GPL");

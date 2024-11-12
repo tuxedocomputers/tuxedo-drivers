@@ -1,4 +1,3 @@
-/* SPDX-License-Identifier: GPL-3.0+ */
 /*!
  * Copyright (c) 2019-2022 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *

@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2019-2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -35,7 +34,7 @@
 
 MODULE_DESCRIPTION("TUXEDO Computers, ITE backlight driver");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_LICENSE("GPL v3");
+MODULE_LICENSE("GPL");
 
 #define KEYBOARD_ROWS       6
 #define KEYBOARD_COLUMNS    20

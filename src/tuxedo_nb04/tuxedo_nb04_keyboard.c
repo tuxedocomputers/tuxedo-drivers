@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -208,7 +207,7 @@ module_wmi_driver(tuxedo_nb04_keyboard_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for NB04 WMI (keyboard) events");
-MODULE_LICENSE("GPL v3");
+MODULE_LICENSE("GPL");
 
 MODULE_DEVICE_TABLE(wmi, tuxedo_nb04_keyboard_device_ids);
 MODULE_ALIAS("wmi:" NB04_WMI_EVENT_GUID);

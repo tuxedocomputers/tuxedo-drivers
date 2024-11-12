@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2018-2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -30,7 +29,7 @@
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("TUXEDO Computers keyboard & keyboard backlight Driver");
-MODULE_LICENSE("GPL v3");
+MODULE_LICENSE("GPL");
 
 static DEFINE_MUTEX(tuxedo_keyboard_init_driver_lock);
 

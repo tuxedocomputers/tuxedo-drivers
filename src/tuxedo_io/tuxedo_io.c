@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2019-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -36,7 +35,7 @@
 MODULE_DESCRIPTION("Hardware interface for TUXEDO laptops");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_VERSION("0.3.9");
-MODULE_LICENSE("GPL v3");
+MODULE_LICENSE("GPL");
 
 MODULE_ALIAS_CLEVO_INTERFACES();
 MODULE_ALIAS("wmi:" CLEVO_WMI_METHOD_GUID);

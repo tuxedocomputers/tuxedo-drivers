@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -156,4 +155,4 @@ module_exit(tuxedo_nb05_kbd_backlight_exit);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for NB05 keyboard backlight");
-MODULE_LICENSE("GPL v3");
+MODULE_LICENSE("GPL");

@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: GPL-3.0+
 /*!
  * Copyright (c) 2023-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
@@ -385,7 +384,7 @@ module_wmi_driver(tuxedo_nb05_power_profiles_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for NB05 power profiles");
-MODULE_LICENSE("GPL v3");
+MODULE_LICENSE("GPL");
 
 MODULE_DEVICE_TABLE(wmi, tuxedo_nb05_power_profiles_device_ids);
 MODULE_ALIAS("wmi:" NB05_WMI_METHOD_BA_GUID);
