@@ -1,3 +1,10 @@
+tuxedo-drivers (4.11.0) noble; urgency=medium
+
+  * Add TUXI (TUXEDO Interface) acpi driver
+  * Fix InfinityBook Pro v3 keyboard backlight levels
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 12 Nov 2024 17:13:07 +0100
+
 tuxedo-drivers (4.10.2) noble; urgency=medium
 
   * Fix color scaling for Stellaris 16 Gen6 Intel
