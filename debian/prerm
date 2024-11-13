@@ -36,6 +36,8 @@ case "$1" in
         rmmod tuxedo_compatibility_check > /dev/null 2>&1 || true
         rmmod stk8321 > /dev/null 2>&1 || true
         rmmod gxtp7380 > /dev/null 2>&1 || true
+        rmmod tuxedo_tuxi_fan_control > /dev/null 2>&1 || true
+        rmmod tuxi_acpi > /dev/null 2>&1 || true
 
         # Restart UPower
         echo "Start UPower again"
