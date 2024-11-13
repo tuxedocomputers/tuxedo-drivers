@@ -1,3 +1,9 @@
+tuxedo-drivers (4.11.1) noble; urgency=medium
+
+  * Fix build with different kernels
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 13 Nov 2024 11:23:38 +0100
+
 tuxedo-drivers (4.11.0) noble; urgency=medium
 
   * Add TUXI (TUXEDO Interface) acpi driver
