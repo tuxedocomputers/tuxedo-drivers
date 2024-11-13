@@ -362,7 +362,7 @@ static int __init tuxedo_tuxi_fan_control_probe(struct platform_device *pdev)
 	return 0;
 }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int tuxedo_tuxi_fan_control_remove(struct platform_device *pdev)
 #else
 static void tuxedo_tuxi_fan_control_remove(struct platform_device *pdev)
@@ -372,7 +372,7 @@ static void tuxedo_tuxi_fan_control_remove(struct platform_device *pdev)
 	struct driver_data_t *driver_data = dev_get_drvdata(&pdev->dev);
 	sysfs_remove_group(&driver_data->pdev->dev.kobj, &fan_control_attr_group);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
 #endif
 }
