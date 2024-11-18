@@ -90,6 +90,10 @@ int tuxi_set_fan_speed(u8 fan_index, u8 fan_speed)
 	long long int retval;
 	long long int args[] = { fan_index, fan_speed };
 	int err;
+
+	if (tuxi_driver_data == NULL)
+		return -ENODEV;
+
 	err = evaluate_intparams(tuxi_driver_data->tfan_handle,
 				 "SSPD",
 				 args, ARRAY_SIZE(args),
@@ -109,6 +113,10 @@ int tuxi_get_fan_speed(u8 fan_index, u8 *fan_speed)
 	long long int retval;
 	long long int args[] = { fan_index };
 	int err;
+
+	if (tuxi_driver_data == NULL)
+		return -ENODEV;
+
 	err = evaluate_intparams(tuxi_driver_data->tfan_handle,
 				 "GSPD",
 				 args, ARRAY_SIZE(args),
@@ -129,6 +137,10 @@ int tuxi_get_nr_fans(u8 *nr_fans)
 {
 	long long int retval;
 	int err;
+
+	if (tuxi_driver_data == NULL)
+		return -ENODEV;
+
 	err = evaluate_intparams(tuxi_driver_data->tfan_handle,
 				 "GCNT",
 				 NULL, 0,
@@ -147,6 +159,10 @@ int tuxi_set_fan_mode(enum tuxi_fan_mode mode)
 	long long int retval;
 	long long int args[] = { mode };
 	int err;
+
+	if (tuxi_driver_data == NULL)
+		return -ENODEV;
+
 	err = evaluate_intparams(tuxi_driver_data->tfan_handle,
 				 "SMOD",
 				 args, ARRAY_SIZE(args),
@@ -165,6 +181,10 @@ int tuxi_get_fan_mode(enum tuxi_fan_mode *mode)
 {
 	long long int retval;
 	int err;
+
+	if (tuxi_driver_data == NULL)
+		return -ENODEV;
+
 	err = evaluate_intparams(tuxi_driver_data->tfan_handle,
 				 "GMOD",
 				 NULL, 0,
@@ -186,6 +206,10 @@ int tuxi_get_fan_type(u8 fan_index, enum tuxi_fan_type *type)
 	long long int retval;
 	long long int args[] = { fan_index };
 	int err;
+
+	if (tuxi_driver_data == NULL)
+		return -ENODEV;
+
 	err = evaluate_intparams(tuxi_driver_data->tfan_handle,
 				 "GTYP",
 				 args, ARRAY_SIZE(args),
@@ -207,6 +231,10 @@ int tuxi_get_fan_temp(u8 index, u16 *temp)
 	unsigned long long int retval;
 	long long int args[] = { index };
 	int err;
+
+	if (tuxi_driver_data == NULL)
+		return -ENODEV;
+
 	err = evaluate_intparams(tuxi_driver_data->tfan_handle,
 				 "GTMP",
 				 args, ARRAY_SIZE(args),
@@ -228,6 +256,10 @@ int tuxi_get_fan_rpm(u8 index, u16 *rpm)
 	unsigned long long int retval;
 	long long int args[] = { index };
 	int err;
+
+	if (tuxi_driver_data == NULL)
+		return -ENODEV;
+
 	err = evaluate_intparams(tuxi_driver_data->tfan_handle,
 				 "GRPM",
 				 args, ARRAY_SIZE(args),
