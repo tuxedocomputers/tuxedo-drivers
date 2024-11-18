@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: tuxedo-drivers
 Upstream-Contact: tux@tuxedocomputers.com
-Source: https://github.com/tuxedocomputers/tuxedo-drivers
+Source: https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers
 
 Files: *
 Copyright: 2018-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
