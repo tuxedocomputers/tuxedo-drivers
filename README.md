@@ -82,4 +82,4 @@ If you want to hack away at this matter yourself please follow the following pre
 - Involve us in the whole process. Nothing is won if at some point tuxedo-control-center or the dkms variant of tuxedo-drivers stops working. Especially when you send something to the LKML, set us in the cc.
 - We mostly can't share documentation, but we can answer questions.
 - Code interacting with the EC, which is most of tuxedo-drivers, can brick devices and therefore must be ensured to only run on compatible and tested devices.
-- If you use tuxedo-driver as a reference or code snippets from it, a "Codeveloped-by:\<name\>@tuxedocomputers.de" must be included in your upstream commit, with \<name\> depending on the actual part of tuxedo-drivers being used. Talk to us regarding this.
+- If you use tuxedo-drivers as a reference or code snippets from it, a "Codeveloped-by:\<name\>@tuxedocomputers.de" must be included in your upstream commit, with \<name\> depending on the actual part of tuxedo-drivers being used. Talk to us regarding this.
