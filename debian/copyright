@@ -4,7 +4,7 @@ Upstream-Contact: tux@tuxedocomputers.com
 Source: https://github.com/tuxedocomputers/tuxedo-drivers
 
 Files: *
-Copyright: 2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+Copyright: 2018-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 License: GPL-2.0+
 
 License: GPL-2.0+
@@ -20,21 +20,3 @@ License: GPL-2.0+
  .
  You should have received a copy of the GNU General Public License along
  with this program; if not, see <https://www.gnu.org/licenses/>.
-
-Files: src/clevo_acpi.c
-Copyright: 2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
-License: GPL-3.0+
-
-License: GPL-3.0+
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
- .
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- .
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <https://www.gnu.org/licenses/>.
