@@ -171,6 +171,8 @@ echo "Start UPower again"
 systemctl restart upower 2>&1 || true
 
 %changelog
+* Mon Nov 18 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.3-1
+- Fix crashes on package install
 * Wed Nov 13 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.2-1
 - Fix missing module reload handling in install scripts
 * Wed Nov 13 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.1-1
