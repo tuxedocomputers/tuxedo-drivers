@@ -76,7 +76,7 @@ For keyboard brightness control you should use the D-Bus interface of UPower as 
 For touchpad toggle on X11 you can use `xinput` to enable/disable the touchpad, on Wayland the correct way is desktop environment specific.
 
 # Regarding upstreaming of tuxedo-drivers
-The code, while perfectly functional, is currently not in an upstreamable state. That being said we started an effort for upstreming for the first small part with the keyboard backlight control for the Sirius 16 Gen 1 & 2, which will be followed by more once it is accepted.
+The code, while perfectly functional, is currently not in an upstreamable state. That being said we started an upstreaming effort for the first small part with the keyboard backlight control for the Sirius 16 Gen 1 & 2, which will be followed by more once it is accepted.
 
 If you want to hack away at this matter yourself please follow the following precautions and guidelines to avoid breakages on both software and hardware level:
 - Involve us in the whole process. Nothing is won if at some point tuxedo-control-center or the dkms variant of tuxedo-drivers stops working. Especially when you send something to the LKML, set us in the cc.
