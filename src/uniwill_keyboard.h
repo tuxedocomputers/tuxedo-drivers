@@ -994,6 +994,23 @@ static int has_universal_ec_fan_control(void) {
 	return (data >> 6) & 1;
 }
 
+static int has_double_pl4(bool *status)
+{
+	u8 data;
+	int result;
+
+	result = uniwill_read_ec_ram(0x0727, &data);
+	if (result)
+		return result;
+
+	if (data & (1 << 7))
+		*status = true;
+	else
+		*status = false;
+
+	return 0;
+}
+
 struct uniwill_device_features_t *uniwill_get_device_features(void)
 {
 	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
@@ -1061,6 +1078,10 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 		|| dmi_match(DMI_BOARD_NAME, "GXxHRXx")
 #endif
 	;
+
+
+	if (has_double_pl4(&uw_feats->uniwill_has_double_pl4) != 0)
+		feats_loaded = false;
 
 	uw_feats->uniwill_profile_v1 =
 		uw_feats->uniwill_profile_v1_two_profs ||
