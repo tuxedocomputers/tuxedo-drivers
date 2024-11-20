@@ -1274,12 +1274,29 @@ static void uniwill_keyboard_remove(struct platform_device *dev)
 
 static int uniwill_keyboard_suspend(struct platform_device *dev, pm_message_t state)
 {
+	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
+	u8 data;
+	if (uw_feats->uniwill_custom_profile_mode_needed) {
+		// Unset "customer mode light" before suspend. Otherwise at
+		// least one device is known to immediately wake up.
+		uniwill_read_ec_ram(0x0727, &data);
+		data &= ~(1 << 6);
+		uniwill_write_ec_ram(0x0727, data);
+	}
 	uniwill_write_kbd_bl_enable(0);
 	return 0;
 }
 
 static int uniwill_keyboard_resume(struct platform_device *dev)
 {
+	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
+	u8 data;
+	if (uw_feats->uniwill_custom_profile_mode_needed) {
+		// Re-set "customer mode light" on resume
+		uniwill_read_ec_ram(0x0727, &data);
+		data |= (1 << 6);
+		uniwill_write_ec_ram(0x0727, data);
+	}
 	uniwill_leds_restore_state_extern();
 	uniwill_write_kbd_bl_enable(1);
 	return 0;
