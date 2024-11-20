@@ -51,6 +51,12 @@ static u32 id_check_uniwill;
 
 static struct uniwill_device_features_t *uw_feats;
 
+enum uw_perf_profiles_v1 {
+	PROFILE_POWERSAVE = 1,
+	PROFILE_ENTHUSIAST = 2,
+	PROFILE_OVERBOOST = 3,
+};
+
 static int set_full_fan_mode(bool enable);
 static int uw_init_fan(void);
 static u32 uw_set_fan(u32 fan_index, u8 fan_speed);
@@ -59,7 +65,7 @@ static int uw_get_tdp_min(u8 tdp_index);
 static int uw_get_tdp_max(u8 tdp_index);
 static int uw_get_tdp(u8 tdp_index);
 static int uw_set_tdp(u8 tdp_index, int tdp_value);
-static u32 uw_set_performance_profile_v1(u8 profile_index);
+static u32 uw_set_performance_profile_v1(enum uw_perf_profiles_v1 profile);
 
 /**
  * strstr version of dmi_match
@@ -590,9 +596,9 @@ static int uw_set_tdp(u8 tdp_index, int tdp_value)
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
 
 	if (uw_feats->uniwill_custom_profile_mode_needed) {
-		// Ensure that balanced profile is chosen when using TDP set
+		// Ensure that "enthusiast" profile is chosen when using TDP set
 		// for devices that require this
-		uw_set_performance_profile_v1(0x00);
+		uw_set_performance_profile_v1(PROFILE_ENTHUSIAST);
 	}
 
 	// Use min tdp to detect support for chosen tdp parameter
@@ -619,7 +625,7 @@ static int uw_set_tdp(u8 tdp_index, int tdp_value)
  * Set profile 1-3 to 0xa0, 0x00 or 0x10 depending on
  * device support.
  */
-static u32 uw_set_performance_profile_v1(u8 profile_index)
+static u32 uw_set_performance_profile_v1(enum uw_perf_profiles_v1 profile)
 {
 	u8 current_value = 0x00, next_value;
 	u8 clear_bits = 0xa0 | 0x10;
@@ -627,7 +633,7 @@ static u32 uw_set_performance_profile_v1(u8 profile_index)
 	result = uniwill_read_ec_ram(0x0751, &current_value);
 	if (result >= 0) {
 		next_value = current_value & ~clear_bits;
-		switch (profile_index) {
+		switch (profile) {
 		case 0x01:
 			next_value |= 0xa0;
 			break;
