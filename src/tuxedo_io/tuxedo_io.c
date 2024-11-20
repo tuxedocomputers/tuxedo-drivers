@@ -580,7 +580,7 @@ static int uw_get_tdp(u8 tdp_index)
 	if (status < 0)
 		return status;
 
-	if (tdp_index == 2 && uw_feats->uniwill_custom_profile_mode_needed)
+	if (tdp_index == 2 && uw_feats->uniwill_has_double_pl4)
 		tdp_value = (int)tdp_data * 2;
 	else
 		tdp_value = tdp_data;
@@ -611,7 +611,7 @@ static int uw_set_tdp(u8 tdp_index, int tdp_value)
 	if (tdp_value < tdp_min || tdp_value > tdp_max)
 		return -EINVAL;
 
-	if (tdp_index == 2 && uw_feats->uniwill_custom_profile_mode_needed)
+	if (tdp_index == 2 && uw_feats->uniwill_has_double_pl4)
 		tdp_data = tdp_value / 2;
 	else
 		tdp_data = tdp_value;
