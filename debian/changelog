@@ -1,3 +1,11 @@
+tuxedo-drivers (4.11.4) noble; urgency=medium
+
+  * Remove buggy autoreload on install
+  * Fix CPU power handling on Stellaris 16 Gen6
+  * Fix instant wakeup on Stellaris Slim 15 Gen6 AMD
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 26 Nov 2024 12:20:51 +0100
+
 tuxedo-drivers (4.11.3) noble; urgency=medium
 
   * Fix crashes on package install

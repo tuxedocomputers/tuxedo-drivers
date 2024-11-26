@@ -58,6 +58,10 @@ dkms install -m %{name} -v %{version}
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
+* Tue Nov 26 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.4-1
+- Remove buggy autoreload on install
+- Fix CPU power handling on Stellaris 16 Gen6
+- Fix instant wakeup on Stellaris Slim 15 Gen6 AMD
 * Mon Nov 18 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.3-1
 - Fix crashes on package install
 * Wed Nov 13 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.2-1
