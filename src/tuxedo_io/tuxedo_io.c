@@ -51,6 +51,12 @@ static u32 id_check_uniwill;
 
 static struct uniwill_device_features_t *uw_feats;
 
+enum uw_perf_profiles_v1 {
+	PROFILE_POWERSAVE = 1,
+	PROFILE_ENTHUSIAST = 2,
+	PROFILE_OVERBOOST = 3,
+};
+
 static int set_full_fan_mode(bool enable);
 static int uw_init_fan(void);
 static u32 uw_set_fan(u32 fan_index, u8 fan_speed);
@@ -58,8 +64,8 @@ static u32 uw_set_fan_auto(void);
 static int uw_get_tdp_min(u8 tdp_index);
 static int uw_get_tdp_max(u8 tdp_index);
 static int uw_get_tdp(u8 tdp_index);
-static int uw_set_tdp(u8 tdp_index, u8 tdp_data);
-static u32 uw_set_performance_profile_v1(u8 profile_index);
+static int uw_set_tdp(u8 tdp_index, int tdp_value);
+static u32 uw_set_performance_profile_v1(enum uw_perf_profiles_v1 profile);
 
 /**
  * strstr version of dmi_match
@@ -127,8 +133,11 @@ static int tdp_max_gmxpxxx[] = { 0x82, 0x82, 0xc8 };
 static int tdp_min_gmxxgxx[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxxgxx[] = { 0x50, 0x50, 0x64 };
 
-static int tdp_min_gmxixxb[] = { 0x05, 0x05, 0x05 };
-static int tdp_max_gmxixxb[] = { 0xa0, 0xa0, 0xfa };
+static int tdp_min_gmxixxb_mb1[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxixxb_mb1[] = { 0xcd, 0xcd, 0x190 };
+
+static int tdp_min_gmxixxb_mb2[] = { 0x05, 0x05, 0x05 };
+static int tdp_max_gmxixxb_mb2[] = { 0xa0, 0xa0, 0xfa };
 
 static int tdp_min_gmxixxn[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_gmxixxn[] = { 0xa0, 0xa0, 0xfa };
@@ -199,9 +208,14 @@ static void uw_id_tdp(void)
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS1XA05")) {
 		tdp_min_defs = tdp_min_gmxxgxx;
 		tdp_max_defs = tdp_max_gmxxgxx;
-	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06")) {
-		tdp_min_defs = tdp_min_gmxixxb;
-		tdp_max_defs = tdp_max_gmxixxb;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06") &&
+		   dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB1")) {
+		tdp_min_defs = tdp_min_gmxixxb_mb1;
+		tdp_max_defs = tdp_max_gmxixxb_mb1;
+	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06") &&
+		   dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB2")) {
+		tdp_min_defs = tdp_min_gmxixxb_mb2;
+		tdp_max_defs = tdp_max_gmxixxb_mb2;
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06")) {
 		tdp_min_defs = tdp_min_gmxixxn;
 		tdp_max_defs = tdp_max_gmxixxn;
@@ -552,6 +566,7 @@ static int uw_get_tdp_max(u8 tdp_index)
 static int uw_get_tdp(u8 tdp_index)
 {
 	u8 tdp_data;
+	int tdp_value;
 	u16 tdp_base_addr = 0x0783;
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
 	int status;
@@ -565,19 +580,25 @@ static int uw_get_tdp(u8 tdp_index)
 	if (status < 0)
 		return status;
 
-	return tdp_data;
+	if (tdp_index == 2 && uw_feats->uniwill_has_double_pl4)
+		tdp_value = (int)tdp_data * 2;
+	else
+		tdp_value = tdp_data;
+
+	return tdp_value;
 }
 
-static int uw_set_tdp(u8 tdp_index, u8 tdp_data)
+static int uw_set_tdp(u8 tdp_index, int tdp_value)
 {
 	int tdp_min, tdp_max;
+	u8 tdp_data;
 	u16 tdp_base_addr = 0x0783;
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
 
 	if (uw_feats->uniwill_custom_profile_mode_needed) {
-		// Ensure that balanced profile is chosen when using TDP set
+		// Ensure that "enthusiast" profile is chosen when using TDP set
 		// for devices that require this
-		uw_set_performance_profile_v1(0x00);
+		uw_set_performance_profile_v1(PROFILE_ENTHUSIAST);
 	}
 
 	// Use min tdp to detect support for chosen tdp parameter
@@ -587,8 +608,13 @@ static int uw_set_tdp(u8 tdp_index, u8 tdp_data)
 
 	tdp_min = uw_get_tdp_min(tdp_index);
 	tdp_max = uw_get_tdp_max(tdp_index);
-	if (tdp_data < tdp_min || tdp_data > tdp_max)
+	if (tdp_value < tdp_min || tdp_value > tdp_max)
 		return -EINVAL;
+
+	if (tdp_index == 2 && uw_feats->uniwill_has_double_pl4)
+		tdp_data = tdp_value / 2;
+	else
+		tdp_data = tdp_value;
 
 	uniwill_write_ec_ram(tdp_current_addr, tdp_data);
 
@@ -599,7 +625,7 @@ static int uw_set_tdp(u8 tdp_index, u8 tdp_data)
  * Set profile 1-3 to 0xa0, 0x00 or 0x10 depending on
  * device support.
  */
-static u32 uw_set_performance_profile_v1(u8 profile_index)
+static u32 uw_set_performance_profile_v1(enum uw_perf_profiles_v1 profile)
 {
 	u8 current_value = 0x00, next_value;
 	u8 clear_bits = 0xa0 | 0x10;
@@ -607,7 +633,7 @@ static u32 uw_set_performance_profile_v1(u8 profile_index)
 	result = uniwill_read_ec_ram(0x0751, &current_value);
 	if (result >= 0) {
 		next_value = current_value & ~clear_bits;
-		switch (profile_index) {
+		switch (profile) {
 		case 0x01:
 			next_value |= 0xa0;
 			break;

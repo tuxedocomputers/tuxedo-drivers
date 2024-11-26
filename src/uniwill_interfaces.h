@@ -141,6 +141,7 @@ struct uniwill_device_features_t {
 	bool uniwill_has_charging_prio;
 	bool uniwill_has_charging_profile;
 	bool uniwill_has_universal_ec_fan_control;
+	bool uniwill_has_double_pl4;
 };
 
 struct uniwill_device_features_t *uniwill_get_device_features(void);
