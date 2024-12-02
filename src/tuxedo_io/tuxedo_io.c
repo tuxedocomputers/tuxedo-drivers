@@ -45,7 +45,7 @@ MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BA);
 MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BB);
 MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BC);
 
-#define UNIWILL_FAN_ON_MIN_SPEED 25
+#define FAN_ON_MIN_SPEED 25
 
 // Initialized in module init, global for ioctl interface
 static u32 id_check_clevo;
@@ -309,6 +309,13 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
 	switch (cmd) {
 		case W_CL_FANSPEED:
 			copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+
+			// Don't allow vallues between fan-off and minimum fan-on-speed
+			if (argument < FAN_ON_MIN_SPEED / 2)
+				argument = 0;
+			else if (argument < FAN_ON_MIN_SPEED)
+				argument = FAN_ON_MIN_SPEED;
+
 			clevo_evaluate_method(CLEVO_CMD_SET_FANSPEED_VALUE, argument, &result);
 			// Note: Delay needed to let hardware catch up with the written value.
 			// No known ready flag. If the value is read too soon, the old value
@@ -483,10 +490,10 @@ static u32 uw_set_fan(u32 fan_index, u8 fan_speed)
 			return -EINVAL;
 
 		// Don't allow vallues between fan-off and minimum fan-on-speed
-		if (fan_speed < UNIWILL_FAN_ON_MIN_SPEED / 2)
+		if (fan_speed < FAN_ON_MIN_SPEED / 2)
 			fan_speed = 0;
-		else if (fan_speed < UNIWILL_FAN_ON_MIN_SPEED)
-			fan_speed = UNIWILL_FAN_ON_MIN_SPEED;
+		else if (fan_speed < FAN_ON_MIN_SPEED)
+			fan_speed = FAN_ON_MIN_SPEED;
 
 		if (fan_speed == 0 &&
 		    !dmi_match(DMI_BOARD_NAME, "GXxMRXx")) {
@@ -749,7 +756,7 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
 			else if (result == 0) {
 				result = 0;
 			}*/
-			result = UNIWILL_FAN_ON_MIN_SPEED;
+			result = FAN_ON_MIN_SPEED;
 			copy_result = copy_to_user((void *) arg, &result, sizeof(result));
 			break;
 		case R_UW_TDP0:
