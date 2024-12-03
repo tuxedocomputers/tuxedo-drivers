@@ -94,6 +94,12 @@ static int write_fan1_rpm(u8 rpm_data)
 	if (rpm_data > FAN_SET_RPM_MAX)
 		return -EINVAL;
 
+	// Don't allow vallues between fan-off and minimum fan-on-speed
+	if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 2)
+		rpm_data = 0;
+	else if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX)
+		rpm_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX;
+
 	for (reg = 0x02d0; reg <= 0x02d6; ++reg)
 		nb05_write_ec_ram(reg, rpm_data);
 
@@ -126,6 +132,12 @@ static int write_fan1_duty_ranges(u8 duty_data)
 
 	if (duty_data > FAN_SET_DUTY_MAX)
 		return -EINVAL;
+
+	// Don't allow vallues between fan-off and minimum fan-on-speed
+	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2)
+		duty_data = 0;
+	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX)
+		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX;
 
 	for (reg = 0x02c1; reg <= 0x02c7; ++reg)
 		nb05_write_ec_ram(reg, duty_data);
