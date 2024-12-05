@@ -58,6 +58,8 @@ dkms install -m %{name} -v %{version}
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
+* Thu Dec 05 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.6-1
+- Fix build against kernel 5.15
 * Thu Dec 05 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.5-1
 - Block 1%-24% fanspeeds and round to 0% or 25% respectifly to avoid irregular fan movements
 * Tue Nov 26 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.4-1

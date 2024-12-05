@@ -1,3 +1,9 @@
+tuxedo-drivers (4.11.6) noble; urgency=medium
+
+  * Fix build against kernel 5.15
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 05 Dec 2024 14:44:53 +0100
+
 tuxedo-drivers (4.11.5) noble; urgency=medium
 
   * Block 1%-24% fanspeeds and round to 0% or 25% respectifly to avoid irregular fan movements
