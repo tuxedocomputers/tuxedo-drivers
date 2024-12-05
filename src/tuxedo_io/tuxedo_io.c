@@ -261,12 +261,13 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
 	u32 result = 0, status;
 	u32 copy_result;
 	u32 argument = (u32) arg;
+	int i;
 
 	u32 clevo_arg;
 
 	const char str_no_if[] = "";
 	char *str_clevo_if;
-	
+
 	switch (cmd) {
 		case R_CL_HW_IF_STR:
 			if (clevo_get_active_interface_id(&str_clevo_if) == 0) {
@@ -314,7 +315,7 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
 
 			// Don't allow vallues between fan-off and minimum fan-on-speed
 			u8 fanspeeds[3] = { argument & 0xff, argument >> 8 & 0xff, argument >> 16 & 0xff };
-			for (int i = 0; i < 3; ++i) {
+			for (i = 0; i < 3; ++i) {
 				if (fanspeeds[i] < FAN_ON_MIN_SPEED_PERCENT * NB01_FAN_SPEED_MAX / 2)
 					fanspeeds[i] = 0;
 				else if (fanspeeds[i] < FAN_ON_MIN_SPEED_PERCENT * NB01_FAN_SPEED_MAX)
