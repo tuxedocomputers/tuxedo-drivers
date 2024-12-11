@@ -29,7 +29,7 @@
 
 #define FAN_SET_RPM_MAX 54
 #define FAN_SET_DUTY_MAX 0xb8
-#define FAN_ON_MIN_SPEED_PERCENT 0.25
+#define FAN_ON_MIN_SPEED_PERCENT 25
 #define FAN_SET_RPM_HIGHTEMP 15
 #define FAN_SET_DUTY_HIGHTEMP ((FAN_SET_RPM_HIGHTEMP * FAN_SET_DUTY_MAX) / FAN_SET_RPM_MAX)
 
@@ -95,10 +95,10 @@ static int write_fan1_rpm(u8 rpm_data)
 		return -EINVAL;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 2)
+	if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 2 / 100)
 		rpm_data = 0;
-	else if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX)
-		rpm_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX;
+	else if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 100)
+		rpm_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 100;
 
 	for (reg = 0x02d0; reg <= 0x02d6; ++reg)
 		nb05_write_ec_ram(reg, rpm_data);
@@ -134,10 +134,10 @@ static int write_fan1_duty_ranges(u8 duty_data)
 		return -EINVAL;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2)
+	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
 		duty_data = 0;
-	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX)
-		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX;
+	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100)
+		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100;
 
 	for (reg = 0x02c1; reg <= 0x02c7; ++reg)
 		nb05_write_ec_ram(reg, duty_data);
@@ -157,10 +157,10 @@ static int write_fan1_duty_onereg(u8 duty_data)
 		return -EINVAL;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2)
+	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
 		duty_data = 0;
-	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX)
-		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX;
+	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100)
+		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100;
 
 	nb05_write_ec_ram(0x1809, duty_data);
 
@@ -203,10 +203,10 @@ static int write_fan2_rpm(u8 rpm_data)
 		return -EINVAL;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 2)
+	if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 2 / 100)
 		rpm_data = 0;
-	else if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX)
-		rpm_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX;
+	else if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 100)
+		rpm_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 100;
 
 	for (reg = 0x0250; reg <= 0x0256; ++reg)
 		nb05_write_ec_ram(reg, rpm_data);
@@ -235,10 +235,10 @@ static int write_fan2_duty(u8 duty_data)
 		return -EINVAL;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2)
+	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
 		duty_data = 0;
-	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX)
-		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX;
+	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100)
+		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100;
 
 	for (reg = 0x0241; reg <= 0x0247; ++reg)
 		nb05_write_ec_ram(reg, duty_data);
