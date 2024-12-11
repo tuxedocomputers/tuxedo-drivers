@@ -58,6 +58,8 @@ dkms install -m %{name} -v %{version}
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
+* Wed Dec 11 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.7-1
+- Avoid floating point to be more widely compatible
 * Thu Dec 05 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.6-1
 - Fix build against kernel 5.15
 * Thu Dec 05 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.5-1
