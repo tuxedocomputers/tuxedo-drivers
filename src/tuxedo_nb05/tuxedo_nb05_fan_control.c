@@ -95,7 +95,7 @@ static int write_fan1_rpm(u8 rpm_data)
 		return -EINVAL;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 2 / 100)
+	if (rpm_data <= FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 2 / 100)
 		rpm_data = 0;
 	else if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 100)
 		rpm_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 100;
@@ -134,7 +134,7 @@ static int write_fan1_duty_ranges(u8 duty_data)
 		return -EINVAL;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
+	if (duty_data <= FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
 		duty_data = 0;
 	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100)
 		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100;
@@ -157,7 +157,7 @@ static int write_fan1_duty_onereg(u8 duty_data)
 		return -EINVAL;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
+	if (duty_data <= FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
 		duty_data = 0;
 	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100)
 		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100;
@@ -203,7 +203,7 @@ static int write_fan2_rpm(u8 rpm_data)
 		return -EINVAL;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 2 / 100)
+	if (rpm_data <= FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 2 / 100)
 		rpm_data = 0;
 	else if (rpm_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 100)
 		rpm_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_RPM_MAX / 100;
@@ -235,7 +235,7 @@ static int write_fan2_duty(u8 duty_data)
 		return -EINVAL;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
+	if (duty_data <= FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
 		duty_data = 0;
 	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100)
 		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100;

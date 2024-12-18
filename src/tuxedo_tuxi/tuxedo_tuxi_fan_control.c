@@ -112,7 +112,7 @@ static ssize_t fan1_pwm_store(struct device *dev,
 	duty_data = (pwm_data * FAN_SET_DUTY_MAX) / 0xff;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
+	if (duty_data <= FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
 		duty_data = 0;
 	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100)
 		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100;
@@ -188,7 +188,7 @@ static ssize_t fan2_pwm_store(struct device *dev,
 	duty_data = (pwm_data * FAN_SET_DUTY_MAX) / 0xff;
 
 	// Don't allow vallues between fan-off and minimum fan-on-speed
-	if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
+	if (duty_data <= FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 2 / 100)
 		duty_data = 0;
 	else if (duty_data < FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100)
 		duty_data = FAN_ON_MIN_SPEED_PERCENT * FAN_SET_DUTY_MAX / 100;
