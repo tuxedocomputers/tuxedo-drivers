@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: GPL-2.0+
+
+test-build:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "upcoming-release"
+    - when: manual
+  image: registry.gitlab.com/tuxedocomputers/development/installation-testing/docker-images/drivers-test-builder:$DOCKER_TAG
+  script:
+    - test-build.sh "$PARAM_TYPE" "$PARAM_LLVM"
+  parallel:
+    matrix:
+      - PARAM_TYPE: ubuntu
+        DOCKER_TAG:
+          - ubuntu-20.04
+          - ubuntu-22.04
+          - ubuntu-24.04
+      - PARAM_TYPE: fedora
+        DOCKER_TAG:
+          - fedora-40
+          - fedora-41
+      - PARAM_TYPE: debian
+        DOCKER_TAG:
+          - debian-12
+          - debian-exp
+      - PARAM_TYPE: debian
+        PARAM_LLVM: llvm
+        DOCKER_TAG:
+          - debian-12-llvm
+      - PARAM_TYPE: arch
+        DOCKER_TAG:
+          - archbtw
+      - PARAM_TYPE: opensuse
+        DOCKER_TAG:
+          - opensuse-15.5
+          - opensuse-15.6
+          - opensuse-tumbleweed
