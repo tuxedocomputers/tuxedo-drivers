@@ -58,6 +58,10 @@ dkms install -m %{name} -v %{version}
 dkms remove -m %{name} -v %{version} --all --rpm_safe_upgrade
 
 %changelog
+* Wed Jan 15 2025 Werner Sembach <tux@tuxedocomputers.com> 4.12.0-1
+- Add keyboard backlight support for IBP Gen9
+- Add automatic compile tests
+- Fix low fan speed rounding issue between off and 25%
 * Wed Dec 11 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.7-1
 - Avoid floating point to be more widely compatible
 * Thu Dec 05 2024 Werner Sembach <tux@tuxedocomputers.com> 4.11.6-1

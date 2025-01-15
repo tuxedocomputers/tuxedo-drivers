@@ -1,3 +1,11 @@
+tuxedo-drivers (4.12.0) noble; urgency=medium
+
+  * Add keyboard backlight support for IBP Gen9
+  * Add automatic compile tests
+  * Fix low fan speed rounding issue between off and 25%
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 15 Jan 2025 13:30:52 +0100
+
 tuxedo-drivers (4.11.7) noble; urgency=medium
 
   * Avoid floating point to be more widely compatible
