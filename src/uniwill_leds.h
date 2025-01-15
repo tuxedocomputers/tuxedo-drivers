@@ -26,6 +26,7 @@
 typedef enum {
 	UNIWILL_KB_BACKLIGHT_TYPE_NONE,
 	UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR,
+	UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR_5_LEVELS,
 	UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB,
 	UNIWILL_KB_BACKLIGHT_TYPE_PER_KEY_RGB
 } uniwill_kb_backlight_type_t;
@@ -48,6 +49,8 @@ bool uniwill_leds_notify_brightness_change_extern(void);
 
 #define UNIWILL_KBD_BRIGHTNESS_MAX_WHITE		0x02
 #define UNIWILL_KBD_BRIGHTNESS_DEFAULT_WHITE		0x00
+
+#define UNIWILL_KBD_BRIGHTNESS_MAX_WHITE_5		0x04
 
 #define UNIWILL_KBD_BRIGHTNESS_MAX_1_ZONE_RGB		0x04
 #define UNIWILL_KBD_BRIGHTNESS_DEFAULT_1_ZONE_RGB	0x00
@@ -271,6 +274,10 @@ int uniwill_leds_init(struct platform_device *dev)
 		uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
 		uniwill_kbl_brightness_ec_controlled = true;
 	}
+	else if (uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_GXxMTXx) {
+		uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR_5_LEVELS;
+		uniwill_kbl_brightness_ec_controlled = true;
+	}
 	else {
 		result = uniwill_read_ec_ram(UW_EC_REG_FEATURES_1, &data);
 		if (result) {
@@ -293,6 +300,17 @@ int uniwill_leds_init(struct platform_device *dev)
 		result = led_classdev_register(&dev->dev, &uniwill_led_cdev);
 		if (result) {
 			pr_err("Registering fixed color leds interface failed\n");
+			return result;
+		}
+	}
+	else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR_5_LEVELS) {
+		pr_debug("Registering fixed color 5 levels leds interface\n");
+		uniwill_led_cdev.max_brightness = UNIWILL_KBD_BRIGHTNESS_MAX_WHITE_5;
+		if (uniwill_kbl_brightness_ec_controlled)
+			uniwill_led_cdev.flags = LED_BRIGHT_HW_CHANGED;
+		result = led_classdev_register(&dev->dev, &uniwill_led_cdev);
+		if (result) {
+			pr_err("Registering fixed color 5 levels leds interface failed\n");
 			return result;
 		}
 	}
@@ -320,7 +338,8 @@ int uniwill_leds_remove(struct platform_device *dev)
 	if (uw_leds_initialized) {
 		uw_leds_initialized = false;
 
-		if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
+		if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR ||
+		    uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR_5_LEVELS) {
 			led_classdev_unregister(&uniwill_led_cdev);
 		}
 		else if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_1_ZONE_RGB) {
@@ -338,7 +357,8 @@ uniwill_kb_backlight_type_t uniwill_leds_get_backlight_type_extern(void) {
 EXPORT_SYMBOL(uniwill_leds_get_backlight_type_extern);
 
 void uniwill_leds_restore_state_extern(void) {
-	if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
+	if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR ||
+	    uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR_5_LEVELS) {
 		if (uniwill_write_kbd_bl_brightness_white_workaround(uniwill_led_cdev.brightness)) {
 			pr_debug("uniwill_leds_restore_state_extern(): uniwill_write_kbd_bl_white() failed\n");
 		}
@@ -364,7 +384,8 @@ bool uniwill_leds_notify_brightness_change_extern(void) {
 		if (uniwill_kbl_brightness_ec_controlled) {
 			uniwill_read_ec_ram(UW_EC_REG_KBD_BL_STATUS, &data);
 			brightness = (data >> 5) & 0x07;
-			if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR) {
+			if (uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR ||
+			    uniwill_kb_backlight_type == UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR_5_LEVELS) {
 				uniwill_led_cdev.brightness = brightness;
 				led_classdev_notify_brightness_hw_changed(&uniwill_led_cdev, uniwill_led_cdev.brightness);
 				return true;
