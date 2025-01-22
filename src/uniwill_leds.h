@@ -237,6 +237,22 @@ static const struct dmi_system_id force_no_ec_led_control[] = {
 	{ }
 };
 
+static const struct dmi_system_id kbl_type_fixed_color_5_levels[] = {
+	{
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
+			DMI_MATCH(DMI_BOARD_NAME, "GXxHRXx"),
+		},
+	},
+	{
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
+			DMI_MATCH(DMI_BOARD_NAME, "GXxMRXx"),
+		},
+	},
+	{ }
+};
+
 int uniwill_leds_init(struct platform_device *dev)
 {
 	int result = 0, i = 0;
@@ -274,7 +290,7 @@ int uniwill_leds_init(struct platform_device *dev)
 		uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR;
 		uniwill_kbl_brightness_ec_controlled = true;
 	}
-	else if (uniwill_barebone_id == UW_EC_REG_BAREBONE_ID_VALUE_GXxMTXx) {
+	else if (dmi_check_system(kbl_type_fixed_color_5_levels)) {
 		uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR_5_LEVELS;
 		uniwill_kbl_brightness_ec_controlled = true;
 	}
