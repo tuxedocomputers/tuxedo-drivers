@@ -1,3 +1,10 @@
+tuxedo-drivers (4.12.1) noble; urgency=medium
+
+  * Change device check for fixed 5 color kbl on NB02 devices from EC-ID to DMI
+    string
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Fri, 24 Jan 2025 15:41:25 +0100
+
 tuxedo-drivers (4.12.0) noble; urgency=medium
 
   * Add keyboard backlight support for IBP Gen9
@@ -276,6 +283,11 @@ tuxedo-drivers (4.0.0) jammy; urgency=medium
 
  -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 12 Dec 2023 15:36:39 +0100
 
+tuxedo-keyboard-ite (0.4.4) jammy; urgency=low
+  * Add color scaling for Stellaris Gen5 AMD devices
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Thu, 16 Nov 2023 09:37:00 +0100
+
 tuxedo-keyboard (3.2.14) jammy; urgency=low
 
   * Tweak IBPG8 TDP limits
@@ -305,6 +317,14 @@ tuxedo-keyboard (3.2.10) jammy; urgency=low
   * Fix build on certain systems
 
  -- C Sandberg <tux@tuxedocomputers.com>  Thu, 10 Aug 2023 15:40:00 +0100
+
+tuxedo-keyboard-ite (0.4.3) jammy; urgency=low
+
+  * Adjusted lightbar USB product exclusion (prevents driver binding to unused
+    devices) for Stellaris Gen5 and allows proper binding of relevant ones.
+  * Lightbar color scaling for Stellaris 17 Gen5
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Thu, 03 Aug 2023 08:02:00 +0100
 
 tuxedo-keyboard (3.2.9) jammy; urgency=low
 
@@ -345,6 +365,13 @@ tuxedo-keyboard (3.2.5) jammy; urgency=low
 
  -- C Sandberg <tux@tuxedocomputers.com>  Fri, 19 May 2023 11:13:00 +0100
 
+tuxedo-keyboard-ite (0.4.1) jammy; urgency=low
+
+  * Four zone backlight support for Stellaris Gen5
+  * Experimental buffered writes for Stellaris/Fusion per-key variants
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Thu, 04 May 2023 11:00:00 +0100
+
 tuxedo-keyboard (3.2.3) jammy; urgency=low
 
   * Fix missing state write on resume for some devices which woke up with
@@ -353,6 +380,13 @@ tuxedo-keyboard (3.2.3) jammy; urgency=low
   * Add device check on newer cpu gens
 
  -- C Sandberg <tux@tuxedocomputers.com>  Thu, 20 Apr 2023 16:53:00 +0100
+
+tuxedo-keyboard-ite (0.4.0) jammy; urgency=low
+
+  * Color scaling for Stellaris Intel Gen5
+  * Lightbar impl. for Stellaris Gen4/5
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Mon, 17 Apr 2023 15:43:00 +0100
 
 tuxedo-keyboard (3.2.1) jammy; urgency=low
 
@@ -367,6 +401,12 @@ tuxedo-keyboard (3.2.0) jammy; urgency=low
   * Note: Old interface is hereby deprecated (and removed)
 
  -- C Sandberg <tux@tuxedocomputers.com>  Wed, 22 Mar 2023 09:33:00 +0100
+
+tuxedo-keyboard-ite (0.3.0) jammy; urgency=low
+
+  * Leds interface support (/sys/class/leds)
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Thu, 23 Feb 2023 11:10:00 +0100
 
 tuxedo-keyboard (3.1.4) jammy; urgency=low
 
@@ -393,6 +433,19 @@ tuxedo-keyboard (3.1.2) jammy; urgency=low
     priority setting
 
  -- C Sandberg <tux@tuxedocomputers.com>  Mon, 19 Dec 2022 17:46:00 +0100
+
+tuxedo-keyboard-ite (0.2.5) jammy; urgency=low
+
+  * Add per-device color scaling to ite_8291 driver
+  * Add additional scaling setting for Stellaris 17 AMD Gen 4
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Wed, 07 Dec 2022 09:50:00 +0100
+
+tuxedo-keyboard-ite (0.2.4) jammy; urgency=low
+
+  * Add USB ID for Stellaris 17 Gen 4 keyboard backlight
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Wed, 30 Nov 2022 10:41:00 +0100
 
 tuxedo-keyboard (3.1.1) jammy; urgency=low
 
@@ -476,12 +529,31 @@ tuxedo-keyboard (3.0.3) focal; urgency=low
 
  -- C Sandberg <tux@tuxedocomputers.com>  Fri, 5 Mar 2021 13:25:00 +0100
 
+tuxedo-keyboard-ite (0.2.3) focal; urgency=low
+
+  * Fix broken brightness key reaction for ite_829x
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Mon, 22 Feb 2021 16:49:00 +0100
+
+tuxedo-keyboard-ite (0.2.2) focal; urgency=low
+
+  * Attempt to fix ite_829x instability sometimes locking up kernel on
+    keypress
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Tue, 16 Feb 2021 16:51:00 +0100
+
 tuxedo-keyboard (3.0.2) focal; urgency=low
 
   * Fixed clevo keyboard init order
   * Added Aura perf. profile workaround
 
  -- C Sandberg <tux@tuxedocomputers.com>  Fri, 29 Jan 2021 14:44:00 +0100
+
+tuxedo-keyboard-ite (0.2.1) focal; urgency=low
+
+  * Added device 048d:6004 to ite_8291
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Mon, 21 Dec 2020 16:50:00 +0100
 
 tuxedo-keyboard (3.0.1) focal; urgency=low
 
@@ -500,6 +572,12 @@ tuxedo-keyboard (3.0.0) focal; urgency=low
 
  -- C Sandberg <tux@tuxedocomputers.com>  Wed, 9 Dec 2020 13:04:00 +0100
 
+tuxedo-keyboard-ite (0.2.0) bionic; urgency=low
+
+  * Added initial support for ITE Device(8291) ->  048d:ce00
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Fri, 13 Nov 2020 12:14:00 +0100
+
 tuxedo-keyboard (2.1.0) bionic; urgency=low
 
   * Added device support (XMG Fusion)
@@ -509,6 +587,25 @@ tuxedo-keyboard (2.1.0) bionic; urgency=low
   * Fixed module cleanup crash
 
  -- C Sandberg <tux@tuxedocomputers.com>  Fri, 13 Nov 2020 11:23:00 +0100
+
+tuxedo-keyboard-ite (0.1.0) bionic; urgency=low
+
+  * Added initial (very basic) support for 048d:8297 LED controller
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Fri, 16 Oct 2020 14:30:00 +0100
+
+tuxedo-keyboard-ite (0.0.3) bionic; urgency=low
+
+  * Fixed key mapping toggle <=> switch mode
+  * Default color to white
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Mon, 12 Oct 2020 10:25:00 +0100
+
+tuxedo-keyboard-ite (0.0.2) bionic; urgency=low
+
+  * Initial experimental release
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Tue, 29 Sep 2020 19:14:00 +0100
 
 tuxedo-keyboard (2.0.6) bionic; urgency=low
 
@@ -546,105 +643,15 @@ tuxedo-keyboard (2.0.2) bionic; urgency=low
 
  -- C Sandberg <tux@tuxedocomputers.com>  Tue, 14 Apr 2020 13:09:00 +0100
 
-tuxedo-keyboard (2.0.1) bionic; urgency=low
-
-  * New packaging
-
- -- C Sandberg <tux@tuxedocomputers.com>  Tue, 17 Mar 2020 16:54:00 +0100
-
-tuxedo-keyboard-ite (0.4.4) jammy; urgency=low
-  * Add color scaling for Stellaris Gen5 AMD devices
-
- -- C Sandberg <tux@tuxedocomputers.com>  Thu, 16 Nov 2023 09:37:00 +0100
-
-tuxedo-keyboard-ite (0.4.3) jammy; urgency=low
-
-  * Adjusted lightbar USB product exclusion (prevents driver binding to unused
-    devices) for Stellaris Gen5 and allows proper binding of relevant ones.
-  * Lightbar color scaling for Stellaris 17 Gen5
-
- -- C Sandberg <tux@tuxedocomputers.com>  Thu, 03 Aug 2023 08:02:00 +0100
-
-tuxedo-keyboard-ite (0.4.1) jammy; urgency=low
-
-  * Four zone backlight support for Stellaris Gen5
-  * Experimental buffered writes for Stellaris/Fusion per-key variants
-
- -- C Sandberg <tux@tuxedocomputers.com>  Thu, 04 May 2023 11:00:00 +0100
-
-tuxedo-keyboard-ite (0.4.0) jammy; urgency=low
-
-  * Color scaling for Stellaris Intel Gen5
-  * Lightbar impl. for Stellaris Gen4/5
-
- -- C Sandberg <tux@tuxedocomputers.com>  Mon, 17 Apr 2023 15:43:00 +0100
-
-tuxedo-keyboard-ite (0.3.0) jammy; urgency=low
-
-  * Leds interface support (/sys/class/leds)
-
- -- C Sandberg <tux@tuxedocomputers.com>  Thu, 23 Feb 2023 11:10:00 +0100
-
-tuxedo-keyboard-ite (0.2.5) jammy; urgency=low
-
-  * Add per-device color scaling to ite_8291 driver
-  * Add additional scaling setting for Stellaris 17 AMD Gen 4
-
- -- C Sandberg <tux@tuxedocomputers.com>  Wed, 07 Dec 2022 09:50:00 +0100
-
-tuxedo-keyboard-ite (0.2.4) jammy; urgency=low
-
-  * Add USB ID for Stellaris 17 Gen 4 keyboard backlight
-
- -- C Sandberg <tux@tuxedocomputers.com>  Wed, 30 Nov 2022 10:41:00 +0100
-
-tuxedo-keyboard-ite (0.2.3) focal; urgency=low
-
-  * Fix broken brightness key reaction for ite_829x
-
- -- C Sandberg <tux@tuxedocomputers.com>  Mon, 22 Feb 2021 16:49:00 +0100
-
-tuxedo-keyboard-ite (0.2.2) focal; urgency=low
-
-  * Attempt to fix ite_829x instability sometimes locking up kernel on
-    keypress
-
- -- C Sandberg <tux@tuxedocomputers.com>  Tue, 16 Feb 2021 16:51:00 +0100
-
-tuxedo-keyboard-ite (0.2.1) focal; urgency=low
-
-  * Added device 048d:6004 to ite_8291
-
- -- C Sandberg <tux@tuxedocomputers.com>  Mon, 21 Dec 2020 16:50:00 +0100
-
-tuxedo-keyboard-ite (0.2.0) bionic; urgency=low
-
-  * Added initial support for ITE Device(8291) ->  048d:ce00
-
- -- C Sandberg <tux@tuxedocomputers.com>  Fri, 13 Nov 2020 12:14:00 +0100
-
-tuxedo-keyboard-ite (0.1.0) bionic; urgency=low
-
-  * Added initial (very basic) support for 048d:8297 LED controller
-
- -- C Sandberg <tux@tuxedocomputers.com>  Fri, 16 Oct 2020 14:30:00 +0100
-
-tuxedo-keyboard-ite (0.0.3) bionic; urgency=low
-
-  * Fixed key mapping toggle <=> switch mode
-  * Default color to white
-
- -- C Sandberg <tux@tuxedocomputers.com>  Mon, 12 Oct 2020 10:25:00 +0100
-
-tuxedo-keyboard-ite (0.0.2) bionic; urgency=low
-
-  * Initial experimental release
-
- -- C Sandberg <tux@tuxedocomputers.com>  Tue, 29 Sep 2020 19:14:00 +0100
-
 tuxedo-keyboard-ite (0.0.1) bionic; urgency=low
 
   * First version of the ITE keyboard backlight driver
   * Has support for ITE Device(829x) ->  0x048d:0x8910
 
  -- C Sandberg <tux@tuxedocomputers.com>  Fri, 27 Mar 2020 14:58:00 +0100
+
+tuxedo-keyboard (2.0.1) bionic; urgency=low
+
+  * New packaging
+
+ -- C Sandberg <tux@tuxedocomputers.com>  Tue, 17 Mar 2020 16:54:00 +0100

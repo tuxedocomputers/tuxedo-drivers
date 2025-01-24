@@ -1,4 +1,0 @@
-# The copyright file is also used outside of Debian contexts so it includes the
-# license brief in text and not just a Debian specific reference to the license
-# brief file.
-tuxedo-drivers binary: copyright-not-using-common-license-for-gpl
