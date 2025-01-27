@@ -1,12 +1,10 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Source: https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers
 Upstream-Name: tuxedo-drivers
 Upstream-Contact: tux@tuxedocomputers.com
-Source: https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers
 
 Files: *
-Copyright: 2018-2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
-License: GPL-2.0+
-
+Copyright: 2018-2025 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 License: GPL-2.0+
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,3 +18,6 @@ License: GPL-2.0+
  .
  You should have received a copy of the GNU General Public License along
  with this program; if not, see <https://www.gnu.org/licenses/>.
+Comment:
+ On Debian systems, the complete text of the GNU Lesser General Public
+ License, can be found in /usr/share/common-licenses/GPL-2.
