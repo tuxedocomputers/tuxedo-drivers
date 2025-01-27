@@ -1,11 +1,11 @@
-tuxedo-drivers (4.12.1) UNRELEASED; urgency=medium
+tuxedo-drivers (4.12.1) noble; urgency=medium
 
   * Change device check for fixed 5 color kbl on NB02 devices from EC-ID to DMI
     string
   * Cleanup changelog and order chronologically
   * Generate rpm changelog from deb changelog
 
- -- Werner Sembach <tux@tuxedocomputers.com>  Fri, 24 Jan 2025 15:41:25 +0100
+ -- Werner Sembach <tux@tuxedocomputers.com>  Mon, 27 Jan 2025 15:17:59 +0100
 
 tuxedo-drivers (4.12.0) noble; urgency=medium
 
