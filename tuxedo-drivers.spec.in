@@ -3,7 +3,7 @@ Version:        #MODULE_VERSION#
 Release:        1%{?dist}
 Summary:        Kernel modules for TUXEDO devices
 
-License:        GPLv3+
+License:        GPLv2+
 Url:            https://www.tuxedocomputers.com
 Source0:        %{name}-%{version}.tar.xz
 
@@ -11,22 +11,22 @@ Requires:       dkms >= 2.1
 
 BuildArch:      noarch
 
-Provides:       tuxedo-cc-wmi < 4.0.0-1
-Provides:       tuxedo-keyboard < 4.0.0-1
-Provides:       tuxedo-keyboard-dkms < 4.0.0-1
-Provides:       tuxedo-keyboard-ite < 4.0.0-1
-Provides:       tuxedo-touchpad-fix < 4.0.0-1
-Provides:       tuxedo-wmi-dkms < 4.0.0-1
-Provides:       tuxedo-xp-xc-airplane-mode-fix < 4.0.0-1
-Provides:       tuxedo-xp-xc-touchpad-key-fix < 4.0.0-1
-Obsoletes:      tuxedo-cc-wmi < 4.0.0~
-Obsoletes:      tuxedo-keyboard < 4.0.0~
-Obsoletes:      tuxedo-keyboard-dkms < 4.0.0~
-Obsoletes:      tuxedo-keyboard-ite < 4.0.0~
-Obsoletes:      tuxedo-touchpad-fix < 4.0.0~
-Obsoletes:      tuxedo-wmi-dkms < 4.0.0~
-Obsoletes:      tuxedo-xp-xc-airplane-mode-fix < 4.0.0~
-Obsoletes:      tuxedo-xp-xc-touchpad-key-fix < 4.0.0~
+Provides:       tuxedo-cc-wmi = 4.0.0-1
+Provides:       tuxedo-keyboard = 4.0.0-1
+Provides:       tuxedo-keyboard-dkms = 4.0.0-1
+Provides:       tuxedo-keyboard-ite = 4.0.0-1
+Provides:       tuxedo-touchpad-fix = 4.0.0-1
+Provides:       tuxedo-wmi-dkms = 4.0.0-1
+Provides:       tuxedo-xp-xc-airplane-mode-fix = 4.0.0-1
+Provides:       tuxedo-xp-xc-touchpad-key-fix = 4.0.0-1
+Obsoletes:      tuxedo-cc-wmi < 4.0.0-1
+Obsoletes:      tuxedo-keyboard < 4.0.0-1
+Obsoletes:      tuxedo-keyboard-dkms < 4.0.0-1
+Obsoletes:      tuxedo-keyboard-ite < 4.0.0-1
+Obsoletes:      tuxedo-touchpad-fix < 4.0.0-1
+Obsoletes:      tuxedo-wmi-dkms < 4.0.0-1
+Obsoletes:      tuxedo-xp-xc-airplane-mode-fix < 4.0.0-1
+Obsoletes:      tuxedo-xp-xc-touchpad-key-fix < 4.0.0-1
 
 Group:          Hardware/Other
 Packager:       TUXEDO Computers GmbH <tux@tuxedocomputers.com>
