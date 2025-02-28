@@ -32,6 +32,8 @@
 #include <linux/led-class-multicolor.h>
 #include <linux/string.h>
 #include <linux/version.h>
+#include <linux/i8042.h>
+#include <linux/serio.h>
 #include "uniwill_interfaces.h"
 #include "uniwill_leds.h"
 
@@ -237,40 +239,7 @@ static void key_event_work(struct work_struct *work)
 		true
 	);
 }
-
-// Previous key codes for detecting longer combination
-static u32 prev_key = 0, prevprev_key = 0;
 static DECLARE_WORK(uniwill_key_event_work, key_event_work);
-
-static int keyboard_notifier_callb(struct notifier_block *nb, unsigned long code, void *_param)
-{
-	struct keyboard_notifier_param *param = _param;
-	int ret = NOTIFY_OK;
-
-	if (!param->down) {
-		if (code == KBD_KEYCODE) {
-			switch (param->value) {
-			case KEY_LEFTMETA:
-				// If the last keys up were 85 -> 29 -> 125
-				// manually report KEY_F21
-				if (prevprev_key == KEY_ZENKAKUHANKAKU && prev_key == KEY_LEFTCTRL) {
-					TUXEDO_DEBUG("Touchpad Toggle\n");
-					schedule_work(&uniwill_key_event_work);
-					ret = NOTIFY_OK;
-				}
-				break;
-			}
-			prevprev_key = prev_key;
-			prev_key = param->value;
-		}
-	}
-
-	return ret;
-}
-
-static struct notifier_block keyboard_notifier_block = {
-	.notifier_call = keyboard_notifier_callb
-};
 
 static void uniwill_write_kbd_bl_enable(u8 enable)
 {
@@ -1199,6 +1168,38 @@ static bool uniwill_fn_lock_available(void){
 		return 1;
 }
 
+static u8 uniwill_touchp_toggle_seq[] = {
+	0xe0, 0x5b, // Super down
+	0x1d,       // Control down
+	0x76,       // Zenkaku/Hankaku down
+	0xf6,       // Zenkaku/Hankaku up
+	0x9d,       // Control up
+	0xe0, 0xdb  // Super up
+};
+
+static bool uniwill_i8042_filter(unsigned char data, unsigned char str,
+				 struct serio *port __always_unused)
+{
+	static u8 seq_pos;
+
+	if (unlikely(str & I8042_STR_AUXDATA))
+		return false;
+
+	if (unlikely(data == uniwill_touchp_toggle_seq[seq_pos])) {
+		++seq_pos;
+		if (unlikely(data == 0x76 || data == 0xf6))
+			return true;
+		else if (unlikely(seq_pos == ARRAY_SIZE(uniwill_touchp_toggle_seq))) {
+			schedule_work(&uniwill_key_event_work);
+			seq_pos = 0;
+		}
+		return false;
+	}
+
+	seq_pos = 0;
+	return false;
+}
+
 static int uniwill_keyboard_probe(struct platform_device *dev)
 {
 	u32 i;
@@ -1243,8 +1244,6 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 	// Zero second fan temp for detection
 	uniwill_write_ec_ram(0x044f, 0x00);
 
-	status = register_keyboard_notifier(&keyboard_notifier_block);
-
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 	TUXEDO_ERROR("Warning: Kernel version less that 5.9, keyboard backlight might not be properly recognized.");
 #endif
@@ -1258,6 +1257,11 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 
 	uw_charging_priority_init(dev);
 	uw_charging_profile_init(dev);
+
+	// Ignore return value, it just means there is already a filter active
+	// which is fine, because it is probably just the upstream patch of this
+	// filter.
+	i8042_install_filter(uniwill_i8042_filter);
 
 	return 0;
 }
@@ -1281,13 +1285,15 @@ static void uniwill_keyboard_remove(struct platform_device *dev)
 		uniwill_write_kbd_bl_enable(uniwill_kbd_bl_enable_state_on_start);
 	}
 
-	unregister_keyboard_notifier(&keyboard_notifier_block);
-
 	if (uw_lightbar_loaded)
 		uw_lightbar_remove(dev);
 
 	// Disable manual mode
 	uniwill_write_ec_ram(0x0741, 0x00);
+
+	// Ignore return value, it just means this filter was not active atm.
+	i8042_remove_filter(uniwill_i8042_filter);
+
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
 #endif
