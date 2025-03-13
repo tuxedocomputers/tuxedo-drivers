@@ -1177,8 +1177,14 @@ static u8 uniwill_touchp_toggle_seq[] = {
 	0xe0, 0xdb  // Super up
 };
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 14, 0)
 static bool uniwill_i8042_filter(unsigned char data, unsigned char str,
 				 struct serio *port __always_unused)
+#else
+static bool uniwill_i8042_filter(unsigned char data, unsigned char str,
+				 struct serio *port __always_unused,
+				 void *context __always_unused)
+#endif
 {
 	static u8 seq_pos;
 
@@ -1261,7 +1267,12 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 	// Ignore return value, it just means there is already a filter active
 	// which is fine, because it is probably just the upstream patch of this
 	// filter.
-	i8042_install_filter(uniwill_i8042_filter);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 14, 0)
+	if (i8042_install_filter(uniwill_i8042_filter))
+#else
+	if (i8042_install_filter(uniwill_i8042_filter, NULL))
+#endif
+		pr_info("Could not install i8042 filter.\n");
 
 	return 0;
 }
@@ -1292,7 +1303,12 @@ static void uniwill_keyboard_remove(struct platform_device *dev)
 	uniwill_write_ec_ram(0x0741, 0x00);
 
 	// Ignore return value, it just means this filter was not active atm.
-	i8042_remove_filter(uniwill_i8042_filter);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 14, 0)
+	if (i8042_remove_filter(uniwill_i8042_filter))
+#else
+	if (i8042_remove_filter(uniwill_i8042_filter, NULL))
+#endif
+		pr_info("Could not remove i8042 filter.\n");
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
