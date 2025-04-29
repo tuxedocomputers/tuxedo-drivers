@@ -294,7 +294,8 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
 			break;*/
 		case R_CL_WEBCAM_SW:
 			if (dmi_match(DMI_PRODUCT_SKU, "AURA14GEN3") ||
-			    dmi_match(DMI_PRODUCT_SKU, "AURA15GEN3"))
+			    dmi_match(DMI_PRODUCT_SKU, "AURA15GEN3") ||
+				dmi_match(DMI_PRODUCT_SKU, "AURA14GEN4 / AURA15GEN4"))
 				return -ENODEV;
 			status = clevo_evaluate_method(CLEVO_CMD_GET_WEBCAM_SW, 0, &result);
 			copy_result = copy_to_user((int32_t *) arg, &result, sizeof(result));
