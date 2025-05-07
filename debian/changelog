@@ -1,10 +1,11 @@
-tuxedo-drivers (4.13.0) UNRELEASED; urgency=medium
+tuxedo-drivers (4.13.0) noble; urgency=medium
 
+  * Fix touchpad toggle key on NB02 on wayland
   * Fix Aura 14/15 Gen4 Webcam switch not disapearing when deactivated in BIOS
   * Add udev-hid-bpf recommendation for Sirius 16 Gen1/2 keyboard fix
   * Fix build errors with Kernel 6.14 and 6.15
 
- -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 07 May 2025 16:08:53 +0200
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 07 May 2025 17:57:05 +0200
 
 tuxedo-drivers (4.12.2) noble; urgency=medium
 
