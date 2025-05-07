@@ -357,7 +357,7 @@ static void tuxedo_nb05_power_profiles_remove(struct wmi_device *wdev)
 #endif
 {
 	pr_debug("driver remove\n");
-	del_timer(&profile_changed_timer);
+	timer_delete(&profile_changed_timer);
 	struct driver_data_t *driver_data = dev_get_drvdata(&wdev->dev);
 	sysfs_remove_group(&driver_data->pdev->dev.kobj, &platform_profile_attr_group);
 	platform_device_unregister(driver_data->pdev);
