@@ -1303,11 +1303,7 @@ static void uniwill_keyboard_remove(struct platform_device *dev)
 	uniwill_write_ec_ram(0x0741, 0x00);
 
 	// Ignore return value, it just means this filter was not active atm.
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 14, 0)
 	if (i8042_remove_filter(uniwill_i8042_filter))
-#else
-	if (i8042_remove_filter(uniwill_i8042_filter, NULL))
-#endif
 		pr_info("Could not remove i8042 filter.\n");
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
