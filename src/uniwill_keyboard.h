@@ -858,6 +858,142 @@ static ssize_t uw_charging_prio_store(struct device *child,
 		return -EINVAL;
 }
 
+static bool uw_ac_auto_boot_loaded = false;
+static bool uw_ac_auto_boot_last_written_value;
+
+static ssize_t uw_ac_auto_boot_show(struct device *child,
+								   struct device_attribute *attr,
+								   char *buffer);
+static ssize_t uw_ac_auto_boot_store(struct device *child,
+									struct device_attribute *attr,
+									const char *buffer, size_t size);
+									 
+
+struct uw_ac_auto_boot_attrs_t
+{
+	struct device_attribute ac_auto_boot;
+} uw_ac_auto_boot_attrs = {
+	.ac_auto_boot = __ATTR(ac_auto_boot, 0644, uw_ac_auto_boot_show, uw_ac_auto_boot_store)
+};
+
+static struct attribute *uw_ac_auto_boot_attrs_list[] = {
+	&uw_ac_auto_boot_attrs.ac_auto_boot.attr,
+	NULL};
+
+static struct attribute_group uw_ac_auto_boot_attr_group = {
+	.name = "ac_auto_boot",
+	.attrs = uw_ac_auto_boot_attrs_list};
+
+static int uw_set_ac_auto_boot(u8 ac_auto_boot)
+{
+	u8 previous_data, next_data;
+	int result;
+
+	ac_auto_boot = (ac_auto_boot & 0x01) << 3;
+
+	result = uniwill_read_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS, &previous_data);
+	if (result != 0)
+		return result;
+
+	next_data = (previous_data & ~(1 << 3)) | ac_auto_boot;
+	result = uniwill_write_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS, next_data);
+	if (result == 0)
+		uw_charging_prio_last_written_value = ac_auto_boot;
+
+	return result;
+}
+
+static int uw_get_ac_auto_boot(u8 *ac_auto_boot)
+{
+	int result = uniwill_read_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS, ac_auto_boot);
+	if (result == 0)
+		*ac_auto_boot = (*ac_auto_boot >> 3) & 0x01;
+	return result;
+}
+
+/*
+ * We didn't find any identification bits to retrieve the information if the device 
+ * supports the feature. The nb02 control center reads the support flag either from the 
+ * registry or from the UniWillVariable efivar. The efivar most likely stores this 
+ * information at an offset of 92 bytes. However, tests have shown that * the control 
+ * center most likely sets the bit in this variable itself dynamically, so we have to 
+ * check DMI strings for now.
+ */
+static int uw_has_ac_auto_boot(bool *status)
+{
+	*status = false ||
+		// IBP Gen9
+		dmi_match(DMI_PRODUCT_SKU, "IBP14A09MK1 / IBP15A09MK1") ||
+		dmi_match(DMI_PRODUCT_SKU, "IBP14I09MK1 / IBP15I09MK1") ||
+		// IBP Gen10
+		dmi_match(DMI_PRODUCT_SKU, "IBP14A10MK1 / IBP15A10MK1") ||
+		dmi_match(DMI_PRODUCT_SKU, "IBP14I09MK1 / IBP15I09MK1") ||
+
+		// Stellaris Gen6 
+		dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06") ||
+		dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06") ||
+		dmi_match(DMI_PRODUCT_SKU, "STELLARIS15I06") ||
+		// Stellaris Gen7
+		dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I07") ||
+		dmi_match(DMI_PRODUCT_SKU, "STELLARIS16A07") ||
+
+		// Stellaris Slim Gen6
+		dmi_match(DMI_PRODUCT_SKU, "STELLSL15I06") ||
+		dmi_match(DMI_PRODUCT_SKU, "STELLSL15A06")
+	;
+
+	return 0;
+}
+
+static void uw_ac_autoboot_init(struct platform_device *dev)
+{
+	u8 value;
+	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
+
+	if (uw_feats->uniwill_has_ac_auto_boot)
+		uw_ac_auto_boot_loaded = sysfs_create_group(&dev->dev.kobj, &uw_ac_auto_boot_attr_group) == 0;
+
+	// Read for state init
+	if (uw_ac_auto_boot_loaded)
+	{
+		uw_get_ac_auto_boot(&value);
+		uw_ac_auto_boot_last_written_value = value;
+	}
+}
+
+static ssize_t uw_ac_auto_boot_show(struct device *child,
+								   struct device_attribute *attr,
+								   char *buffer)
+{
+	u8 ac_auto_boot_value;
+	int result;
+
+	result = uw_get_ac_auto_boot(&ac_auto_boot_value);
+	if (result == 0)
+		return sprintf(buffer, "%d\n", ac_auto_boot_value);
+
+	return -EIO;
+}
+
+static ssize_t uw_ac_auto_boot_store(struct device *child,
+									struct device_attribute *attr,
+									const char *buffer, size_t size)
+{
+	u8 ac_auto_boot_value;
+	int result;
+
+	if (kstrtou8(buffer, 10, &ac_auto_boot_value) ||
+		ac_auto_boot_value < 0 ||
+		ac_auto_boot_value > 1)
+		return -EINVAL;
+
+	result = uw_set_ac_auto_boot(ac_auto_boot_value);
+	if (result == 0)
+		return size;
+	else
+		return -EIO;
+}
+
 static const u8 uw_romid_PH4PxX[14] = {0x0C, 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 static const u8 uw_romid_PH6PxX[14] = {0x0C, 0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -1059,6 +1195,8 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 	if (uw_has_charging_priority(&uw_feats->uniwill_has_charging_prio) != 0)
 		feats_loaded = false;
 	if (uw_has_charging_profile(&uw_feats->uniwill_has_charging_profile) != 0)
+		feats_loaded = false;
+	if (uw_has_ac_auto_boot(&uw_feats->uniwill_has_ac_auto_boot) != 0)
 		feats_loaded = false;
 
 	result = has_universal_ec_fan_control();
@@ -1263,6 +1401,7 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 
 	uw_charging_priority_init(dev);
 	uw_charging_profile_init(dev);
+	uw_ac_autoboot_init(dev);
 
 	// Ignore return value, it just means there is already a filter active
 	// which is fine, because it is probably just the upstream patch of this
