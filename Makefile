@@ -61,6 +61,7 @@ package-rpm:
 		--transform="s/debian\/copyright/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/LICENSE/"\
 		--transform="s/99-z-tuxedo-systemd-fix.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-z-tuxedo-systemd-fix.rules/"\
 		--transform="s/99-infinityflex-touchpanel-toggle.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-infinityflex-touchpanel-toggle.rules/"\
+		--transform="s/61-keyboard-tuxedo.hwdb/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/hwdb.d\/61-keyboard-tuxedo.hwdb/"\
 		--transform="s/61-sensor-tuxedo.hwdb/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/hwdb.d\/61-sensor-tuxedo.hwdb/"\
 		--exclude=*.cmd\
 		--exclude=*.d\
@@ -69,5 +70,5 @@ package-rpm:
 		--exclude=*.mod.c\
 		--exclude=*.o\
 		--exclude=modules.order\
-		src tuxedo_keyboard.conf debian/copyright 99-z-tuxedo-systemd-fix.rules 99-infinityflex-touchpanel-toggle.rules 61-sensor-tuxedo.hwdb
+		src tuxedo_keyboard.conf debian/copyright 99-z-tuxedo-systemd-fix.rules 99-infinityflex-touchpanel-toggle.rules 61-keyboard-tuxedo.hwdb 61-sensor-tuxedo.hwdb
 	rpmbuild -ba tuxedo-drivers.spec
