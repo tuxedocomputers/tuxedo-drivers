@@ -48,7 +48,7 @@ cp -r %{_builddir}/%{name}-%{version}/etc %{buildroot}
 %license LICENSE
 /usr/lib/udev/rules.d/99-z-tuxedo-systemd-fix.rules
 /usr/lib/udev/rules.d/99-infinityflex-touchpanel-toggle.rules
-/usr/lib/udev/hwdb.d/61-sensor-infinityflex.hwdb
+/usr/lib/udev/hwdb.d/61-sensor-tuxedo.hwdb
 
 %post
 dkms add -m %{name} -v %{version} --rpm_safe_upgrade
