@@ -10,7 +10,8 @@ override_dh_install:
 	dh_install tuxedo_keyboard.conf /etc/modprobe.d
 	dh_install 99-z-tuxedo-systemd-fix.rules /usr/lib/udev/rules.d
 	dh_install 99-infinityflex-touchpanel-toggle.rules /usr/lib/udev/rules.d
-	dh_install 61-sensor-infinityflex.hwdb /usr/lib/udev/hwdb.d
+	dh_install 61-keyboard-tuxedo.hwdb /usr/lib/udev/hwdb.d
+	dh_install 61-sensor-tuxedo.hwdb /usr/lib/udev/hwdb.d
 
 override_dh_dkms:
 	dh_dkms -V
