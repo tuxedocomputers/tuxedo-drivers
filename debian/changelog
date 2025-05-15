@@ -1,3 +1,10 @@
+tuxedo-drivers (4.13.1) noble; urgency=medium
+
+  * InfinityFlex: Make FN-key no longer disable touchpad
+  * NB02: Make FN-key no longer spam dmesg
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 15 May 2025 17:40:06 +0200
+
 tuxedo-drivers (4.13.0) noble; urgency=medium
 
   * Fix touchpad toggle key on NB02 on wayland
