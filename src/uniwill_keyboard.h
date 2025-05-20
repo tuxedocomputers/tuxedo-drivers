@@ -858,6 +858,40 @@ static ssize_t uw_charging_prio_store(struct device *child,
 		return -EINVAL;
 }
 
+/*
+ * We didn't find any identification bits to retrieve the information if the device 
+ * supports the features usb_powershare and ac_auto_boot. The nb02 control center reads
+ * the support flag either from the registry or from the UniWillVariable efivar. The 
+ * efivar most likely stores this information at an offset of 92 bytes. However, tests 
+ * have shown that the control center most likely sets the bit in this variable itself 
+ * dynamically, so we have to check DMI strings for now.
+ */
+static int is_supported_uniwill_device(bool *status)
+{
+	*status = false ||
+		// IBP Gen9
+		dmi_match(DMI_PRODUCT_SKU, "IBP14A09MK1 / IBP15A09MK1") ||
+		dmi_match(DMI_PRODUCT_SKU, "IBP14I09MK1 / IBP15I09MK1") ||
+		// IBP Gen10
+		dmi_match(DMI_PRODUCT_SKU, "IBP14A10MK1 / IBP15A10MK1") ||
+		dmi_match(DMI_PRODUCT_SKU, "IBP14I09MK1 / IBP15I09MK1") ||
+
+		// Stellaris Gen6 
+		dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06") ||
+		dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06") ||
+		dmi_match(DMI_PRODUCT_SKU, "STELLARIS15I06") ||
+		// Stellaris Gen7
+		dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I07") ||
+		dmi_match(DMI_PRODUCT_SKU, "STELLARIS16A07") ||
+
+		// Stellaris Slim Gen6
+		dmi_match(DMI_PRODUCT_SKU, "STELLSL15I06") ||
+		dmi_match(DMI_PRODUCT_SKU, "STELLSL15A06")
+	;
+
+	return 0;
+}
+
 static bool uw_ac_auto_boot_loaded = false;
 static bool uw_ac_auto_boot_last_written_value;
 
@@ -898,54 +932,26 @@ static int uw_set_ac_auto_boot(u8 ac_auto_boot)
 	next_data = (previous_data & ~(1 << 3)) | ac_auto_boot;
 	result = uniwill_write_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS, next_data);
 	if (result == 0)
-		uw_charging_prio_last_written_value = ac_auto_boot;
+		uw_ac_auto_boot_last_written_value = ac_auto_boot;
 
 	return result;
 }
 
 static int uw_get_ac_auto_boot(u8 *ac_auto_boot)
 {
-	int result = uniwill_read_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS, ac_auto_boot);
+	int result; 
+	result = uniwill_read_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS, ac_auto_boot);
 	if (result == 0)
 		*ac_auto_boot = (*ac_auto_boot >> 3) & 0x01;
 	return result;
 }
 
-/*
- * We didn't find any identification bits to retrieve the information if the device 
- * supports the feature. The nb02 control center reads the support flag either from the 
- * registry or from the UniWillVariable efivar. The efivar most likely stores this 
- * information at an offset of 92 bytes. However, tests have shown that * the control 
- * center most likely sets the bit in this variable itself dynamically, so we have to 
- * check DMI strings for now.
- */
 static int uw_has_ac_auto_boot(bool *status)
 {
-	*status = false ||
-		// IBP Gen9
-		dmi_match(DMI_PRODUCT_SKU, "IBP14A09MK1 / IBP15A09MK1") ||
-		dmi_match(DMI_PRODUCT_SKU, "IBP14I09MK1 / IBP15I09MK1") ||
-		// IBP Gen10
-		dmi_match(DMI_PRODUCT_SKU, "IBP14A10MK1 / IBP15A10MK1") ||
-		dmi_match(DMI_PRODUCT_SKU, "IBP14I09MK1 / IBP15I09MK1") ||
-
-		// Stellaris Gen6 
-		dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06") ||
-		dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06") ||
-		dmi_match(DMI_PRODUCT_SKU, "STELLARIS15I06") ||
-		// Stellaris Gen7
-		dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I07") ||
-		dmi_match(DMI_PRODUCT_SKU, "STELLARIS16A07") ||
-
-		// Stellaris Slim Gen6
-		dmi_match(DMI_PRODUCT_SKU, "STELLSL15I06") ||
-		dmi_match(DMI_PRODUCT_SKU, "STELLSL15A06")
-	;
-
-	return 0;
+	return is_supported_uniwill_device(status);
 }
 
-static void uw_ac_autoboot_init(struct platform_device *dev)
+static void uw_ac_auto_boot_init(struct platform_device *dev)
 {
 	u8 value;
 	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
@@ -988,6 +994,114 @@ static ssize_t uw_ac_auto_boot_store(struct device *child,
 		return -EINVAL;
 
 	result = uw_set_ac_auto_boot(ac_auto_boot_value);
+	if (result == 0)
+		return size;
+	else
+		return -EIO;
+}
+
+static bool uw_usb_powershare_loaded = false;
+static bool uw_usb_powershare_last_written_value;
+
+static ssize_t uw_usb_powershare_show(struct device *child,
+								   struct device_attribute *attr,
+								   char *buffer);
+static ssize_t uw_usb_powershare_store(struct device *child,
+									struct device_attribute *attr,
+									const char *buffer, size_t size);
+									 
+
+struct uw_usb_powershare_attrs_t
+{
+	struct device_attribute usb_powershare;
+} uw_usb_powershare_attrs = {
+	.usb_powershare = __ATTR(usb_powershare, 0644, uw_usb_powershare_show, uw_usb_powershare_store)
+};
+
+static struct attribute *uw_usb_powershare_attrs_list[] = {
+	&uw_usb_powershare_attrs.usb_powershare.attr,
+	NULL};
+
+static struct attribute_group uw_usb_powershare_attr_group = {
+	.name = "usb_powershare",
+	.attrs = uw_usb_powershare_attrs_list};
+
+static int uw_set_usb_powershare(u8 usb_powershare)
+{
+	u8 previous_data, next_data;
+	int result;
+	usb_powershare = (usb_powershare & 0x01) << 4;
+
+	result = uniwill_read_ec_ram(UW_EC_REG_USB_POWERSHARE_STATUS, &previous_data);
+	if (result != 0)
+		return result;
+
+	next_data = (previous_data & ~(1 << 4)) | usb_powershare;
+	// This bit is set to 0 after a cold boot regardless of its original value for some reason.
+	result = uniwill_write_ec_ram(UW_EC_REG_USB_POWERSHARE_STATUS, next_data);
+	if (result == 0)
+		uw_usb_powershare_last_written_value = usb_powershare;
+
+	return result;
+}
+
+static int uw_get_usb_powershare(u8 *usb_powershare)
+{
+	int result; 
+	result = uniwill_read_ec_ram(UW_EC_REG_USB_POWERSHARE_STATUS, usb_powershare);
+	if (result == 0)
+		*usb_powershare = (*usb_powershare >> 4) & 0x01;
+	return result;
+}
+
+static int uw_has_usb_powershare(bool *status)
+{
+	return is_supported_uniwill_device(status);
+}
+
+static void uw_usb_powershare_init(struct platform_device *dev)
+{
+	u8 value;
+	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
+
+	if (uw_feats->uniwill_has_usb_powershare)
+		uw_usb_powershare_loaded = sysfs_create_group(&dev->dev.kobj, &uw_usb_powershare_attr_group) == 0;
+
+	// Read for state init
+	if (uw_usb_powershare_loaded)
+	{
+		uw_get_usb_powershare(&value);
+		uw_usb_powershare_last_written_value = value;
+	}
+}
+
+static ssize_t uw_usb_powershare_show(struct device *child,
+								   struct device_attribute *attr,
+								   char *buffer)
+{
+	u8 usb_powershare_value;
+	int result;
+
+	result = uw_get_usb_powershare(&usb_powershare_value);
+	if (result == 0)
+		return sprintf(buffer, "%d\n", usb_powershare_value);
+
+	return -EIO;
+}
+
+static ssize_t uw_usb_powershare_store(struct device *child,
+									struct device_attribute *attr,
+									const char *buffer, size_t size)
+{
+	u8 usb_powershare_value;
+	int result;
+
+	if (kstrtou8(buffer, 10, &usb_powershare_value) ||
+		usb_powershare_value < 0 ||
+		usb_powershare_value > 1)
+		return -EINVAL;
+
+	result = uw_set_usb_powershare(usb_powershare_value);
 	if (result == 0)
 		return size;
 	else
@@ -1198,6 +1312,8 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 		feats_loaded = false;
 	if (uw_has_ac_auto_boot(&uw_feats->uniwill_has_ac_auto_boot) != 0)
 		feats_loaded = false;
+	if (uw_has_usb_powershare(&uw_feats->uniwill_has_usb_powershare) != 0)
+		feats_loaded = false;
 
 	result = has_universal_ec_fan_control();
 	if (result < 0) {
@@ -1401,7 +1517,8 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 
 	uw_charging_priority_init(dev);
 	uw_charging_profile_init(dev);
-	uw_ac_autoboot_init(dev);
+	uw_ac_auto_boot_init(dev);
+	uw_usb_powershare_init(dev);
 
 	// Ignore return value, it just means there is already a filter active
 	// which is fine, because it is probably just the upstream patch of this
