@@ -545,7 +545,9 @@ static int uw_has_charging_priority(bool *status)
 		|| dmi_match(DMI_BOARD_NAME, "LAPQC71A")
 		|| dmi_match(DMI_BOARD_NAME, "LAPQC71B")
 		|| dmi_match(DMI_PRODUCT_NAME, "A60 MUV")
-	;
+		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I07")
+		// TODO: Add Stellaris Gen6 and IBP Gen9 as well (or find cleaner solution)
+		;
 
 	if (not_supported_device) {
 		*status = false;
