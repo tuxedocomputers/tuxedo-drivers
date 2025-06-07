@@ -1,3 +1,8 @@
+tuxedo-drivers (4.13.2) noble; urgency=medium
+
+  * add charge control
+  * fixed micro phone mute
+  
 tuxedo-drivers (4.13.1) noble; urgency=medium
 
   * InfinityFlex: Make FN-key no longer disable touchpad

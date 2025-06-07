@@ -1,6 +1,7 @@
 obj-m += clevo_wmi.o
 obj-m += tuxedo_keyboard.o
 obj-m += uniwill_wmi.o
+obj-m += tuxedo_battery.o
 
 obj-y += ite_8291/
 obj-y += tuxedo_compatibility_check/
