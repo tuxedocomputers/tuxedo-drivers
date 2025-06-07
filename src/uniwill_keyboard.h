@@ -48,8 +48,10 @@
 #define UNIWILL_OSD_MODE_CHANGE_KEY_EVENT	0x0B0
 
 #define UNIWILL_KEY_RFKILL			0x0A4
-#define UNIWILL_KEY_KBDILLUMDOWN		0x0B1
-#define UNIWILL_KEY_KBDILLUMUP			0x0B2
+
+#define UNIWILL_OSD_PERFORMANCE_MODE_TOGGLE	0xB0
+
+#define UNIWILL_OSD_MIC_MUTE			0xB7
 #define UNIWILL_KEY_FN_LOCK			0x0B8
 #define UNIWILL_KEY_KBDILLUMTOGGLE		0x0B9
 
@@ -75,15 +77,17 @@ static struct key_entry uniwill_wmi_keymap[] = {
 	// Manual mode rfkill
 	{ KE_KEY,	UNIWILL_KEY_RFKILL,		{ KEY_RFKILL }},
 	{ KE_KEY,	UNIWILL_OSD_TOUCHPADWORKAROUND,	{ KEY_F21 } },
+
+	/* Reported when user wants to cycle the platform profile */
+	{ KE_IGNORE,	UNIWILL_OSD_PERFORMANCE_MODE_TOGGLE,	{ KEY_UNKNOWN }},
+
+	/* Reported when the user wants to toggle the microphone mute status */
+	{ KE_KEY,	UNIWILL_OSD_MIC_MUTE,			{ KEY_MICMUTE }},
+
 	// Keyboard brightness
-	{ KE_KEY,	UNIWILL_KEY_KBDILLUMDOWN,	{ KEY_KBDILLUMDOWN } },
-	{ KE_KEY,	UNIWILL_KEY_KBDILLUMUP,		{ KEY_KBDILLUMUP } },
+
 	{ KE_KEY,	UNIWILL_KEY_KBDILLUMTOGGLE,	{ KEY_KBDILLUMTOGGLE } },
-	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL0,	{ KEY_KBDILLUMTOGGLE } },
-	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL1,	{ KEY_KBDILLUMTOGGLE } },
-	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL2,	{ KEY_KBDILLUMTOGGLE } },
-	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL3,	{ KEY_KBDILLUMTOGGLE } },
-	{ KE_KEY,	UNIWILL_OSD_KB_LED_LEVEL4,	{ KEY_KBDILLUMTOGGLE } },
+
 	// Send FN_ESC to user space as input-event-codes.h does not define Fn-Lock
 	{ KE_KEY,	UNIWILL_KEY_FN_LOCK,		{ KEY_FN_ESC } },
 	// Only used to put ev bits
