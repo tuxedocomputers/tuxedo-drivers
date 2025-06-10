@@ -871,23 +871,24 @@ static int is_auto_boot_and_powershare_supported(bool *status)
 {
   *status = false ||
             // IBP Gen9
-            dmi_match(DMI_PRODUCT_SKU, "IBP14A09MK1 / IBP15A09MK1") ||
-            dmi_match(DMI_PRODUCT_SKU, "IBP14I09MK1 / IBP15I09MK1") ||
+            dmi_match(DMI_BOARD_NAME, "GXxMRXx") ||
+            dmi_match(DMI_BOARD_NAME, "GXxHRXx") ||
             // IBP Gen10
-            dmi_match(DMI_PRODUCT_SKU, "IBP14A10MK1 / IBP15A10MK1") ||
-            dmi_match(DMI_PRODUCT_SKU, "IBP14I09MK1 / IBP15I09MK1") ||
+            dmi_match(DMI_BOARD_NAME, "XxSP4NAx") ||
+            dmi_match(DMI_BOARD_NAME, "XxKK4NAx") ||
 
             // Stellaris Gen6
-            dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06") ||
-            dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06") ||
-            dmi_match(DMI_PRODUCT_SKU, "STELLARIS15I06") ||
+            dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB1") ||
+            dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB2") ||
+            dmi_match(DMI_BOARD_NAME, "GM7IXxN") ||
             // Stellaris Gen7
-            dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I07") ||
-            dmi_match(DMI_PRODUCT_SKU, "STELLARIS16A07") ||
+            dmi_match(DMI_BOARD_NAME, "X6AR5xxY") ||
+            dmi_match(DMI_BOARD_NAME, "X6AR5xxY_mLED") ||
+            dmi_match(DMI_BOARD_NAME, "X6FR5xxY") ||
 
             // Stellaris Slim Gen6
-            dmi_match(DMI_PRODUCT_SKU, "STELLSL15I06") ||
-            dmi_match(DMI_PRODUCT_SKU, "STELLSL15A06");
+            dmi_match(DMI_BOARD_NAME, "GMxHGxx") ||
+            dmi_match(DMI_BOARD_NAME, "GM5IXxA");
 
   return 0;
 }
