@@ -1,4 +1,4 @@
-tuxedo-drivers (4.13.0.2) noble; urgency=medium
+tuxedo-drivers (4.13.0) noble; urgency=medium
 
   * Fix touchpad toggle key on NB02 on wayland
   * Fix Aura 14/15 Gen4 Webcam switch not disapearing when deactivated in BIOS
@@ -436,7 +436,7 @@ tuxedo-keyboard-ite (0.3.0) jammy; urgency=low
 
 tuxedo-keyboard (3.1.4) jammy; urgency=low
 
-    * Fix upcoming 6.2 kernel build issue (from github Buddy-Matt)
+  * Fix upcoming 6.2 kernel build issue (from github Buddy-Matt)
   * Re-write last set charging priority on barrel plug connect
   * UW interface performance tweaks (should help with lagging keyboard issues
     on certain devices)
