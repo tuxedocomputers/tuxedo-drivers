@@ -1,3 +1,11 @@
+tuxedo-drivers (4.14.0) noble; urgency=medium
+
+  * Several small fices for Stellaris Gen7 support
+  * Add wake on power setting for supported devices
+  * Add power share setting for supported devices
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 11 Jun 2025 18:17:28 +0200
+
 tuxedo-drivers (4.13.1) noble; urgency=medium
 
   * InfinityFlex: Make FN-key no longer disable touchpad
