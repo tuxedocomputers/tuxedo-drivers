@@ -872,6 +872,10 @@ static ssize_t uw_charging_prio_store(struct device *child,
 static int is_auto_boot_and_powershare_supported(bool *status)
 {
   *status = false ||
+            // IBP Gen6
+            dmi_match(DMI_BOARD_NAME, "PHxTxX1") ||
+            dmi_match(DMI_BOARD_NAME, "PHxTQx1") ||
+
             // IBP Gen9
             dmi_match(DMI_BOARD_NAME, "GXxMRXx") ||
             dmi_match(DMI_BOARD_NAME, "GXxHRXx") ||
