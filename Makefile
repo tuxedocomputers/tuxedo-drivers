@@ -1,9 +1,9 @@
 #
-# Copyright (c) 2023 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+# Copyright (c) 2018-2025 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 #
-# This file is part of tuxedo-yt6801.
+# This file is part of tuxedo-drivers.
 #
-# tuxedo-yt6801 is free software; you can redistribute it and/or
+# tuxedo-drivers is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; version 2
 # of the License.
