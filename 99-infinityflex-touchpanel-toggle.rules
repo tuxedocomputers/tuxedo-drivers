@@ -1,2 +1,0 @@
-ACTION=="add|change", SUBSYSTEM=="acpi", ATTR{hid}=="GXTP7380", ATTR{status}=="15", RUN+="/bin/bash -c \"echo 0 | tee /sys/bus/i2c/devices/i2c-GXTP7380*/0018:27C6*/input/input*/inhibited\""
-ACTION=="add|change", SUBSYSTEM=="acpi", ATTR{hid}=="GXTP7380", ATTR{status}=="0", RUN+="/bin/bash -c \"echo 1 | tee /sys/bus/i2c/devices/i2c-GXTP7380*/0018:27C6*/input/input*/inhibited\""
