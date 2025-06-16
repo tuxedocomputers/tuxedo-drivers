@@ -44,12 +44,13 @@ cp -r %{_builddir}/%{name}-%{version}/etc %{buildroot}
 
 %files
 %{_usrsrc}/%{name}-%{version}
-%config(noreplace) %{_sysconfdir}/modprobe.d/tuxedo_keyboard.conf
 %license LICENSE
-/usr/lib/udev/rules.d/99-z-tuxedo-systemd-fix.rules
-/usr/lib/udev/rules.d/99-infinityflex-touchpanel-toggle.rules
 /usr/lib/udev/hwdb.d/61-keyboard-tuxedo.hwdb
 /usr/lib/udev/hwdb.d/61-sensor-tuxedo.hwdb
+/usr/lib/udev/rules.d/99-tuxedo-fix-infinity-flex-touchpanel-toggle.rules
+/usr/lib/udev/rules.d/99-tuxedo-fix-nb02-touchpad-mouse.rules
+/usr/lib/udev/rules.d/99-tuxedo-fix-systemd-led-bootdelay.rules
+%config(noreplace) %{_sysconfdir}/modprobe.d/tuxedo_keyboard.conf
 
 %post
 dkms add -m %{name} -v %{version} --rpm_safe_upgrade

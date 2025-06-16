@@ -1,0 +1,7 @@
+# TUXEDO NB02 devices: The touchpad registers an additional bogus mouse device.
+# This fix makes libinput ignore that device. This is required for
+# https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=6a9e76f75c1a8fffbf45d4665daaf24e7d30095f
+# to take effect, as otherwise this mouse device stays permanently open.
+ACTION!="remove", KERNEL=="event[0-9]*", \
+    ENV{LIBINPUT_DEVICE_GROUP}=="18/93a/255:i2c-UNIW0001:00", \
+    ENV{ID_INPUT_MOUSE}=="1", ENV{LIBINPUT_IGNORE_DEVICE}="1"
