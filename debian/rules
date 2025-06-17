@@ -7,11 +7,12 @@ include /usr/share/dpkg/pkg-info.mk
 
 override_dh_install:
 	dh_install src/. -X*.cmd -X*.d -X*.ko -X*.mod -X*.mod.c -X*.o -Xmodules.order -Xdkms.conf usr/src/$(DEB_SOURCE)-$(DEB_VERSION_UPSTREAM)
-	dh_install tuxedo_keyboard.conf /etc/modprobe.d
-	dh_install 99-z-tuxedo-systemd-fix.rules /usr/lib/udev/rules.d
-	dh_install 99-infinityflex-touchpanel-toggle.rules /usr/lib/udev/rules.d
 	dh_install 61-keyboard-tuxedo.hwdb /usr/lib/udev/hwdb.d
 	dh_install 61-sensor-tuxedo.hwdb /usr/lib/udev/hwdb.d
+	dh_install 99-tuxedo-fix-infinity-flex-touchpanel-toggle.rules /usr/lib/udev/rules.d
+	dh_install 99-tuxedo-fix-nb02-touchpad-mouse.rules /usr/lib/udev/rules.d
+	dh_install 99-tuxedo-fix-systemd-led-bootdelay.rules /usr/lib/udev/rules.d
+	dh_install tuxedo_keyboard.conf /etc/modprobe.d
 
 override_dh_dkms:
 	dh_dkms -V
