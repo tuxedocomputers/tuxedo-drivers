@@ -111,7 +111,7 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue)
 	} else if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06") && hdev->product == 0x6010) {
 		*green = (100 * *green) / 255;
 		*blue = (100 * *blue) / 255;
-	} 
+	}
 #endif
 }
 
@@ -214,12 +214,7 @@ static int ite8291_write_lightbar_mono(struct hid_device *hdev, u8 red, u8 green
 		break;
 
 	case 0x7001:
-		if (dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I07")) {
-			// swap mapping of green and blue
-			ite8291_write_control(hdev, (u8[]){ 0x14, 0x00, 0x01, red, blue, green, 0x00, 0x00 });
-		} else {
-			ite8291_write_control(hdev, (u8[]){ 0x14, 0x00, 0x01, red, green, blue, 0x00, 0x00 });
-		}
+		ite8291_write_control(hdev, (u8[]){ 0x14, 0x00, 0x01, red, green, blue, 0x00, 0x00 });
 		ite8291_write_control(hdev, (u8[]){ 0x08, 0x22, 0x01, 0x01, brightness, 0x01, 0x00, 0x00 });
 		break;
 
