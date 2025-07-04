@@ -59,6 +59,7 @@
 
 static void uw_charging_priority_write_state(void);
 static void uw_charging_profile_write_state(void);
+static void uniwill_set_custom_profile_mode(void);
 
 struct tuxedo_keyboard_driver uniwill_keyboard_driver;
 
@@ -268,7 +269,9 @@ void uniwill_event_callb(u32 code)
 			input_sync(uniwill_keyboard_driver.input_device);
 			break;
 		case UNIWILL_OSD_DC_ADAPTER_CHANGE:
-			// Refresh keyboard state and charging prio on cable switch event
+			// Refresh keyboard state and charging prio on cable switch event and make sure that the custom
+			// profile mode is still applied in case it's needed.
+			uniwill_set_custom_profile_mode();
 			uniwill_leds_restore_state_extern();
 			msleep(50);
 			uw_charging_priority_write_state();
@@ -289,6 +292,18 @@ void uniwill_event_callb(u32 code)
 			if (uniwill_keyboard_driver.input_device != NULL)
 				if (!sparse_keymap_report_known_event(uniwill_keyboard_driver.input_device, code, 1, true))
 					TUXEDO_DEBUG("Unknown code - %d (%0#6x)\n", code, code);
+	}
+}
+
+static void uniwill_set_custom_profile_mode(void)
+{
+	// Set custom profile mode if needed
+	struct uniwill_device_features_t *uw_feats = uniwill_get_device_features();
+	if (uw_feats->uniwill_custom_profile_mode_needed) {
+		u8 data;
+		uniwill_read_ec_ram(0x0727, &data);
+		data |= (1 << 6);
+		uniwill_write_ec_ram(0x0727, data);
 	}
 }
 
