@@ -271,7 +271,7 @@ void uniwill_event_callb(u32 code)
 		case UNIWILL_OSD_DC_ADAPTER_CHANGE:
 			// Refresh keyboard state and charging prio on cable switch event and make sure that the custom
 			// profile mode is still applied in case it's needed.
-			uniwill_set_custom_profile_mode();
+			uniwill_set_custom_profile_mode(false);
 			uniwill_leds_restore_state_extern();
 			msleep(50);
 			uw_charging_priority_write_state();
@@ -295,13 +295,19 @@ void uniwill_event_callb(u32 code)
 	}
 }
 
-static void uniwill_set_custom_profile_mode(void)
+static void uniwill_set_custom_profile_mode(bool zero_bit_initially)
 {
 	// Set custom profile mode if needed
 	struct uniwill_device_features_t *uw_feats = uniwill_get_device_features();
 	if (uw_feats->uniwill_custom_profile_mode_needed) {
 		u8 data;
 		uniwill_read_ec_ram(0x0727, &data);
+		if (reset_bit_initially) {
+			// Certain devices seem to need this first reset to zero on boot to have it properly applied
+			data &= ~(1 << 6);
+			uniwill_write_ec_ram(0x0727, data);
+			msleep(50);
+		}
 		data |= (1 << 6);
 		uniwill_write_ec_ram(0x0727, data);
 	}
@@ -1504,14 +1510,7 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 	// Make sure custom TDP/custom fan curve mode is set. Using the
 	// custom profile mode flag to ID this set of devices.
 	if (uw_feats->uniwill_custom_profile_mode_needed) {
-		// Certain devices seem to need this first reset to
-		// zero on boot to have it properly applied
-		uniwill_read_ec_ram(0x0727, &data);
-		data &= ~(1 << 6);
-		uniwill_write_ec_ram(0x0727, data);
-		msleep(50);
-		data |= (1 << 6);
-		uniwill_write_ec_ram(0x0727, data);
+		uniwill_set_custom_profile_mode(true);
 	}
 
 	// Enable manual mode
