@@ -59,7 +59,7 @@
 
 static void uw_charging_priority_write_state(void);
 static void uw_charging_profile_write_state(void);
-static void uniwill_set_custom_profile_mode(void);
+static void uniwill_set_custom_profile_mode(bool zero_bit_initially);
 
 struct tuxedo_keyboard_driver uniwill_keyboard_driver;
 
@@ -302,7 +302,7 @@ static void uniwill_set_custom_profile_mode(bool zero_bit_initially)
 	if (uw_feats->uniwill_custom_profile_mode_needed) {
 		u8 data;
 		uniwill_read_ec_ram(UW_EC_REG_CUSTOM_PROFILE, &data);
-		if (reset_bit_initially) {
+		if (zero_bit_initially) {
 			// Certain devices seem to need this first reset to zero on boot to have it properly applied
 			data &= ~(1 << 6);
 			uniwill_write_ec_ram(UW_EC_REG_CUSTOM_PROFILE, data);
