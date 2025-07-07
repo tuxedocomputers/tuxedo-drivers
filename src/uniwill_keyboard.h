@@ -301,15 +301,15 @@ static void uniwill_set_custom_profile_mode(bool zero_bit_initially)
 	struct uniwill_device_features_t *uw_feats = uniwill_get_device_features();
 	if (uw_feats->uniwill_custom_profile_mode_needed) {
 		u8 data;
-		uniwill_read_ec_ram(0x0727, &data);
+		uniwill_read_ec_ram(UW_EC_REG_CUSTOM_PROFILE, &data);
 		if (reset_bit_initially) {
 			// Certain devices seem to need this first reset to zero on boot to have it properly applied
 			data &= ~(1 << 6);
-			uniwill_write_ec_ram(0x0727, data);
+			uniwill_write_ec_ram(UW_EC_REG_CUSTOM_PROFILE, data);
 			msleep(50);
 		}
 		data |= (1 << 6);
-		uniwill_write_ec_ram(0x0727, data);
+		uniwill_write_ec_ram(UW_EC_REG_CUSTOM_PROFILE, data);
 	}
 }
 
@@ -1509,9 +1509,7 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 
 	// Make sure custom TDP/custom fan curve mode is set. Using the
 	// custom profile mode flag to ID this set of devices.
-	if (uw_feats->uniwill_custom_profile_mode_needed) {
-		uniwill_set_custom_profile_mode(true);
-	}
+	uniwill_set_custom_profile_mode(true);
 
 	// Enable manual mode
 	uniwill_write_ec_ram(0x0741, 0x01);

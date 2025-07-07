@@ -67,6 +67,7 @@ typedef void (uniwill_event_callb_t)(u32);
 
 #define UW_EC_REG_KBD_FN_LOCK_STATUS_BIT		0x074e
 
+#define UW_EC_REG_CUSTOM_PROFILE			0x0727
 #define UW_EC_REG_AC_AUTO_BOOT_STATUS			0x0726
 #define UW_EC_REG_USB_POWERSHARE_STATUS			0x0767
 
