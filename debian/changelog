@@ -1,3 +1,9 @@
+tuxedo-drivers (4.14.3) noble; urgency=medium
+
+  * Fix Stellaris Gen7 leaving custom profile upon power event
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 15 Jul 2025 16:14:19 +0200
+
 tuxedo-drivers (4.14.2) noble; urgency=medium
 
   * More small fixes for Stellaris Gen7 support
