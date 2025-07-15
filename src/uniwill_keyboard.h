@@ -59,6 +59,7 @@
 
 static void uw_charging_priority_write_state(void);
 static void uw_charging_profile_write_state(void);
+static void uniwill_set_custom_profile_mode(bool zero_bit_initially);
 
 struct tuxedo_keyboard_driver uniwill_keyboard_driver;
 
@@ -268,7 +269,9 @@ void uniwill_event_callb(u32 code)
 			input_sync(uniwill_keyboard_driver.input_device);
 			break;
 		case UNIWILL_OSD_DC_ADAPTER_CHANGE:
-			// Refresh keyboard state and charging prio on cable switch event
+			// Refresh keyboard state and charging prio on cable switch event and make sure that the custom
+			// profile mode is still applied in case it's needed.
+			uniwill_set_custom_profile_mode(false);
 			uniwill_leds_restore_state_extern();
 			msleep(50);
 			uw_charging_priority_write_state();
@@ -289,6 +292,24 @@ void uniwill_event_callb(u32 code)
 			if (uniwill_keyboard_driver.input_device != NULL)
 				if (!sparse_keymap_report_known_event(uniwill_keyboard_driver.input_device, code, 1, true))
 					TUXEDO_DEBUG("Unknown code - %d (%0#6x)\n", code, code);
+	}
+}
+
+static void uniwill_set_custom_profile_mode(bool zero_bit_initially)
+{
+	// Set custom profile mode if needed
+	struct uniwill_device_features_t *uw_feats = uniwill_get_device_features();
+	if (uw_feats->uniwill_custom_profile_mode_needed) {
+		u8 data;
+		uniwill_read_ec_ram(UW_EC_REG_CUSTOM_PROFILE, &data);
+		if (zero_bit_initially) {
+			// Certain devices seem to need this first reset to zero on boot to have it properly applied
+			data &= ~(1 << 6);
+			uniwill_write_ec_ram(UW_EC_REG_CUSTOM_PROFILE, data);
+			msleep(50);
+		}
+		data |= (1 << 6);
+		uniwill_write_ec_ram(UW_EC_REG_CUSTOM_PROFILE, data);
 	}
 }
 
@@ -871,240 +892,247 @@ static ssize_t uw_charging_prio_store(struct device *child,
  */
 static int is_auto_boot_and_powershare_supported(bool *status)
 {
-  *status = false ||
-            // IBP Gen9
-            dmi_match(DMI_BOARD_NAME, "GXxMRXx") ||
-            dmi_match(DMI_BOARD_NAME, "GXxHRXx") ||
-            // IBP Gen10
-            dmi_match(DMI_BOARD_NAME, "XxSP4NAx") ||
-            dmi_match(DMI_BOARD_NAME, "XxKK4NAx") ||
+	*status = false ||
+		  // IBP Gen9
+		  dmi_match(DMI_BOARD_NAME, "GXxMRXx") ||
+		  dmi_match(DMI_BOARD_NAME, "GXxHRXx") ||
+		  // IBP Gen10
+		  dmi_match(DMI_BOARD_NAME, "XxSP4NAx") ||
+		  dmi_match(DMI_BOARD_NAME, "XxKK4NAx") ||
 
-            // Stellaris Gen6
-            dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB1") ||
-            dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB2") ||
-            dmi_match(DMI_BOARD_NAME, "GM7IXxN") ||
-            // Stellaris Gen7
-            dmi_match(DMI_BOARD_NAME, "X6AR5xxY") ||
-            dmi_match(DMI_BOARD_NAME, "X6AR5xxY_mLED") ||
-            dmi_match(DMI_BOARD_NAME, "X6FR5xxY") ||
+		  // Stellaris Gen6
+		  dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB1") ||
+		  dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB2") ||
+		  dmi_match(DMI_BOARD_NAME, "GM7IXxN") ||
+		  // Stellaris Gen7
+		  dmi_match(DMI_BOARD_NAME, "X6AR5xxY") ||
+		  dmi_match(DMI_BOARD_NAME, "X6AR5xxY_mLED") ||
+		  dmi_match(DMI_BOARD_NAME, "X6FR5xxY") ||
 
-            // Stellaris Slim Gen6
-            dmi_match(DMI_BOARD_NAME, "GMxHGxx") ||
-            dmi_match(DMI_BOARD_NAME, "GM5IXxA");
+		  // Stellaris Slim Gen6
+		  dmi_match(DMI_BOARD_NAME, "GMxHGxx") ||
+		  dmi_match(DMI_BOARD_NAME, "GM5IXxA");
 
-  return 0;
+	return 0;
 }
 
 static bool uw_ac_auto_boot_loaded = false;
 static bool uw_ac_auto_boot_last_written_value;
 
 static ssize_t uw_ac_auto_boot_show(struct device *child,
-                                    struct device_attribute *attr,
-                                    char *buffer);
+				    struct device_attribute *attr,
+				    char *buffer);
 static ssize_t uw_ac_auto_boot_store(struct device *child,
-                                     struct device_attribute *attr,
-                                     const char *buffer, size_t size);
+				     struct device_attribute *attr,
+				     const char *buffer, size_t size);
 
 struct uw_ac_auto_boot_attrs_t
 {
-    struct device_attribute ac_auto_boot;
+	struct device_attribute ac_auto_boot;
 } uw_ac_auto_boot_attrs = {
-    .ac_auto_boot = __ATTR(ac_auto_boot, 0644, uw_ac_auto_boot_show, uw_ac_auto_boot_store)
+	.ac_auto_boot = __ATTR(ac_auto_boot, 0644, uw_ac_auto_boot_show, uw_ac_auto_boot_store)
 };
 
 static struct attribute *uw_ac_auto_boot_attrs_list[] = {
-    &uw_ac_auto_boot_attrs.ac_auto_boot.attr,
-    NULL};
+	&uw_ac_auto_boot_attrs.ac_auto_boot.attr,
+	NULL};
 
 static struct attribute_group uw_ac_auto_boot_attr_group = {
-    .name = "ac_auto_boot",
-    .attrs = uw_ac_auto_boot_attrs_list};
+	.name = "ac_auto_boot",
+	.attrs = uw_ac_auto_boot_attrs_list};
 
 static int uw_set_ac_auto_boot(u8 ac_auto_boot)
 {
-    u8 previous_data, next_data;
-    int result;
+	u8 previous_data, next_data;
+	int result;
 
-    ac_auto_boot = (ac_auto_boot & 0x01) << 3;
+	ac_auto_boot = (ac_auto_boot & 0x01) << 3;
 
-    result = uniwill_read_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS, &previous_data);
-    if (result != 0)
-        return result;
+	result = uniwill_read_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS,
+				     &previous_data);
+	if (result != 0)
+		return result;
 
-    next_data = (previous_data & ~(1 << 3)) | ac_auto_boot;
-    result = uniwill_write_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS, next_data);
-    if (result == 0)
-        uw_ac_auto_boot_last_written_value = ac_auto_boot;
+	next_data = (previous_data & ~(1 << 3)) | ac_auto_boot;
+	result = uniwill_write_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS, next_data);
+	if (result == 0)
+		uw_ac_auto_boot_last_written_value = ac_auto_boot;
 
-    return result;
+	return result;
 }
 
 static int uw_get_ac_auto_boot(u8 *ac_auto_boot)
 {
-    int result; 
-    result = uniwill_read_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS, ac_auto_boot);
-    if (result == 0)
-        *ac_auto_boot = (*ac_auto_boot >> 3) & 0x01;
-    return result;
+	int result;
+	result = uniwill_read_ec_ram(UW_EC_REG_AC_AUTO_BOOT_STATUS,
+				     ac_auto_boot);
+	if (result == 0)
+		*ac_auto_boot = (*ac_auto_boot >> 3) & 0x01;
+	return result;
 }
 
 static int uw_has_ac_auto_boot(bool *status)
 {
-    return is_auto_boot_and_powershare_supported(status);
+	return is_auto_boot_and_powershare_supported(status);
 }
 
 static void uw_ac_auto_boot_init(struct platform_device *dev)
 {
-    u8 value;
-    struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
+	u8 value;
+	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
 
-    if (uw_feats->uniwill_has_ac_auto_boot)
-        uw_ac_auto_boot_loaded = sysfs_create_group(&dev->dev.kobj, &uw_ac_auto_boot_attr_group) == 0;
+	if (uw_feats->uniwill_has_ac_auto_boot)
+		uw_ac_auto_boot_loaded =
+			sysfs_create_group(&dev->dev.kobj,
+					   &uw_ac_auto_boot_attr_group) == 0;
 
-    // Read for state init
-    if (uw_ac_auto_boot_loaded)
-    {
-        uw_get_ac_auto_boot(&value);
-        uw_ac_auto_boot_last_written_value = value;
-    }
+	// Read for state init
+	if (uw_ac_auto_boot_loaded) {
+		uw_get_ac_auto_boot(&value);
+		uw_ac_auto_boot_last_written_value = value;
+	}
 }
 
 static ssize_t uw_ac_auto_boot_show(struct device *child,
-                                    struct device_attribute *attr,
-                                    char *buffer) 
+				    struct device_attribute *attr, 
+				    char *buffer)
 {
-    u8 ac_auto_boot_value;
-    int result;
+	u8 ac_auto_boot_value;
+	int result;
 
-    result = uw_get_ac_auto_boot(&ac_auto_boot_value);
-    if (result == 0)
-        return sprintf(buffer, "%d\n", ac_auto_boot_value);
+	result = uw_get_ac_auto_boot(&ac_auto_boot_value);
+	if (result == 0)
+		return sprintf(buffer, "%d\n", ac_auto_boot_value);
 
-    return -EIO;
+	return -EIO;
 }
 
 static ssize_t uw_ac_auto_boot_store(struct device *child,
-                                     struct device_attribute *attr,
-                                     const char *buffer, size_t size) 
+				     struct device_attribute *attr,
+				     const char *buffer, size_t size)
 {
-    u8 ac_auto_boot_value;
-    int result;
+	u8 ac_auto_boot_value;
+	int result;
 
-    if (kstrtou8(buffer, 10, &ac_auto_boot_value) || ac_auto_boot_value < 0 ||
-        ac_auto_boot_value > 1)
-        return -EINVAL;
+	if (kstrtou8(buffer, 10, &ac_auto_boot_value) ||
+	    ac_auto_boot_value < 0 || ac_auto_boot_value > 1)
+		return -EINVAL;
 
-    result = uw_set_ac_auto_boot(ac_auto_boot_value);
-    if (result == 0)
-        return size;
-    else
-        return -EIO;
+	result = uw_set_ac_auto_boot(ac_auto_boot_value);
+	if (result == 0)
+		return size;
+	else
+		return -EIO;
 }
 
 static bool uw_usb_powershare_loaded = false;
 static bool uw_usb_powershare_last_written_value;
 
 static ssize_t uw_usb_powershare_show(struct device *child,
-                                      struct device_attribute *attr,
-                                      char *buffer);
+				      struct device_attribute *attr,
+				      char *buffer);
 static ssize_t uw_usb_powershare_store(struct device *child,
-                                       struct device_attribute *attr,
-                                       const char *buffer, size_t size);
+				       struct device_attribute *attr,
+				       const char *buffer, size_t size);
 
 struct uw_usb_powershare_attrs_t
 {
-    struct device_attribute usb_powershare;
+	struct device_attribute usb_powershare;
 } uw_usb_powershare_attrs = {
-    .usb_powershare = __ATTR(usb_powershare, 0644, uw_usb_powershare_show, uw_usb_powershare_store)
+	.usb_powershare = __ATTR(usb_powershare, 0644, uw_usb_powershare_show, uw_usb_powershare_store)
 };
 
 static struct attribute *uw_usb_powershare_attrs_list[] = {
-    &uw_usb_powershare_attrs.usb_powershare.attr,
-    NULL};
+	&uw_usb_powershare_attrs.usb_powershare.attr,
+	NULL};
 
 static struct attribute_group uw_usb_powershare_attr_group = {
-    .name = "usb_powershare",
-    .attrs = uw_usb_powershare_attrs_list};
+	.name = "usb_powershare",
+	.attrs = uw_usb_powershare_attrs_list};
 
 static int uw_set_usb_powershare(u8 usb_powershare)
 {
-    u8 previous_data, next_data;
-    int result;
-    usb_powershare = (usb_powershare & 0x01) << 4;
+	u8 previous_data, next_data;
+	int result;
+	usb_powershare = (usb_powershare & 0x01) << 4;
 
-    result = uniwill_read_ec_ram(UW_EC_REG_USB_POWERSHARE_STATUS, &previous_data);
-    if (result != 0)
-        return result;
+	result = uniwill_read_ec_ram(UW_EC_REG_USB_POWERSHARE_STATUS,
+				     &previous_data);
+	if (result != 0)
+		return result;
 
-    next_data = (previous_data & ~(1 << 4)) | usb_powershare;
-    // This bit is set to 0 after a cold boot regardless of its original value for some reason.
-    result = uniwill_write_ec_ram(UW_EC_REG_USB_POWERSHARE_STATUS, next_data);
-    if (result == 0)
-        uw_usb_powershare_last_written_value = usb_powershare;
+	next_data = (previous_data & ~(1 << 4)) | usb_powershare;
+	// This bit is set to 0 after a cold boot regardless of its original value for some reason.
+	result = uniwill_write_ec_ram(UW_EC_REG_USB_POWERSHARE_STATUS,
+				      next_data);
+	if (result == 0)
+		uw_usb_powershare_last_written_value = usb_powershare;
 
-    return result;
+	return result;
 }
 
 static int uw_get_usb_powershare(u8 *usb_powershare)
 {
-    int result; 
-    result = uniwill_read_ec_ram(UW_EC_REG_USB_POWERSHARE_STATUS, usb_powershare);
-    if (result == 0)
-        *usb_powershare = (*usb_powershare >> 4) & 0x01;
-    return result;
+	int result;
+	result = uniwill_read_ec_ram(UW_EC_REG_USB_POWERSHARE_STATUS,
+				     usb_powershare);
+	if (result == 0)
+		*usb_powershare = (*usb_powershare >> 4) & 0x01;
+	return result;
 }
 
 static int uw_has_usb_powershare(bool *status)
 {
-    return is_auto_boot_and_powershare_supported(status);
+	return is_auto_boot_and_powershare_supported(status);
 }
 
 static void uw_usb_powershare_init(struct platform_device *dev)
 {
-    u8 value;
-    struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
+	u8 value;
+	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
 
-    if (uw_feats->uniwill_has_usb_powershare)
-        uw_usb_powershare_loaded = sysfs_create_group(&dev->dev.kobj, &uw_usb_powershare_attr_group) == 0;
+	if (uw_feats->uniwill_has_usb_powershare)
+		uw_usb_powershare_loaded =
+			sysfs_create_group(&dev->dev.kobj,
+					   &uw_usb_powershare_attr_group) == 0;
 
-    // Read for state init
-    if (uw_usb_powershare_loaded)
-    {
-        uw_get_usb_powershare(&value);
-        uw_usb_powershare_last_written_value = value;
-    }
+	// Read for state init
+	if (uw_usb_powershare_loaded) {
+		uw_get_usb_powershare(&value);
+		uw_usb_powershare_last_written_value = value;
+	}
 }
 
 static ssize_t uw_usb_powershare_show(struct device *child,
-                                      struct device_attribute *attr,
-                                      char *buffer) 
+				      struct device_attribute *attr,
+				      char *buffer)
 {
-    u8 usb_powershare_value;
-    int result;
+	u8 usb_powershare_value;
+	int result;
 
-    result = uw_get_usb_powershare(&usb_powershare_value);
-    if (result == 0)
-        return sprintf(buffer, "%d\n", usb_powershare_value);
+	result = uw_get_usb_powershare(&usb_powershare_value);
+	if (result == 0)
+		return sprintf(buffer, "%d\n", usb_powershare_value);
 
-    return -EIO;
+	return -EIO;
 }
 
 static ssize_t uw_usb_powershare_store(struct device *child,
-                                       struct device_attribute *attr,
-                                       const char *buffer, size_t size) 
+				       struct device_attribute *attr,
+				       const char *buffer, size_t size)
 {
-    u8 usb_powershare_value;
-    int result;
+	u8 usb_powershare_value;
+	int result;
 
-    if (kstrtou8(buffer, 10, &usb_powershare_value) || usb_powershare_value < 0 ||
-        usb_powershare_value > 1)
-        return -EINVAL;
+	if (kstrtou8(buffer, 10, &usb_powershare_value) ||
+	    usb_powershare_value < 0 || usb_powershare_value > 1)
+		return -EINVAL;
 
-    result = uw_set_usb_powershare(usb_powershare_value);
-    if (result == 0)
-        return size;
-    else
-        return -EIO;
+	result = uw_set_usb_powershare(usb_powershare_value);
+	if (result == 0)
+		return size;
+	else
+		return -EIO;
 }
 
 static const u8 uw_romid_PH4PxX[14] = {0x0C, 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -1488,16 +1516,7 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 
 	// Make sure custom TDP/custom fan curve mode is set. Using the
 	// custom profile mode flag to ID this set of devices.
-	if (uw_feats->uniwill_custom_profile_mode_needed) {
-		// Certain devices seem to need this first reset to
-		// zero on boot to have it properly applied
-		uniwill_read_ec_ram(0x0727, &data);
-		data &= ~(1 << 6);
-		uniwill_write_ec_ram(0x0727, data);
-		msleep(50);
-		data |= (1 << 6);
-		uniwill_write_ec_ram(0x0727, data);
-	}
+	uniwill_set_custom_profile_mode(true);
 
 	// Enable manual mode
 	uniwill_write_ec_ram(0x0741, 0x01);
