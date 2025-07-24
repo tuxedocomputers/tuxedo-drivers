@@ -10,7 +10,10 @@ override_dh_install:
 	dh_install 61-keyboard-tuxedo.hwdb /usr/lib/udev/hwdb.d
 	dh_install 61-sensor-tuxedo.hwdb /usr/lib/udev/hwdb.d
 	dh_install 99-tuxedo-fix-infinity-flex-touchpanel-toggle.rules /usr/lib/udev/rules.d
+	dh_install 99-tuxedo-fix-intel-gen13-sleep-state.rules /usr/lib/udev/rules.d
+	dh_install 99-tuxedo-fix-pulse-gen2-wakeup-through-nvme-controller.rules /usr/lib/udev/rules.d
 	dh_install 99-tuxedo-fix-nb02-touchpad-mouse.rules /usr/lib/udev/rules.d
+	dh_install 99-tuxedo-fix-realtek-rts522a-idle-behaviour.rules /usr/lib/udev/rules.d
 	dh_install 99-tuxedo-fix-systemd-led-bootdelay.rules /usr/lib/udev/rules.d
 	dh_install tuxedo_keyboard.conf /etc/modprobe.d
 
