@@ -1,0 +1,4 @@
+# Realtek Cardreader RTS522A: Force cardreader to stay on when device goes into idle
+ACTION=="add", \
+    SUBSYSTEM=="pci", ATTR{vendor}=="0x10ec", ATTR{device}=="0x522a", \
+    RUN+="/bin/sh -c 'echo on > /sys/bus/pci/devices/$kernel/power/control'"

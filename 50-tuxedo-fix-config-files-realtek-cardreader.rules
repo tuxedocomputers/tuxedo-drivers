@@ -1,1 +1,0 @@
-SUBSYSTEM=="pci", ACTION=="add", ATTR{vendor}=="0x10ec", ATTR{device}=="0x522a", RUN+="/bin/sh -c 'echo on > /sys/bus/pci/devices/$kernel/power/control'"

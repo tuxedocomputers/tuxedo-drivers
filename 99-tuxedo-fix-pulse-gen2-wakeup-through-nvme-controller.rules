@@ -1,0 +1,13 @@
+# TUXEDO Pulse Gen2: Required for suspend/wakeup to work. Prevent NVMe controllers from going into d3 sleep state.
+ACTION=="add", \
+    SUBSYSTEM=="pci", ATTR{vendor}=="0x144d", ATTR{device}=="0xa80a", \
+    PROGRAM=="/bin/sh -c 'cat /sys/class/dmi/id/board_name'", RESULT=="PF5LUXG", \
+    RUN+="/bin/sh -c 'echo 0 | tee /sys/bus/pci/devices/$kernel/d3cold_allowed'"
+ACTION=="add", \
+    SUBSYSTEM=="pci",ATTR{vendor}=="0x144d", ATTR{device}=="0xa808", \
+    PROGRAM=="/bin/sh -c 'cat /sys/class/dmi/id/board_name'", RESULT=="PF5LUXG", \
+    RUN+="/bin/sh -c 'echo 0 | tee /sys/bus/pci/devices/$kernel/d3cold_allowed'"
+ACTION=="add", \
+    SUBSYSTEM=="pci", ATTR{vendor}=="0x144d", ATTR{device}=="0xa80c", \
+    PROGRAM=="/bin/sh -c 'cat /sys/class/dmi/id/board_name'", RESULT=="PF5LUXG", \
+    RUN+="/bin/sh -c 'echo 0 | tee /sys/bus/pci/devices/$kernel/d3cold_allowed'"

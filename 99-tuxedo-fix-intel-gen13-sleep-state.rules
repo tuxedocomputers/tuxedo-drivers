@@ -1,0 +1,4 @@
+# Intel Gen13 devices: Allow sleeping when not in use 
+ACTION=="add", \
+    SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0x1135", \
+    RUN+="/bin/sh -c 'echo auto | tee /sys/bus/pci/devices/$kernel/power/control'"
