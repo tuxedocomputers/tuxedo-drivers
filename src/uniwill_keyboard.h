@@ -1323,7 +1323,8 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLSL15A06")
 		|| dmi_match(DMI_BOARD_NAME, "GXxMRXx")
 		|| dmi_match(DMI_BOARD_NAME, "GXxHRXx")
-		|| dmi_match(DMI_BOARD_NAME, "XxKK4NAx")
+		|| dmi_match(DMI_BOARD_NAME, "XxHP4NAx")
+		|| dmi_match(DMI_BOARD_NAME, "XxKK4NAx_XxSP4NAx")
 #endif
 	;
 
