@@ -897,8 +897,8 @@ static int is_auto_boot_and_powershare_supported(bool *status)
 		  dmi_match(DMI_BOARD_NAME, "GXxMRXx") ||
 		  dmi_match(DMI_BOARD_NAME, "GXxHRXx") ||
 		  // IBP Gen10
-		  dmi_match(DMI_BOARD_NAME, "XxSP4NAx") ||
-		  dmi_match(DMI_BOARD_NAME, "XxKK4NAx") ||
+		  dmi_match(DMI_BOARD_NAME, "XxHP4NAx") ||
+		  dmi_match(DMI_BOARD_NAME, "XxKK4NAx_XxSP4NAx") ||
 
 		  // Stellaris Gen6
 		  dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB1") ||
