@@ -40,7 +40,10 @@ package-rpm:
 		--transform="s/61-keyboard-tuxedo.hwdb/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/hwdb.d\/61-keyboard-tuxedo.hwdb/" \
 		--transform="s/61-sensor-tuxedo.hwdb/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/hwdb.d\/61-sensor-tuxedo.hwdb/" \
 		--transform="s/99-tuxedo-fix-infinity-flex-touchpanel-toggle.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-infinity-flex-touchpanel-toggle.rules/" \
+		--transform="s/99-tuxedo-fix-intel-gen13-sleep-state.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-intel-gen13-sleep-state.rules/" \
+		--transform="s/99-tuxedo-fix-pulse-gen2-wakeup-through-nvme-controller.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-pulse-gen2-wakeup-through-nvme-controller.rules/" \
 		--transform="s/99-tuxedo-fix-nb02-touchpad-mouse.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-nb02-touchpad-mouse.rules/" \
+		--transform="s/99-tuxedo-fix-realtek-rts522a-idle-behaviour.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-realtek-rts522a-idle-behaviour.rules/" \
 		--transform="s/99-tuxedo-fix-systemd-led-bootdelay.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-systemd-led-bootdelay.rules/" \
 		--transform="s/tuxedo_keyboard.conf/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/etc\/modprobe.d\/tuxedo_keyboard.conf/" \
 		--exclude=*.cmd \
@@ -52,6 +55,6 @@ package-rpm:
 		--exclude=modules.order \
 		src debian/copyright \
 		61-keyboard-tuxedo.hwdb 61-sensor-tuxedo.hwdb \
-		99-tuxedo-fix-infinity-flex-touchpanel-toggle.rules 99-tuxedo-fix-nb02-touchpad-mouse.rules 99-tuxedo-fix-systemd-led-bootdelay.rules \
+		99-tuxedo-fix-infinity-flex-touchpanel-toggle.rules 99-tuxedo-fix-intel-gen13-sleep-state.rules 99-tuxedo-fix-nb02-touchpad-mouse.rules 99-tuxedo-fix-pulse-gen2-wakeup-through-nvme-controller.rules 99-tuxedo-fix-realtek-rts522a-idle-behaviour.rules 99-tuxedo-fix-systemd-led-bootdelay.rules \
 		tuxedo_keyboard.conf
 	rpmbuild -ba tuxedo-drivers.spec
