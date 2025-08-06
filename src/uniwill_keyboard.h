@@ -567,6 +567,7 @@ static int uw_has_charging_priority(bool *status)
 		|| dmi_match(DMI_BOARD_NAME, "LAPQC71B")
 		|| dmi_match(DMI_PRODUCT_NAME, "A60 MUV")
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I07")
+		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS16A07")
 		// TODO: Add Stellaris Gen6 and IBP Gen9 as well (or find cleaner solution)
 		;
 
@@ -897,8 +898,8 @@ static int is_auto_boot_and_powershare_supported(bool *status)
 		  dmi_match(DMI_BOARD_NAME, "GXxMRXx") ||
 		  dmi_match(DMI_BOARD_NAME, "GXxHRXx") ||
 		  // IBP Gen10
-		  dmi_match(DMI_BOARD_NAME, "XxSP4NAx") ||
-		  dmi_match(DMI_BOARD_NAME, "XxKK4NAx") ||
+		  dmi_match(DMI_BOARD_NAME, "XxHP4NAx") ||
+		  dmi_match(DMI_BOARD_NAME, "XxKK4NAx_XxSP4NAx") ||
 
 		  // Stellaris Gen6
 		  dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB1") ||
@@ -1293,6 +1294,9 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701I2060")
 		|| dmi_match(DMI_BOARD_NAME, "GXxMRXx")
 		|| dmi_match(DMI_BOARD_NAME, "GXxHRXx")
+		|| dmi_match(DMI_BOARD_NAME, "XxHP4NAx")
+		|| dmi_match(DMI_BOARD_NAME, "XxKK4NAx_XxSP4NAx")
+
 		// Note: XMG Fusion removed for now, seem to have
 		// neither same power profile control nor TDP set
 		//|| dmi_match(DMI_BOARD_NAME, "LAPQC71A")
@@ -1319,11 +1323,13 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I06")
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS17I06")
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I07")
+		|| dmi_match(DMI_PRODUCT_SKU, "STELLARIS16A07")
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLSL15I06")
 		|| dmi_match(DMI_PRODUCT_SKU, "STELLSL15A06")
 		|| dmi_match(DMI_BOARD_NAME, "GXxMRXx")
 		|| dmi_match(DMI_BOARD_NAME, "GXxHRXx")
-		|| dmi_match(DMI_BOARD_NAME, "XxKK4NAx")
+		|| dmi_match(DMI_BOARD_NAME, "XxHP4NAx")
+		|| dmi_match(DMI_BOARD_NAME, "XxKK4NAx_XxSP4NAx")
 #endif
 	;
 
