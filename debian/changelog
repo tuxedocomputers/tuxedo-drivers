@@ -1,3 +1,9 @@
+tuxedo-drivers (4.15.1) noble; urgency=medium
+
+  * add tuxedo-linux-firmware-amdgpu as Depends 
+
+ -- Maximilian Arnold <tux@tuxedocomputers.com>  Thu, 14 Aug 2025 15:58:20 +0200
+
 tuxedo-drivers (4.15.0) noble; urgency=medium
 
   * Stellaris Gen7 AMD: Fix keyboard color, TGP, TDP;
