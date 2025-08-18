@@ -11,8 +11,8 @@ Vcs-Git: https://github.com/tuxedocomputers/tuxedo-drivers.git
 
 Package: tuxedo-drivers
 Architecture: all
-Depends: ${misc:Depends}, tuxedo-linux-firmware-amdgpu
-Recommends: udev-hid-bpf
+Depends: ${misc:Depends}
+Recommends: udev-hid-bpf, tuxedo-linux-firmware-amdgpu
 Provides: tuxedo-keyboard (= 4.0.0)
 Replaces: tuxedo-cc-wmi (<< 4.0.0~), tuxedo-keyboard (<< 4.0.0~),
  tuxedo-keyboard-dkms (<< 4.0.0~), tuxedo-keyboard-ite (<< 4.0.0~),
