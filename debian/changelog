@@ -1,3 +1,9 @@
+tuxedo-drivers (4.15.2) noble; urgency=medium
+
+  * change tuxedo-linux-firmware-amdgpu to Recommends
+
+ -- Tim Guttzeit <tux@tuxedocomputers.com>  Mon, 18 Aug 2025 12:12:21 +0200
+
 tuxedo-drivers (4.15.1) noble; urgency=medium
 
   * add tuxedo-linux-firmware-amdgpu as Depends 
