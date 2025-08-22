@@ -1,12 +1,12 @@
 # make artifacts
 *.cmd
-*.d
 *.ko
 *.mod
 *.mod.c
 *.o
+*.o.d
 modules.order
-/Module.symvers
+Module.symvers
 
 # debuild artifacts
 /debian/*.debhelper
@@ -14,15 +14,7 @@ modules.order
 /debian/*.substvars
 /debian/debhelper-build-stamp
 /debian/files
-/debian/tuxedo-cc-wmi
 /debian/tuxedo-drivers
-/debian/tuxedo-keyboard
-/debian/tuxedo-keyboard-dkms
-/debian/tuxedo-keyboard-ite
-/debian/tuxedo-touchpad-fix
-/debian/tuxedo-wmi-dkms
-/debian/tuxedo-xp-xc-airplane-mode-fix
-/debian/tuxedo-xp-xc-touchpad-key-fix
 
 # rpmbuild artifacts
 /src/dkms.conf
