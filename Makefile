@@ -35,26 +35,16 @@ package-rpm:
 	./debian-changelog-to-rpm-changelog.awk debian/changelog >> tuxedo-drivers.spec
 	mkdir -p $(shell rpm --eval "%{_sourcedir}")
 	tar --create --file $(shell rpm --eval "%{_sourcedir}")/$(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.xz \
-		--transform="s/src/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/src\/$(PACKAGE_NAME)-$(PACKAGE_VERSION)/" \
 		--transform="s/debian\/copyright/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/LICENSE/" \
-		--transform="s/61-keyboard-tuxedo.hwdb/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/hwdb.d\/61-keyboard-tuxedo.hwdb/" \
-		--transform="s/61-sensor-tuxedo.hwdb/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/hwdb.d\/61-sensor-tuxedo.hwdb/" \
-		--transform="s/99-tuxedo-fix-infinity-flex-touchpanel-toggle.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-infinity-flex-touchpanel-toggle.rules/" \
-		--transform="s/99-tuxedo-fix-intel-gen13-sleep-state.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-intel-gen13-sleep-state.rules/" \
-		--transform="s/99-tuxedo-fix-pulse-gen2-wakeup-through-nvme-controller.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-pulse-gen2-wakeup-through-nvme-controller.rules/" \
-		--transform="s/99-tuxedo-fix-nb02-touchpad-mouse.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-nb02-touchpad-mouse.rules/" \
-		--transform="s/99-tuxedo-fix-realtek-rts522a-idle-behaviour.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-realtek-rts522a-idle-behaviour.rules/" \
-		--transform="s/99-tuxedo-fix-systemd-led-bootdelay.rules/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/lib\/udev\/rules.d\/99-tuxedo-fix-systemd-led-bootdelay.rules/" \
-		--transform="s/tuxedo_keyboard.conf/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/etc\/modprobe.d\/tuxedo_keyboard.conf/" \
+		--transform="s/etc/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/etc/" \
+		--transform="s/usr/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr/" \
+		--transform="s/src/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/src\/$(PACKAGE_NAME)-$(PACKAGE_VERSION)/" \
 		--exclude=*.cmd \
-		--exclude=*.d \
 		--exclude=*.ko \
 		--exclude=*.mod \
 		--exclude=*.mod.c \
 		--exclude=*.o \
+		--exclude=*.o.d \
 		--exclude=modules.order \
-		src debian/copyright \
-		61-keyboard-tuxedo.hwdb 61-sensor-tuxedo.hwdb \
-		99-tuxedo-fix-infinity-flex-touchpanel-toggle.rules 99-tuxedo-fix-intel-gen13-sleep-state.rules 99-tuxedo-fix-nb02-touchpad-mouse.rules 99-tuxedo-fix-pulse-gen2-wakeup-through-nvme-controller.rules 99-tuxedo-fix-realtek-rts522a-idle-behaviour.rules 99-tuxedo-fix-systemd-led-bootdelay.rules \
-		tuxedo_keyboard.conf
+		debian/copyright etc src usr
 	rpmbuild -ba tuxedo-drivers.spec
