@@ -848,14 +848,15 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
 
 	switch (cmd) {
 		case W_UW_FANSPEED:
-			// Get fan speed argument
-			copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
-			uw_set_fan(0, argument);
-			break;
 		case W_UW_FANSPEED2:
-			// Get fan speed argument
-			copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
-			uw_set_fan(1, argument);
+		    // Check for "full fan mode" and only overwrite fanspeed if inactive
+		    uniwill_read_ec_ram(0x0751, &byte_data);
+		    if (!(byte_data & 0x40)) {
+				// Get fan speed argument
+				copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+				u8 fan_select = (cmd == W_UW_FANSPEED2);
+				uw_set_fan(fan_select, argument);
+			}
 			break;
 		case W_UW_MODE:
 			copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
