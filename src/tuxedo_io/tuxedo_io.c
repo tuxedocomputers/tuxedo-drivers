@@ -501,39 +501,44 @@ static u32 uw_set_fan(u32 fan_index, u8 fan_speed)
 	u16 addr_cpu_custom_fan_table_fan_speed = 0x0f20;
 	u16 addr_gpu_custom_fan_table_fan_speed = 0x0f50;
 
+	u8 byte_data;
+
 	if (uw_feats->uniwill_has_universal_ec_fan_control) {
-		uw_init_fan();
+		uniwill_read_ec_ram(0x0751, &byte_data);
+		if (!(byte_data & 0x40)) {
+			uw_init_fan();
 
-		if (fan_index == 0)
-			addr_for_fan = addr_cpu_custom_fan_table_fan_speed;
-		else if (fan_index == 1)
-			addr_for_fan = addr_gpu_custom_fan_table_fan_speed;
-		else
-			return -EINVAL;
+			if (fan_index == 0)
+				addr_for_fan = addr_cpu_custom_fan_table_fan_speed;
+			else if (fan_index == 1)
+				addr_for_fan = addr_gpu_custom_fan_table_fan_speed;
+			else
+				return -EINVAL;
 
-		if (fan_speed > NB02_FAN_SPEED_MAX)
-			return -EINVAL;
+			if (fan_speed > NB02_FAN_SPEED_MAX)
+				return -EINVAL;
 
-		// Don't allow vallues between fan-off and minimum fan-on-speed
-		if (fan_speed < FAN_ON_MIN_SPEED_PERCENT * NB02_FAN_SPEED_MAX / 2 / 100)
-			fan_speed = 0;
-		else if (fan_speed < FAN_ON_MIN_SPEED_PERCENT * NB02_FAN_SPEED_MAX / 100)
-			fan_speed = FAN_ON_MIN_SPEED_PERCENT * NB02_FAN_SPEED_MAX / 100;
+			// Don't allow vallues between fan-off and minimum fan-on-speed
+			if (fan_speed < FAN_ON_MIN_SPEED_PERCENT * NB02_FAN_SPEED_MAX / 2 / 100)
+				fan_speed = 0;
+			else if (fan_speed < FAN_ON_MIN_SPEED_PERCENT * NB02_FAN_SPEED_MAX / 100)
+				fan_speed = FAN_ON_MIN_SPEED_PERCENT * NB02_FAN_SPEED_MAX / 100;
 
-		if (fan_speed == 0 &&
-		    !dmi_match(DMI_BOARD_NAME, "GXxMRXx")) {
-			// Avoid hard coded EC behaviour: Setting fan speed = 0x00 spins the fan up
-			// to 0x3c (30%) for 3 minutes before going to 0x00. Setting fan speed = 1
-			// also causes the fan to stop since on 2020 or later TF devices the
-			// microcontroller in the fan itself is intelligent enough to not try to
-			// start up the motor when the speed is to slow. Older devices don't use
-			// this fan controll anyway, but the else case below.
-			fan_speed = 1;
+			if (fan_speed == 0 &&
+			!dmi_match(DMI_BOARD_NAME, "GXxMRXx")) {
+				// Avoid hard coded EC behaviour: Setting fan speed = 0x00 spins the fan up
+				// to 0x3c (30%) for 3 minutes before going to 0x00. Setting fan speed = 1
+				// also causes the fan to stop since on 2020 or later TF devices the
+				// microcontroller in the fan itself is intelligent enough to not try to
+				// start up the motor when the speed is to slow. Older devices don't use
+				// this fan controll anyway, but the else case below.
+				fan_speed = 1;
+			}
+
+			uniwill_write_ec_ram(addr_for_fan, fan_speed & 0xff);
+
+			direct_fan_control(fan_index, fan_speed, false);
 		}
-
-		uniwill_write_ec_ram(addr_for_fan, fan_speed & 0xff);
-
-		direct_fan_control(fan_index, fan_speed, false);
 	}
 	else { // old workaround using full fan mode
 		direct_fan_control(fan_index, fan_speed, true);
@@ -849,14 +854,10 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
 	switch (cmd) {
 		case W_UW_FANSPEED:
 		case W_UW_FANSPEED2:
-		    // Check for "full fan mode" and only overwrite fanspeed if inactive
-		    uniwill_read_ec_ram(0x0751, &byte_data);
-		    if (!(byte_data & 0x40)) {
-				// Get fan speed argument
-				copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
-				u8 fan_select = (cmd == W_UW_FANSPEED2);
-				uw_set_fan(fan_select, argument);
-			}
+			// Get fan speed argument
+			copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+			u8 fan_select = (cmd == W_UW_FANSPEED2);
+			uw_set_fan(fan_select, argument);
 			break;
 		case W_UW_MODE:
 			copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
