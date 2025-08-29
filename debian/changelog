@@ -1,3 +1,9 @@
+tuxedo-drivers (4.15.4) noble; urgency=medium
+
+  * Fix fan control unresponsive on older NB02 devices
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Fri, 29 Aug 2025 13:58:49 +0200
+
 tuxedo-drivers (4.15.3) noble; urgency=medium
 
   * Fix pulsating fan on NB02 devices by making TD full fan mode aware
