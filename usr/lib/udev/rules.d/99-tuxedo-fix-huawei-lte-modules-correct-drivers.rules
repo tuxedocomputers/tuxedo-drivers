@@ -1,0 +1,21 @@
+# Huawei LTE Modules: Without this udev rule, the modules have the wrong USB configuration value.
+# This leads to the wrong network driver being loaded for the module or the module being not detected at all.
+# Either way, no internet connection via this module is possible.
+
+# Huawei ME936 -> needs the cdc_mbim network driver.
+ACTION=="add|change", \
+	SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", \
+	ATTR{idVendor}=="12d1", ATTR{idProduct}=="15bb", ATTR{bNumConfigurations}=="3", \
+	ATTR{bConfigurationValue}!="3" ATTR{bConfigurationValue}="3"
+
+# Huawei ME906s -> needs the cdc_ether network driver.
+ACTION=="add|change", \
+	SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", \
+	ATTR{idVendor}=="12d1", ATTR{idProduct}=="15c1", ATTR{bNumConfigurations}=="3", \
+	ATTR{bConfigurationValue}!="2" ATTR{bConfigurationValue}="2"
+
+# HP lt4132 (Huawei ME906s rebranded) -> needs the cdc_ether network driver.
+ACTION=="add|change", \
+	SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", \
+	ATTR{idVendor}=="03f0", ATTR{idProduct}=="a31d", ATTR{bNumConfigurations}=="3", \
+	ATTR{bConfigurationValue}!="2" ATTR{bConfigurationValue}="2"
