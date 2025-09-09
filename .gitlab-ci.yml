@@ -18,10 +18,12 @@ test-build:
         DOCKER_TAG:
           - fedora-40
           - fedora-41
+          - fedora-42
       - PARAM_TYPE: debian
         DOCKER_TAG:
           - debian-12
           - debian-exp
+          - debian-13
       - PARAM_TYPE: debian
         PARAM_LLVM: llvm
         DOCKER_TAG:
