@@ -78,6 +78,7 @@ typedef void (uniwill_event_callb_t)(u32);
 #define UW_EC_REG_CUSTOM_PROFILE			0x0727
 #define UW_EC_REG_AC_AUTO_BOOT_STATUS			0x0726
 #define UW_EC_REG_USB_POWERSHARE_STATUS			0x0767
+#define UW_EC_REG_MINI_LED_LOCAL_DIMMING_SUPPORT	0x0D4F
 
 #define UW_EC_REG_FAN_CTRL_STATUS			0x078e
 #define UW_EC_REG_FAN_CTRL_STATUS_BIT_HAS_UW_FAN_CTRL	0x40
@@ -157,8 +158,9 @@ struct uniwill_device_features_t {
 	bool uniwill_has_charging_profile;
 	bool uniwill_has_universal_ec_fan_control;
 	bool uniwill_has_double_pl4;
-	bool uniwill_has_ac_auto_boot;	
+	bool uniwill_has_ac_auto_boot;
 	bool uniwill_has_usb_powershare;
+	bool uniwill_has_mini_led_local_dimming;
 };
 
 struct uniwill_device_features_t *uniwill_get_device_features(void);

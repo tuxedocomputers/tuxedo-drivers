@@ -171,6 +171,23 @@ int uniwill_write_ec_ram_with_retry(u16 address, u8 data, int retries)
 }
 EXPORT_SYMBOL(uniwill_write_ec_ram_with_retry);
 
+
+int uniwill_wmi_evaluate(u8 function, u32 arg, u32 *return_buffer)
+{
+    int status;
+
+    if (!IS_ERR_OR_NULL(uniwill_interfaces.wmi) &&
+        !IS_ERR_OR_NULL(uniwill_interfaces.wmi->wmi_evaluate)) {
+        status = uniwill_interfaces.wmi->wmi_evaluate(function, arg, return_buffer);
+    } else {
+        pr_err("no active interface or ec_evaluate while calling function %u\n", function);
+        status = -EIO;
+    }
+
+    return status;
+}
+EXPORT_SYMBOL(uniwill_wmi_evaluate);
+
 static DEFINE_MUTEX(uniwill_interface_modification_lock);
 
 int uniwill_add_interface(struct uniwill_interface_t *interface)
@@ -1136,6 +1153,147 @@ static ssize_t uw_usb_powershare_store(struct device *child,
 		return -EIO;
 }
 
+static bool uw_mini_led_local_dimming_loaded = false;
+static bool uw_mini_led_local_dimming_last_written_value;
+
+static ssize_t uw_mini_led_local_dimming_show(struct device *child,
+				     struct device_attribute *attr, char *buffer);
+static ssize_t uw_mini_led_local_dimming_store(struct device *child,
+				      struct device_attribute *attr,
+				      const char *buffer, size_t size);
+
+struct uw_mini_led_local_dimming_attrs_t {
+	struct device_attribute mini_led_local_dimming;
+} uw_mini_led_local_dimming_attrs = {
+	.mini_led_local_dimming = __ATTR(mini_led_local_dimming, 0644, uw_mini_led_local_dimming_show, uw_mini_led_local_dimming_store)
+};
+
+static struct attribute *uw_mini_led_local_dimming_attrs_list[] = {
+	&uw_mini_led_local_dimming_attrs.mini_led_local_dimming.attr,
+	NULL
+};
+
+static struct attribute_group uw_mini_led_local_dimming_attr_group = {
+	.name = "mini_led_local_dimming",
+	.attrs = uw_mini_led_local_dimming_attrs_list
+};
+
+/*
+ * mini_led_local_dimming values
+ *     0 => local dimming off
+ *     1 => local dimming on
+ */
+static int uw_set_mini_led_local_dimming(u8 mini_led_local_dimming)
+{
+	int result;
+	u32 uw_data[10];
+
+	if (mini_led_local_dimming == 1) {
+		result = uniwill_wmi_evaluate(UNIWILL_WMI_FUNCTION_FEATURE_TOGGLE,
+					    UNIWILL_WMI_LOCAL_DIMMING_ON,
+					    uw_data);
+	} else {
+		result = uniwill_wmi_evaluate(UNIWILL_WMI_FUNCTION_FEATURE_TOGGLE,
+					    UNIWILL_WMI_LOCAL_DIMMING_OFF, 
+					    uw_data);
+	}
+	if (result != 0)
+		return result;
+
+	uw_mini_led_local_dimming_last_written_value = mini_led_local_dimming;
+
+	return result;
+}
+
+static int uw_get_mini_led_local_dimming(u8 *mini_led_local_dimming)
+{
+	/* 
+	 * As of now, we do not have any possibility to read out the current state of local dimming. However, 
+	 * as this feature is set to disabled on boot per default by calling uw_set_mini_led_local_dimming, 
+	 * uw_mini_led_local_dimming_last_written_value is always initialized and thereby should not cause
+	 * any harm.
+	 *
+	 * A rather hacky solution could be the following, as uniwill_wmi_evaluate writes the current state
+	 * into the return buffer before overwriting it:
+	 
+	 * u32 return_buffer;
+	 * bool initial_status;
+	 * uniwill_wmi_evaluate(local_dimming, off, return_buffer);
+	 * if (return_buffer == UNIWILL_WMI_LOCAL_DIMMING_ON)
+	 * 	initial_status = true;
+	 * else 
+	 * 	initial_status = false;
+	 * uniwill_wmi_evaluate(local_dimming, initial_status, return_buffer);
+	 * *mini_led_local_dimming = initial_status;
+	 */
+	*mini_led_local_dimming = uw_mini_led_local_dimming_last_written_value;
+	return 0;
+}
+
+static int uw_has_mini_led_local_dimming(bool *status)
+{
+	u8 data;
+	int result;
+	
+	result = uniwill_read_ec_ram(UW_EC_REG_MINI_LED_LOCAL_DIMMING_SUPPORT,
+				     &data);
+	if (result)
+		return result;
+
+	*status = (data != 0xFF) && ((data & 0x01) > 0);
+	return 0;
+}
+
+static void uw_mini_led_local_dimming_init(struct platform_device *dev)
+{
+	u8 value;
+	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
+
+	if (uw_feats->uniwill_has_mini_led_local_dimming)
+		uw_mini_led_local_dimming_loaded = sysfs_create_group(&dev->dev.kobj, &uw_mini_led_local_dimming_attr_group) == 0;
+
+	// Set default to off
+	uw_set_mini_led_local_dimming(false);
+
+	// Read for state init
+	if (uw_mini_led_local_dimming_loaded) {
+		uw_get_mini_led_local_dimming(&value);
+		uw_mini_led_local_dimming_last_written_value = value;
+	}
+}
+
+static ssize_t uw_mini_led_local_dimming_show(struct device *child,
+				      struct device_attribute *attr,
+				      char *buffer)
+{
+	u8 mini_led_local_dimming_value;
+	int result;
+
+	result = uw_get_mini_led_local_dimming(&mini_led_local_dimming_value);
+	if (result == 0)
+		return sprintf(buffer, "%d\n", mini_led_local_dimming_value);
+
+	return -EIO;
+}
+
+static ssize_t uw_mini_led_local_dimming_store(struct device *child,
+				       struct device_attribute *attr,
+				       const char *buffer, size_t size)
+{
+	u8 mini_led_local_dimming_value;
+	int result;
+
+	if (kstrtou8(buffer, 10, &mini_led_local_dimming_value) ||
+	    mini_led_local_dimming_value < 0 || mini_led_local_dimming_value > 1)
+		return -EINVAL;
+
+	result = uw_set_mini_led_local_dimming(mini_led_local_dimming_value);
+	if (result == 0)
+		return size;
+	else
+		return -EIO;
+}
+
 static const u8 uw_romid_PH4PxX[14] = {0x0C, 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 static const u8 uw_romid_PH6PxX[14] = {0x0C, 0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -1349,6 +1507,8 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 		feats_loaded = false;
 	if (uw_has_usb_powershare(&uw_feats->uniwill_has_usb_powershare) != 0)
 		feats_loaded = false;
+	if (uw_has_mini_led_local_dimming(&uw_feats->uniwill_has_mini_led_local_dimming) != 0)
+		feats_loaded = false;
 
 	result = has_universal_ec_fan_control();
 	if (result < 0) {
@@ -1545,6 +1705,7 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 	uw_charging_profile_init(dev);
 	uw_ac_auto_boot_init(dev);
 	uw_usb_powershare_init(dev);
+	uw_mini_led_local_dimming_init(dev);
 
 	// Ignore return value, it just means there is already a filter active
 	// which is fine, because it is probably just the upstream patch of this
