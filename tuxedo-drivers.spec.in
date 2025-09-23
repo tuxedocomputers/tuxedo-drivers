@@ -44,6 +44,7 @@ cp -r %{_builddir}/%{name}-%{version}/usr %{buildroot}
 %files
 %{_usrsrc}/%{name}-%{version}
 %license LICENSE
+/usr/lib/modprobe.d/tuxedo-drivers-backlist-upstream-conflicts.conf
 /usr/lib/udev/hwdb.d/61-keyboard-tuxedo.hwdb
 /usr/lib/udev/hwdb.d/61-sensor-tuxedo.hwdb
 /usr/lib/udev/rules.d/99-tuxedo-fix-huawei-lte-modules-correct-drivers.rules
