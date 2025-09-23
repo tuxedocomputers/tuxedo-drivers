@@ -40,7 +40,6 @@ Drivers for several platform devices for TUXEDO notebooks meant for DKMS.
 
 %install
 cp -r %{_builddir}/%{name}-%{version}/usr %{buildroot}
-cp -r %{_builddir}/%{name}-%{version}/etc %{buildroot}
 
 %files
 %{_usrsrc}/%{name}-%{version}
@@ -53,7 +52,6 @@ cp -r %{_builddir}/%{name}-%{version}/etc %{buildroot}
 /usr/lib/udev/rules.d/99-tuxedo-fix-pulse-gen2-wakeup-through-nvme-controller.rules
 /usr/lib/udev/rules.d/99-tuxedo-fix-realtek-rts522a-idle-behaviour.rules
 /usr/lib/udev/rules.d/99-tuxedo-fix-systemd-led-bootdelay.rules
-%config(noreplace) %{_sysconfdir}/modprobe.d/tuxedo_keyboard.conf
 
 %post
 dkms add -m %{name} -v %{version} --rpm_safe_upgrade
