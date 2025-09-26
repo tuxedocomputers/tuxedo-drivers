@@ -287,6 +287,17 @@ int uniwill_leds_init(struct platform_device *dev)
 	}
 	pr_debug("EC Barebone ID: %#04x\n", uniwill_barebone_id);
 
+	// Some devices need this bit set for the keyboard backlight
+	// to be controllable by the driver. On some devices, it's
+	// set by default, but on some it's not enabled under certain
+	// conditions, so we make sure it's always set.
+	// Known affected devices:
+	// - IBP Gen7-9
+	// - Polaris Gen4-5
+	uniwill_read_ec_ram(UW_EC_REG_FEATURES_1, &data);
+	data |= UW_EC_REG_FEATURES_1_BIT_FIXED_COLOR_5_ENABLE;
+	uniwill_write_ec_ram(UW_EC_REG_FEATURES_1, data);
+
 	if (dmi_check_system(force_no_ec_led_control)) {
 		pr_debug("Skip uniwill_kb_backlight_type checks because of quirk.\n");
 	}
@@ -303,12 +314,6 @@ int uniwill_leds_init(struct platform_device *dev)
 		uniwill_kbl_brightness_ec_controlled = true;
 	}
 	else if (dmi_check_system(kbl_type_fixed_color_5_levels)) {
-		// The IBP Gen9 needs this bit set for the keyboard backlight
-		// to be controllable.
-		uniwill_read_ec_ram(UW_EC_REG_FEATURES_1, &data);
-		data |= UW_EC_REG_FEATURES_1_BIT_FIXED_COLOR_5_ENABLE;
-		uniwill_write_ec_ram(UW_EC_REG_FEATURES_1, data);
-
 		uniwill_kb_backlight_type = UNIWILL_KB_BACKLIGHT_TYPE_FIXED_COLOR_5_LEVELS;
 		uniwill_kbl_brightness_ec_controlled = true;
 	}
