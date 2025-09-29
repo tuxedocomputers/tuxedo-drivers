@@ -30,7 +30,7 @@ all:
 
 install: all
 	make -C $(KDIR) M=$(PWD) $(MAKEFLAGS) modules_install
-	cp -r etc usr /
+	cp -r usr /
 
 clean:
 	make -C $(KDIR) M=$(PWD) $(MAKEFLAGS) clean
@@ -56,7 +56,6 @@ package-rpm:
 	mkdir -p $(shell rpm --eval "%{_sourcedir}")
 	tar --create --file $(shell rpm --eval "%{_sourcedir}")/$(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.xz \
 		--transform="s/debian\/copyright/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/LICENSE/" \
-		--transform="s/etc/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/etc/" \
 		--transform="s/usr/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr/" \
 		--transform="s/src/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/src\/$(PACKAGE_NAME)-$(PACKAGE_VERSION)/" \
 		--exclude=*.cmd \
@@ -66,5 +65,5 @@ package-rpm:
 		--exclude=*.o \
 		--exclude=*.o.d \
 		--exclude=modules.order \
-		debian/copyright etc src usr
+		debian/copyright src usr
 	rpmbuild -ba tuxedo-drivers.spec
