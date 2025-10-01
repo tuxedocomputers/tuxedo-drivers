@@ -1,3 +1,15 @@
+tuxedo-drivers (4.16.0) noble; urgency=medium
+
+  * Fix min TDP for Stellaris Gen7 AMD
+  * Add fix for Huawei LTE modules
+  * Remove amdgpu-firmware package from recommended
+  * Add debian 13 and fedora 42 to build tests
+  * Remove undocumented config file
+  * Fix backlight control on some NB02 devices
+  * Blacklist Uniwill upstream driver
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 01 Oct 2025 12:24:31 +0200
+
 tuxedo-drivers (4.15.4) noble; urgency=medium
 
   * Fix fan control unresponsive on older NB02 devices
