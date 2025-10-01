@@ -155,7 +155,8 @@ static int tdp_max_gmxhgxa[] = { 0x5a, 0x5a, 0x64 };
 static int tdp_min_x6ar5xx[] = { 0x05, 0x05, 0x05 };
 static int tdp_max_x6ar5xx[] = { 0xd2, 0xd2, 0x1a4 };
 
-static int tdp_min_x6fr5xx[] = { 0x05, 0x05, 0x05 };
+// Actual min TDP from NB02 CC is 10 W, but 25 W was suggested after testing.
+static int tdp_min_x6fr5xx[] = { 0x19, 0x19, 0x19 };
 static int tdp_max_x6fr5xx[] = { 0xa2, 0xa2, 0xc3 };
 
 static int *tdp_min_defs = NULL;
