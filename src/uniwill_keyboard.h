@@ -1246,7 +1246,6 @@ static int uw_has_mini_led_local_dimming(bool *status)
 
 static void uw_mini_led_local_dimming_init(struct platform_device *dev)
 {
-	u8 value;
 	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
 
 	if (uw_feats->uniwill_has_mini_led_local_dimming)
@@ -1254,12 +1253,6 @@ static void uw_mini_led_local_dimming_init(struct platform_device *dev)
 
 	// Set default to off
 	uw_set_mini_led_local_dimming(false);
-
-	// Read for state init
-	if (uw_mini_led_local_dimming_loaded) {
-		uw_get_mini_led_local_dimming(&value);
-		uw_mini_led_local_dimming_last_written_value = value;
-	}
 }
 
 static ssize_t uw_mini_led_local_dimming_show(struct device *child,
