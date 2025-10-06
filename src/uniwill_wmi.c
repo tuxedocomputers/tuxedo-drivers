@@ -45,7 +45,15 @@ static bool uniwill_ec_direct = true;
 
 DEFINE_MUTEX(uniwill_ec_lock);
 
-static int uw_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, u8 read_flag, u32 *return_buffer)
+/*
+ * Currently known functions for this are:
+ * 0: Write via WMI
+ * 1: Read via WMI
+ * 5: Apparently used for toggling features. Currently only used for toggling
+ * the NB02 local dimming feature (only possible via WMI). It is unclear what
+ * other functionalities this might have.
+ */
+static int uw_wmi_ec_evaluate(u8 function, u32 arg, u32 *return_buffer)
 {
 	acpi_status status;
 	union acpi_object *out_acpi;
@@ -66,16 +74,11 @@ static int uw_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_hi
 	// Zero input buffer
 	memset(wmi_arg, 0x00, 10 * sizeof(u32));
 
-	// Configure the input buffer
-	wmi_arg_bytes[0] = addr_low;
-	wmi_arg_bytes[1] = addr_high;
-	wmi_arg_bytes[2] = data_low;
-	wmi_arg_bytes[3] = data_high;
+	// Configure input buffer
+	memcpy(&wmi_arg_bytes[0], &arg, sizeof(arg));
 
-	if (read_flag != 0) {
-		wmi_arg_bytes[5] = 0x01;
-	}
-	
+	wmi_arg_bytes[5] = function;
+
 	status = wmi_evaluate_method(UNIWILL_WMI_MGMT_GUID_BC, wmi_instance, wmi_method_id, &wmi_in, &wmi_out);
 	out_acpi = (union acpi_object *) wmi_out.pointer;
 
@@ -103,7 +106,9 @@ static int uw_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_hi
 static int uw_ec_read_addr_wmi(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
 {
 	u32 uw_data[10];
-	int ret = uw_wmi_ec_evaluate(addr_low, addr_high, 0x00, 0x00, 1, uw_data);
+	u32 arg = ((u32)addr_high << 8) | ((u32)addr_low);
+
+	int ret = uw_wmi_ec_evaluate(UNIWILL_WMI_FUNCTION_READ, arg, uw_data);
 	output->dword = uw_data[0];
 	// pr_debug("addr: 0x%02x%02x value: %0#4x (high: %0#4x) result: %d\n", addr_high, addr_low, output->bytes.data_low, output->bytes.data_high, ret);
 	return ret;
@@ -115,7 +120,10 @@ static int uw_ec_read_addr_wmi(u8 addr_low, u8 addr_high, union uw_ec_read_retur
 static int uw_ec_write_addr_wmi(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, union uw_ec_write_return *output)
 {
 	u32 uw_data[10];
-	int ret = uw_wmi_ec_evaluate(addr_low, addr_high, data_low, data_high, 0, uw_data);
+	u32 arg = ((u32)data_high << 24) | ((u32)data_low << 16) |
+		  ((u32)addr_high << 8) | ((u32)addr_low);
+
+	int ret = uw_wmi_ec_evaluate(UNIWILL_WMI_FUNCTION_WRITE, arg, uw_data);
 	output->dword = uw_data[0];
 	return ret;
 }
@@ -295,7 +303,8 @@ static int uw_wmi_write_ec_ram(u16 addr, u8 data)
 struct uniwill_interface_t uniwill_wmi_interface = {
 	.string_id = UNIWILL_INTERFACE_WMI_STRID,
 	.read_ec_ram = uw_wmi_read_ec_ram,
-	.write_ec_ram = uw_wmi_write_ec_ram
+	.write_ec_ram = uw_wmi_write_ec_ram,
+	.wmi_evaluate = uw_wmi_ec_evaluate
 };
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0)

@@ -31,6 +31,13 @@
 #define UNIWILL_WMI_EVENT_GUID_1	"ABBC0F71-8EA1-11D1-00A0-C90629100000"
 #define UNIWILL_WMI_EVENT_GUID_2	"ABBC0F72-8EA1-11D1-00A0-C90629100000"
 
+#define UNIWILL_WMI_FUNCTION_WRITE			0
+#define UNIWILL_WMI_FUNCTION_READ			1
+#define UNIWILL_WMI_FUNCTION_FEATURE_TOGGLE		5
+
+#define UNIWILL_WMI_LOCAL_DIMMING_ON			0x0E
+#define UNIWILL_WMI_LOCAL_DIMMING_OFF			0x0D
+
 #define MODULE_ALIAS_UNIWILL_WMI() \
 	MODULE_ALIAS("wmi:" UNIWILL_WMI_EVENT_GUID_2); \
 	MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BC);
@@ -40,6 +47,7 @@
 typedef int (uniwill_read_ec_ram_t)(u16, u8*);
 typedef int (uniwill_read_ec_ram_with_retry_t)(u16, u8*, int);
 typedef int (uniwill_write_ec_ram_t)(u16, u8);
+typedef int (uniwill_wmi_evaluate_t)(u8 function, u32 arg, u32 *return_buffer);
 typedef int (uniwill_write_ec_ram_with_retry_t)(u16, u8, int);
 typedef void (uniwill_event_callb_t)(u32);
 
@@ -70,6 +78,7 @@ typedef void (uniwill_event_callb_t)(u32);
 #define UW_EC_REG_CUSTOM_PROFILE			0x0727
 #define UW_EC_REG_AC_AUTO_BOOT_STATUS			0x0726
 #define UW_EC_REG_USB_POWERSHARE_STATUS			0x0767
+#define UW_EC_REG_MINI_LED_LOCAL_DIMMING_SUPPORT	0x0D4F
 
 #define UW_EC_REG_FAN_CTRL_STATUS			0x078e
 #define UW_EC_REG_FAN_CTRL_STATUS_BIT_HAS_UW_FAN_CTRL	0x40
@@ -107,12 +116,14 @@ struct uniwill_interface_t {
 	uniwill_event_callb_t *event_callb;
 	uniwill_read_ec_ram_t *read_ec_ram;
 	uniwill_write_ec_ram_t *write_ec_ram;
+	uniwill_wmi_evaluate_t *wmi_evaluate;
 };
 
 int uniwill_add_interface(struct uniwill_interface_t *new_interface);
 int uniwill_remove_interface(struct uniwill_interface_t *interface);
 uniwill_read_ec_ram_t uniwill_read_ec_ram;
 uniwill_write_ec_ram_t uniwill_write_ec_ram;
+uniwill_wmi_evaluate_t uniwill_wmi_evaluate;
 uniwill_write_ec_ram_with_retry_t uniwill_write_ec_ram_with_retry;
 uniwill_read_ec_ram_with_retry_t uniwill_read_ec_ram_with_retry;
 int uniwill_get_active_interface_id(char **id_str);
@@ -147,8 +158,9 @@ struct uniwill_device_features_t {
 	bool uniwill_has_charging_profile;
 	bool uniwill_has_universal_ec_fan_control;
 	bool uniwill_has_double_pl4;
-	bool uniwill_has_ac_auto_boot;	
+	bool uniwill_has_ac_auto_boot;
 	bool uniwill_has_usb_powershare;
+	bool uniwill_has_mini_led_local_dimming;
 };
 
 struct uniwill_device_features_t *uniwill_get_device_features(void);
