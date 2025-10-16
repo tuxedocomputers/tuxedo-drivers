@@ -1,3 +1,11 @@
+tuxedo-drivers (4.17.0) noble; urgency=medium
+
+  * Add display local dimming toggle for Stellaris Gen 7
+  * Inverted charging prio supported/unsupported list
+  * Run build test also after merge in main
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 16 Oct 2025 14:10:45 +0200
+
 tuxedo-drivers (4.16.0) noble; urgency=medium
 
   * Fix min TDP for Stellaris Gen7 AMD
