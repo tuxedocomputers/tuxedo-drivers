@@ -2,6 +2,7 @@
 
 test-build:
   rules:
+    - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_COMMIT_BRANCH == "upcoming-release"
     - when: manual
   image: registry.gitlab.com/tuxedocomputers/development/installation-testing/docker-images/drivers-test-builder:$DOCKER_TAG
