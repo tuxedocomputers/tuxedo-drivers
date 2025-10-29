@@ -953,7 +953,10 @@ static int is_auto_boot_and_powershare_supported(bool *status)
 
 		  // Stellaris Slim Gen6
 		  dmi_match(DMI_BOARD_NAME, "GMxHGxx") ||
-		  dmi_match(DMI_BOARD_NAME, "GM5IXxA");
+		  dmi_match(DMI_BOARD_NAME, "GM5IXxA") ||
+
+		  // InfinityBook Max Gen10
+		  dmi_match(DMI_BOARD_NAME, "X5KK45xS_X5SP45xS");
 
 	return 0;
 }
