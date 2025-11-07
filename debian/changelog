@@ -1,7 +1,7 @@
 tuxedo-drivers (4.18.0) noble; urgency=medium
 
   * Add InfinityBook Pro Gen10 Intel support
-  * Add InfinityBook Max Gen10 Intel support
+  * Add InfinityBook Max Gen10 AMD support
 
  -- Werner Sembach <tux@tuxedocomputers.com>  Mon, 03 Nov 2025 22:40:55 +0100
 
