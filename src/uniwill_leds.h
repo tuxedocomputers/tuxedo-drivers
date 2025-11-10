@@ -262,6 +262,12 @@ static const struct dmi_system_id kbl_type_fixed_color_5_levels[] = {
 			DMI_MATCH(DMI_BOARD_NAME, "XxKK4NAx_XxSP4NAx"),
 		},
 	},
+	{
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "TUXEDO"),
+			DMI_MATCH(DMI_BOARD_NAME, "XxAR4NAx"),
+		},
+	},
 	{ }
 };
 
