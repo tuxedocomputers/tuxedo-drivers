@@ -17,7 +17,6 @@ test-build:
           - ubuntu-24.04
       - PARAM_TYPE: fedora
         DOCKER_TAG:
-          - fedora-40
           - fedora-41
           - fedora-42
           - fedora-43
