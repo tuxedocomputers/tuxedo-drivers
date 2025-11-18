@@ -20,6 +20,7 @@ test-build:
           - fedora-40
           - fedora-41
           - fedora-42
+          - fedora-43
       - PARAM_TYPE: debian
         DOCKER_TAG:
           - debian-12
