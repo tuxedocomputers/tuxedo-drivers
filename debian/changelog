@@ -1,3 +1,12 @@
+tuxedo-drivers (4.18.1) noble; urgency=medium
+
+  * Fix keyboard backlight support for IBP Gen10 Intel
+  * Remove Fedora 40 from build tests
+  * Add Fedora 43 to build tests
+  * Fix 4.18.0 changelog
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Wed, 26 Nov 2025 18:08:14 +0100
+
 tuxedo-drivers (4.18.0) noble; urgency=medium
 
   * Add InfinityBook Pro Gen10 Intel support
