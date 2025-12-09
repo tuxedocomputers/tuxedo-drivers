@@ -41,7 +41,7 @@
 #define UW_EC_BUSY_WAIT_CYCLES	30
 #define UW_EC_BUSY_WAIT_DELAY	15
 
-static bool uniwill_ec_direct = true;
+static bool uniwill_ec_direct = false;
 
 DEFINE_MUTEX(uniwill_ec_lock);
 
@@ -397,11 +397,15 @@ MODULE_LICENSE("GPL");
 /*
  * If set to true, the module will use the replicated WMI functions
  * (direct ec_read/ec_write) to read and write to the EC RAM instead
- * of the original. Since the original functions, in all observed cases,
- * use excessive delays, they are not preferred.
+ * of the original (WMI).
+ *
+ * The original functions didn't use to be
+ * preferred since they use large delays in the I/O loop. However,
+ * they have proven to be more stable and are therefore set as
+ * the current default.
  */
 module_param_cb(ec_direct_io, &param_ops_bool, &uniwill_ec_direct, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(ec_direct_io, "Do not use WMI methods to read/write EC RAM (default: true).");
+MODULE_PARM_DESC(ec_direct_io, "Do not use WMI methods to read/write EC RAM (default: false).");
 
 MODULE_DEVICE_TABLE(wmi, uniwill_wmi_device_ids);
 MODULE_ALIAS_UNIWILL_WMI();
