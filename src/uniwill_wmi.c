@@ -110,6 +110,12 @@ static int uw_ec_read_addr_wmi(u8 addr_low, u8 addr_high, union uw_ec_read_retur
 
 	int ret = uw_wmi_ec_evaluate(UNIWILL_WMI_FUNCTION_READ, arg, uw_data);
 	output->dword = uw_data[0];
+
+	if (output->dword == 0xfefefefe) {
+		pr_err("WMI read error: 0x%02x%02x, data: %0#4x\n", addr_high, addr_low, output->bytes.data_low);
+		ret = -EIO;
+	}
+
 	// pr_debug("addr: 0x%02x%02x value: %0#4x (high: %0#4x) result: %d\n", addr_high, addr_low, output->bytes.data_low, output->bytes.data_high, ret);
 	return ret;
 }
@@ -125,6 +131,12 @@ static int uw_ec_write_addr_wmi(u8 addr_low, u8 addr_high, u8 data_low, u8 data_
 
 	int ret = uw_wmi_ec_evaluate(UNIWILL_WMI_FUNCTION_WRITE, arg, uw_data);
 	output->dword = uw_data[0];
+
+	if (output->dword == 0xfefefefe) {
+		pr_err("WMI write error, addr: 0x%02x%02x, data: %0#4x\n", addr_high, addr_low, data_low);
+		ret = -EIO;
+	}
+
 	return ret;
 }
 
