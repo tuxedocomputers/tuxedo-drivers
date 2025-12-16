@@ -1,3 +1,9 @@
+tuxedo-drivers (4.18.2) noble; urgency=medium
+
+  * Change default of EC write method for NB02 to potentially fix stuck fanspeed
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 16 Dec 2025 23:29:02 +0100
+
 tuxedo-drivers (4.18.1) noble; urgency=medium
 
   * Fix keyboard backlight support for IBP Gen10 Intel
