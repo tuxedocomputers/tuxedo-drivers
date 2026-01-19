@@ -215,7 +215,9 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue,
 			*red = (148 * *red) / 255;
 			*blue = (137 * *blue) / 255;
 		}
-	} else if ((dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I07") || dmi_match(DMI_PRODUCT_SKU, "STELLARIS16A07"))
+	} else if ((dmi_match(DMI_PRODUCT_SKU, "STELLARIS16I07") ||
+		    dmi_match(DMI_PRODUCT_SKU, "STELLARIS16A07") ||
+		    dmi_match(DMI_BOARD_NAME, "X6AR55xU"))
 		   && hdev->product == 0x600b) {
 		// all keys: reduce pink
 		*red = (170 * *red) / 255;
