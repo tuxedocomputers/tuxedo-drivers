@@ -34,6 +34,7 @@
 #include <linux/version.h>
 #include <linux/i8042.h>
 #include <linux/serio.h>
+#include <acpi/battery.h>
 #include "uniwill_interfaces.h"
 #include "uniwill_leds.h"
 
@@ -1180,6 +1181,117 @@ static ssize_t uw_usb_powershare_store(struct device *child,
 		return -EIO;
 }
 
+
+static ssize_t raw_cycle_count_show(struct device *device,
+				struct device_attribute *attr,
+				char *buf)
+{
+	int result;
+	u8 hi, lo;
+	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_CYCN_HI, &hi);
+	if (result)
+		return result;
+	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_CYCN_LO, &lo);
+	if (result)
+		return result;
+	int cycle_count = (hi << 8) | lo;
+	return snprintf(buf, PAGE_SIZE, "%d\n", cycle_count);
+}
+
+static ssize_t raw_xif1_show(struct device *device,
+				struct device_attribute *attr,
+				char *buf)
+{
+	int result;
+	u8 hi, lo;
+	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_XIF1_HI, &hi);
+	if (result)
+		return result;
+	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_XIF1_LO, &lo);
+	if (result)
+		return result;
+	int cycle_count = (hi << 8) | lo;
+	return snprintf(buf, PAGE_SIZE, "%d\n", cycle_count);
+}
+
+static ssize_t raw_xif2_show(struct device *device,
+				struct device_attribute *attr,
+				char *buf)
+{
+	int result;
+	u8 hi, lo;
+	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_XIF1_HI, &hi);
+	if (result)
+		return result;
+	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_XIF2_LO, &lo);
+	if (result)
+		return result;
+	int cycle_count = (hi << 8) | lo;
+	return snprintf(buf, PAGE_SIZE, "%d\n", cycle_count);
+}
+
+static DEVICE_ATTR_RO(raw_cycle_count);
+static DEVICE_ATTR_RO(raw_xif1);
+static DEVICE_ATTR_RO(raw_xif2);
+
+static struct attribute *uw_battery_attrs[] = {
+	&dev_attr_raw_cycle_count.attr,
+	&dev_attr_raw_xif1.attr,
+	&dev_attr_raw_xif2.attr,
+	NULL,
+};
+
+ATTRIBUTE_GROUPS(uw_battery);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+static int uw_battery_add(struct power_supply *battery)
+#else
+static int uw_battery_add(struct power_supply *battery, struct acpi_battery_hook *hook)
+#endif
+{
+	TUXEDO_DEBUG("uw_battery_add\n");
+
+	if (device_add_groups(&battery->dev, uw_battery_groups))
+		return -ENODEV;
+
+	return 0;
+}
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+static int uw_battery_remove(struct power_supply *battery)
+#else
+static int uw_battery_remove(struct power_supply *battery, struct acpi_battery_hook *hook)
+#endif
+{
+	TUXEDO_DEBUG("uw_battery_remove\n");
+	device_remove_groups(&battery->dev, uw_battery_groups);
+	return 0;
+}
+
+static struct acpi_battery_hook uw_battery_hook = {
+	.add_battery = uw_battery_add,
+	.remove_battery = uw_battery_remove,
+	.name = "TUXEDO Battery Extension",
+};
+
+static bool uw_battery_hook_registered = false;
+
+static void uw_battery_init(void)
+{
+	TUXEDO_INFO("hello uw_battery_init\n");
+	battery_hook_register(&uw_battery_hook);
+	uw_battery_hook_registered = true;
+}
+
+static void uw_battery_uninit(void)
+{
+	if (uw_battery_hook_registered)
+		battery_hook_unregister(&uw_battery_hook);
+	else
+		TUXEDO_ERROR("attempted to unregister battery hook which was not registered\n");
+}
+
+
 static bool uw_mini_led_local_dimming_loaded = false;
 static bool uw_mini_led_local_dimming_last_written_value;
 
@@ -1728,6 +1840,7 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 	uw_ac_auto_boot_init(dev);
 	uw_usb_powershare_init(dev);
 	uw_mini_led_local_dimming_init(dev);
+	uw_battery_init();
 
 	// Ignore return value, it just means there is already a filter active
 	// which is fine, because it is probably just the upstream patch of this
@@ -1753,6 +1866,8 @@ static void uniwill_keyboard_remove(struct platform_device *dev)
 
 	if (uw_charging_profile_loaded)
 		sysfs_remove_group(&dev->dev.kobj, &uw_charging_profile_attr_group);
+	
+	uw_battery_uninit();
 
 	uniwill_leds_remove(dev);
 
