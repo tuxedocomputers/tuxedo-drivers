@@ -1242,7 +1242,6 @@ static struct attribute *uw_battery_attrs[] = {
 };
 
 ATTRIBUTE_GROUPS(uw_battery);
-static void dump(void);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
 static int uw_battery_add(struct power_supply *battery)
@@ -1251,10 +1250,8 @@ static int uw_battery_add(struct power_supply *battery, struct acpi_battery_hook
 #endif
 {
 	TUXEDO_DEBUG("uw_battery_add\n");
-	dump();
 	if (device_add_groups(&battery->dev, uw_battery_groups))
 		return -ENODEV;
-	dump();
 
 	return 0;
 }
@@ -1280,10 +1277,7 @@ static bool uw_battery_hook_registered = false;
 
 static void uw_battery_init(void)
 {
-	TUXEDO_INFO("battery hook name is %p = %s.\n", uw_battery_hook.name, uw_battery_hook.name);
-	dump();
 	battery_hook_register(&uw_battery_hook);
-	dump();
 	uw_battery_hook_registered = true;
 }
 
@@ -1293,17 +1287,6 @@ static void uw_battery_uninit(void)
 		battery_hook_unregister(&uw_battery_hook);
 	else
 		TUXEDO_ERROR("attempted to unregister battery hook which was not registered\n");
-}
-
-static void dump(void) { 
-	TUXEDO_INFO("battery hook add=%p, remove=%p, list=%p/%p, name3 is %p = %s.\n",
-		uw_battery_hook.add_battery,
-		uw_battery_hook.remove_battery,
-		uw_battery_hook.list.prev,
-		uw_battery_hook.list.next,
-		uw_battery_hook.name,
-		uw_battery_hook.name
-	);
 }
 
 
