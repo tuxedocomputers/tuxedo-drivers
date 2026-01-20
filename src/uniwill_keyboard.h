@@ -132,6 +132,19 @@ int uniwill_read_ec_ram_with_retry(u16 address, u8 *data, int retries)
 }
 EXPORT_SYMBOL(uniwill_read_ec_ram_with_retry);
 
+static int uniwill_read_ec_ram_u16(u16 hibyte_address, u16 lobyte_address, u16 *data) {
+	int result;
+	u8 hi, lo;
+	result = uniwill_read_ec_ram(hibyte_address, &hi);
+	if (result)
+		return result;
+	result = uniwill_read_ec_ram(lobyte_address, &lo);
+	if (result)
+		return result;
+	*data = (hi << 8) | lo;
+	return result;
+}
+
 int uniwill_write_ec_ram(u16 address, u8 data)
 {
 	int status;
@@ -1181,20 +1194,15 @@ static ssize_t uw_usb_powershare_store(struct device *child,
 		return -EIO;
 }
 
-
 static ssize_t raw_cycle_count_show(struct device *device,
 				struct device_attribute *attr,
 				char *buf)
 {
 	int result;
-	u8 hi, lo;
-	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_CYCN_HI, &hi);
+	u16 cycle_count;
+	result = uniwill_read_ec_ram_u16(UW_EC_REG_BATTERY_CYCN_HI, UW_EC_REG_BATTERY_CYCN_LO, &cycle_count);
 	if (result)
 		return result;
-	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_CYCN_LO, &lo);
-	if (result)
-		return result;
-	int cycle_count = (hi << 8) | lo;
 	return snprintf(buf, PAGE_SIZE, "%d\n", cycle_count);
 }
 
@@ -1203,15 +1211,11 @@ static ssize_t raw_xif1_show(struct device *device,
 				char *buf)
 {
 	int result;
-	u8 hi, lo;
-	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_XIF1_HI, &hi);
+	u16 xif1;
+	result = uniwill_read_ec_ram_u16(UW_EC_REG_BATTERY_XIF1_HI, UW_EC_REG_BATTERY_XIF1_LO, &xif1);
 	if (result)
 		return result;
-	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_XIF1_LO, &lo);
-	if (result)
-		return result;
-	int cycle_count = (hi << 8) | lo;
-	return snprintf(buf, PAGE_SIZE, "%d\n", cycle_count);
+	return snprintf(buf, PAGE_SIZE, "%d\n", xif1);
 }
 
 static ssize_t raw_xif2_show(struct device *device,
@@ -1219,15 +1223,11 @@ static ssize_t raw_xif2_show(struct device *device,
 				char *buf)
 {
 	int result;
-	u8 hi, lo;
-	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_XIF1_HI, &hi);
+	u16 xif2;
+	result = uniwill_read_ec_ram_u16(UW_EC_REG_BATTERY_XIF2_HI, UW_EC_REG_BATTERY_XIF2_LO, &xif2);
 	if (result)
 		return result;
-	result = uniwill_read_ec_ram(UW_EC_REG_BATTERY_XIF2_LO, &lo);
-	if (result)
-		return result;
-	int cycle_count = (hi << 8) | lo;
-	return snprintf(buf, PAGE_SIZE, "%d\n", cycle_count);
+	return snprintf(buf, PAGE_SIZE, "%d\n", xif2);
 }
 
 static DEVICE_ATTR_RO(raw_cycle_count);
