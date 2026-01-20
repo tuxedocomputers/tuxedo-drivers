@@ -1,3 +1,9 @@
+tuxedo-drivers (4.19.0) UNRELEASED; urgency=medium
+
+  * Add InfinityBook Max 16 Gen10 Intel support
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Tue, 20 Jan 2026 12:24:57 +0100
+
 tuxedo-drivers (4.18.2) noble; urgency=medium
 
   * Change default of EC write method for NB02 to potentially fix stuck fanspeed
