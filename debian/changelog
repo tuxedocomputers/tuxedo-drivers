@@ -1,4 +1,4 @@
-tuxedo-drivers (4.19.0) UNRELEASED; urgency=medium
+tuxedo-drivers (4.19.0) noble; urgency=medium
 
   * Add InfinityBook Max 16 Gen10 Intel support
 
