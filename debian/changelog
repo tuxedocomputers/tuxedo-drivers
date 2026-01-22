@@ -1,3 +1,9 @@
+tuxedo-drivers (4.20.1) noble; urgency=medium
+
+  * Update docker url in CI
+
+ -- Werner Sembach <tux@tuxedocomputers.com>  Thu, 22 Jan 2026 21:35:37 +0100
+
 tuxedo-drivers (4.20.0) noble; urgency=medium
 
   * Expose battery information to sysfs for NB02 devices
