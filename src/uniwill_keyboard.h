@@ -1621,6 +1621,7 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 		|| dmi_match(DMI_BOARD_NAME, "XxKK4NAx_XxSP4NAx")
 		|| dmi_match(DMI_BOARD_NAME, "X5KK45xS_X5SP45xS")
 		|| dmi_match(DMI_BOARD_NAME, "X6AR55xU")
+		|| dmi_match(DMI_BOARD_NAME, "X5AR45xS")
 #endif
 	;
 

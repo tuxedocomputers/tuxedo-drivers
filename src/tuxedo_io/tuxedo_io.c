@@ -165,6 +165,9 @@ static int tdp_max_xxxx45xs[] = { 0x64, 0x64, 0x69 };
 static int tdp_min_x6ar55xu[] = { 0x0a, 0x0a, 0x0a };
 static int tdp_max_x6ar55xu[] = { 0x91, 0x9b, 0x122 };
 
+static int tdp_min_x5ar45xs[] = { 0x0a, 0x0a, 0x0a };
+static int tdp_max_x5ar45xs[] = { 0x5a, 0x5a, 0xe6 };
+
 static int *tdp_min_defs = NULL;
 static int *tdp_max_defs = NULL;
 
@@ -254,6 +257,9 @@ static void uw_id_tdp(void)
 	} else if (dmi_match(DMI_BOARD_NAME, "X6AR55xU")) {
 		tdp_min_defs = tdp_min_x6ar55xu;
 		tdp_max_defs = tdp_max_x6ar55xu;
+	} else if (dmi_match(DMI_BOARD_NAME, "X5AR45xS")) {
+		tdp_min_defs = tdp_min_x5ar45xs;
+		tdp_max_defs = tdp_max_x5ar45xs;
 #endif
 	} else {
 		tdp_min_defs = NULL;
