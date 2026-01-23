@@ -1,0 +1,530 @@
+name: tuxedo-drivers-dkms
+summary: Kernel modules for TUXEDO devices
+description: Drivers for several platform devices for TUXEDO notebooks meant for DKMS.
+git_url: "https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers"
+
+file_map:
+  - ["src", "usr/src/$PKG_NAME-$PKG_VERSION"]
+
+dkms_modules:
+  - ["clevo_acpi", "/kernel/lib/"]
+  - ["clevo_wmi", "/kernel/lib/"]
+  - ["tuxedo_keyboard", "/kernel/lib/"]
+  - ["uniwill_wmi", "/kernel/lib/"]
+  - ["ite_8291", "/kernel/lib/", "ite_8291/"]
+  - ["ite_8291_lb", "/kernel/lib/", "ite_8291_lb/"]
+  - ["ite_8297", "/kernel/lib/", "ite_8297/"]
+  - ["ite_829x", "/kernel/lib/", "ite_829x/"]
+  - ["tuxedo_io", "/kernel/lib/", "tuxedo_io"]
+  - ["tuxedo_compatibility_check", "/kernel/lib/", "tuxedo_compatibility_check"]
+  - ["tuxedo_nb05_keyboard", "/kernel/lib/", "tuxedo_nb05"]
+  - ["tuxedo_nb05_power_profiles", "/kernel/lib/", "tuxedo_nb05"]
+  - ["tuxedo_nb05_ec", "/kernel/lib/", "tuxedo_nb05"]
+  - ["tuxedo_nb05_sensors", "/kernel/lib/", "tuxedo_nb05"]
+  - ["tuxedo_nb04_keyboard", "/kernel/lib/", "tuxedo_nb04"]
+  - ["tuxedo_nb04_wmi_ab", "/kernel/lib/", "tuxedo_nb04"]
+  - ["tuxedo_nb04_wmi_bs", "/kernel/lib/", "tuxedo_nb04"]
+  - ["tuxedo_nb04_sensors", "/kernel/lib/", "tuxedo_nb04"]
+  - ["tuxedo_nb04_power_profiles", "/kernel/lib/", "tuxedo_nb04"]
+  - ["tuxedo_nb04_kbd_backlight", "/kernel/lib/", "tuxedo_nb04"]
+  - ["tuxedo_nb05_kbd_backlight", "/kernel/lib/", "tuxedo_nb05"]
+  - [
+      "tuxedo_nb02_nvidia_power_ctrl",
+      "/kernel/lib/",
+      "tuxedo_nb02_nvidia_power_ctrl",
+    ]
+  - ["tuxedo_nb05_fan_control", "/kernel/lib/", "tuxedo_nb05"]
+  - ["tuxi_acpi", "/kernel/lib/", "tuxedo_tuxi"]
+  - ["tuxedo_tuxi_fan_control", "/kernel/lib/", "tuxedo_tuxi"]
+  - ["stk8321", "/kernel/lib/", "stk8321"]
+  - ["gxtp7380", "/kernel/lib/", "gxtp7380"]
+
+dependencies:
+  - dkms
+
+recommends:
+  - udev-hid-bpf
+
+conflicts:
+  - tuxedo-keyboard-dkms
+  - tuxedo-keyboard-ite-dkms
+
+changelog:
+  - version: "4.20.1"
+    author: "Werner Sembach"
+    date: 2026-01-22 20:35:37
+    entries:
+      - "Update docker url in CI"
+  - version: "4.19.0"
+    author: "Werner Sembach"
+    date: 2026-01-20 11:24:57
+    entries:
+      - "Add InfinityBook Max 16 Gen10 Intel support"
+  - version: "4.18.2"
+    author: "Werner Sembach"
+    date: 2025-12-16 22:29:02
+    entries:
+      - "Change default of EC write method for NB02 to potentially fix stuck fanspeed"
+  - version: "4.18.1"
+    author: "Werner Sembach"
+    date: 2025-11-26 17:08:14
+    entries:
+      - "Fix keyboard backlight support for IBP Gen10 Intel"
+      - "Remove Fedora 40 from build tests"
+      - "Add Fedora 43 to build tests"
+      - "Fix 4.18.0 changelog"
+  - version: "4.18.0"
+    author: "Werner Sembach"
+    date: 2025-11-03 21:40:55
+    entries:
+      - "Add InfinityBook Pro Gen10 Intel support"
+      - "Add InfinityBook Max Gen10 AMD support"
+  - version: "4.17.0"
+    author: "Werner Sembach"
+    date: 2025-10-16 12:10:45
+    entries:
+      - "Add display local dimming toggle for Stellaris Gen 7"
+      - "Inverted charging prio supported/unsupported list"
+      - "Run build test also after merge in main"
+  - version: "4.16.0"
+    author: "Werner Sembach"
+    date: 2025-10-01 10:24:31
+    entries:
+      - "Fix min TDP for Stellaris Gen7 AMD"
+      - "Add fix for Huawei LTE modules"
+      - "Remove amdgpu-firmware package from recommended"
+      - "Add debian 13 and fedora 42 to build tests"
+      - "Remove undocumented config file"
+      - "Fix backlight control on some NB02 devices"
+      - "Blacklist Uniwill upstream driver"
+  - version: "4.15.4"
+    author: "Werner Sembach"
+    date: 2025-08-29 11:58:49
+    entries:
+      - "Fix fan control unresponsive on older NB02 devices"
+  - version: "4.15.3"
+    author: "Werner Sembach"
+    date: 2025-08-25 13:36:30
+    entries:
+      - "Fix pulsating fan on NB02 devices by making TD full fan mode aware"
+      - "Readd and fix `make all` and `make install` targets as they are required for"
+      - "Add .editorconfig for developer convenience"
+  - version: "4.15.2"
+    author: "Tim Guttzeit"
+    date: 2025-08-18 10:12:21
+    entries:
+      - "change tuxedo-linux-firmware-amdgpu to Recommends"
+  - version: "4.15.1"
+    author: "Maximilian Arnold"
+    date: 2025-08-14 13:58:20
+    entries:
+      - "add tuxedo-linux-firmware-amdgpu as Depends"
+  - version: "4.15.0"
+    author: "Tim Guttzeit"
+    date: 2025-08-06 05:53:44
+    entries:
+      - "Stellaris Gen7 AMD: Fix keyboard color, TGP, TDP;"
+      - "Stellaris Gen7 AMD: Remove unsupported USB-C Charging Prios"
+      - "Stellaris Gen7 AMD: Add AC Autoboot and USB Powershare features"
+      - "IBP Gen10: Fix ID changes"
+      - "IBP Gen10: Add IDs to power profiles and five step keyboard backlight"
+  - version: "4.14.4"
+    author: "Tim Guttzeit"
+    date: 2025-07-30 10:20:22
+    entries:
+      - "Move udev rules from tuxedo-fix-config-files into tuxedo-drivers"
+  - version: "4.14.3"
+    author: "Werner Sembach"
+    date: 2025-07-15 14:14:19
+    entries:
+      - "Fix Stellaris Gen7 leaving custom profile upon power event"
+  - version: "4.14.2"
+    author: "Werner Sembach"
+    date: 2025-07-01 21:26:56
+    entries:
+      - "More small fixes for Stellaris Gen7 support"
+      - "Small fix for IBP Gen10 support"
+  - version: "4.14.1"
+    author: "Werner Sembach"
+    date: 2025-06-17 13:03:46
+    entries:
+      - "Cleanup Makefile"
+      - "Update Readme"
+      - "Fix NB02 devices have bogus mouse device"
+      - "Harmonize config file names"
+  - version: "4.14.0"
+    author: "Werner Sembach"
+    date: 2025-06-11 16:17:28
+    entries:
+      - "Several small fixes for Stellaris Gen7 support"
+      - "Add wake on power setting for supported devices"
+      - "Add power share setting for supported devices"
+  - version: "4.13.1"
+    author: "Werner Sembach"
+    date: 2025-05-15 15:40:06
+    entries:
+      - "InfinityFlex: Make FN-key no longer disable touchpad"
+      - "NB02: Make FN-key no longer spam dmesg"
+  - version: "4.13.0"
+    author: "Werner Sembach"
+    date: 2025-05-07 15:57:05
+    entries:
+      - "Fix touchpad toggle key on NB02 on wayland"
+      - "Fix Aura 14/15 Gen4 Webcam switch not disapearing when deactivated in BIOS"
+      - "Add udev-hid-bpf recommendation for Sirius 16 Gen1/2 keyboard fix"
+      - "Fix build errors with Kernel 6.14 and 6.15"
+  - version: "4.12.2"
+    author: "Werner Sembach"
+    date: 2025-02-18 21:37:15
+    entries:
+      - "Fix IBP Gen9 keyboard backlight not controllable after cold boot until first"
+      - "This will be the last version officially supported on Ubuntu 22.04."
+  - version: "4.12.1"
+    author: "Werner Sembach"
+    date: 2025-01-27 14:17:59
+    entries:
+      - "Change device check for fixed 5 color kbl on NB02 devices from EC-ID to DMI"
+      - "Cleanup changelog and order chronologically"
+      - "Generate rpm changelog from deb changelog"
+  - version: "4.12.0"
+    author: "Werner Sembach"
+    date: 2025-01-15 12:30:52
+    entries:
+      - "Add keyboard backlight support for IBP Gen9"
+      - "Add automatic compile tests"
+      - "Fix low fan speed rounding issue between off and 25%"
+  - version: "4.11.7"
+    author: "Werner Sembach"
+    date: 2024-12-11 12:59:05
+    entries:
+      - "Avoid floating point to be more widely compatible"
+  - version: "4.11.6"
+    author: "Werner Sembach"
+    date: 2024-12-05 13:44:53
+    entries:
+      - "Fix build against kernel 5.15"
+  - version: "4.11.5"
+    author: "Werner Sembach"
+    date: 2024-12-05 13:10:09
+    entries:
+      - "Block 1%-24% fanspeeds and round to 0% or 25% respectifly to avoid irregular"
+  - version: "4.11.4"
+    author: "Werner Sembach"
+    date: 2024-11-26 11:20:51
+    entries:
+      - "Remove buggy autoreload on install"
+      - "Fix CPU power handling on Stellaris 16 Gen6"
+      - "Fix instant wakeup on Stellaris Slim 15 Gen6 AMD"
+  - version: "4.11.3"
+    author: "Werner Sembach"
+    date: 2024-11-18 19:07:53
+    entries:
+      - "Fix crashes on package install"
+  - version: "4.11.2"
+    author: "Werner Sembach"
+    date: 2024-11-13 17:21:34
+    entries:
+      - "Fix missing module reload handling in install scripts"
+  - version: "4.11.1"
+    author: "Werner Sembach"
+    date: 2024-11-13 10:23:38
+    entries:
+      - "Fix build with different kernels"
+  - version: "4.11.0"
+    author: "Werner Sembach"
+    date: 2024-11-12 16:13:07
+    entries:
+      - "Add TUXI (TUXEDO Interface) acpi driver"
+      - "Fix InfinityBook Pro v3 keyboard backlight levels"
+  - version: "4.10.2"
+    author: "Werner Sembach"
+    date: 2024-11-06 16:18:25
+    entries:
+      - "Fix color scaling for Stellaris 16 Gen6 Intel"
+  - version: "4.10.1"
+    author: "Werner Sembach"
+    date: 2024-11-05 16:12:42
+    entries:
+      - "Fix compile errors with linux 6.12"
+      - "Fix compile warnings"
+  - version: "4.10.0"
+    author: "Werner Sembach"
+    date: 2024-10-24 14:46:17
+    entries:
+      - "Fix IBP Gen9 fan control hickups"
+      - "Add basic lightbar support for new devices"
+  - version: "4.9.0"
+    author: "Werner Sembach"
+    date: 2024-10-15 12:17:43
+    entries:
+      - "Add power profiles support for IBP Gen9"
+      - "Add Stellaris Slim Gen6 TDP support"
+      - "Fix TDP set for Stellaris Gen6 devices"
+  - version: "4.8.0"
+    author: "Werner Sembach"
+    date: 2024-09-30 12:29:25
+    entries:
+      - "Add support for InfinityFlex toggle touchscreen button"
+      - "Update ReadMe"
+  - version: "4.7.0"
+    author: "Werner Sembach"
+    date: 2024-09-16 07:50:49
+    entries:
+      - "Add Support for the TUXEDO InfinityFlex Gen1"
+  - version: "4.6.3"
+    author: "Werner Sembach"
+    date: 2024-09-02 14:34:12
+    entries:
+      - "Fix compile for kernel 6.11"
+  - version: "4.6.2"
+    author: "Werner Sembach"
+    date: 2024-08-13 15:31:15
+    entries:
+      - "Fix compile for kernel 6.10"
+  - version: "4.6.1"
+    author: "Werner Sembach"
+    date: 2024-07-24 19:45:21
+    entries:
+      - "Fix compiler warnings with `Wstrict-prototypes`"
+      - "Fix compile error on openSUSE"
+  - version: "4.6.0"
+    author: "Werner Sembach"
+    date: 2024-07-11 19:56:59
+    entries:
+      - "Enable fn_lock on Aura Gen3 refresh"
+  - version: "4.5.4"
+    author: "Werner Sembach"
+    date: 2024-07-10 14:24:14
+    entries:
+      - "Fix keyboard backlight quirk list error for Stellaris Gen5 and Gen6"
+  - version: "4.5.3"
+    author: "Werner Sembach"
+    date: 2024-06-27 15:32:18
+    entries:
+      - "Fix touchpad toggle key sometimes not working"
+      - "Fix fans having realy slow ramp up speed"
+      - "Fix fans sometimes shutting off under sustained load"
+  - version: "4.5.2"
+    author: "Christoffer Sandberg"
+    date: 2024-06-19 07:36:12
+    entries:
+      - "Rename Stellaris Slim Gen1 => Gen6 for the release"
+  - version: "4.5.1"
+    author: "Werner Sembach"
+    date: 2024-06-07 15:12:06
+    entries:
+      - "Improve Pulse Gen3 and Gen4 fan control for newer firmware"
+      - "Add keyboard backlight color sclaing for Stellaris Lite Gen1"
+  - version: "4.5.0"
+    author: "Werner Sembach"
+    date: 2024-05-25 14:06:05
+    entries:
+      - "Fix dynamic boost being stuck at 5W"
+      - "Add Pulse Gen4 support"
+      - "Add Sirius Gen2 support"
+      - "Add Pulse Gen3 and Gen4 fan control support"
+  - version: "4.4.3"
+    author: "Werner Sembach"
+    date: 2024-05-08 15:29:45
+    entries:
+      - "Stop generating transitional packages"
+  - version: "4.4.2"
+    author: "Werner Sembach"
+    date: 2024-04-26 15:45:40
+    entries:
+      - "Fix Dynamic Boost default"
+      - "Dev/Debug: Pass through make arguments to sub makes"
+  - version: "4.4.1"
+    author: "Werner Sembach"
+    date: 2024-04-17 10:03:09
+    entries:
+      - "Fix tint in keyboard backlight for Stellaris 17 Gen6"
+  - version: "4.4.0"
+    author: "Werner Sembach"
+    date: 2024-04-08 12:09:46
+    entries:
+      - "Split IBPG7 TDP definitions for mk1/mk2 and update values"
+      - "Initial Stellaris Gen6 support"
+  - version: "4.3.2"
+    author: "Werner Sembach"
+    date: 2024-03-07 18:21:56
+    entries:
+      - "Restart UPower upon instal and remove because it does not handle"
+      - "Add troubleshooting section to ReadMe"
+      - "Touchups on package and make scripts"
+  - version: "4.3.1"
+    author: "Werner Sembach"
+    date: 2024-03-05 08:34:06
+    entries:
+      - "Clarify transitional packages and obsoletes"
+      - "Add systemd boot delay fix"
+  - version: "4.3.0"
+    author: "Werner Sembach"
+    date: 2024-02-29 21:29:57
+    entries:
+      - "Implement nb05 (Pulse Gen3) gauge key (opens TCC)"
+  - version: "4.2.2"
+    author: "Werner Sembach"
+    date: 2024-02-19 13:26:55
+    entries:
+      - "Fix compiler error for older kernels by naming unused variables"
+  - version: "4.2.1"
+    author: "Werner Sembach"
+    date: 2024-02-07 15:24:03
+    entries:
+      - "Fix compile issue on Linux 5.15"
+  - version: "4.2.0"
+    author: "Werner Sembach"
+    date: 2024-02-06 21:16:53
+    entries:
+      - "Add basic nb05 keyboard backlight driver"
+      - "Remove unsupported IBS Gen6 from flexicharger settings"
+      - "Clean build and runtime error/warning log"
+      - "Update README"
+      - "Add capability to control NVIDIA cTGP on nb02 devices"
+  - version: "4.1.2"
+    author: "Werner Sembach"
+    date: 2024-01-25 15:55:42
+    entries:
+      - "Fix high cpu load caused by profile write logic bug"
+  - version: "4.1.1"
+    author: "Werner Sembach"
+    date: 2024-01-23 15:51:55
+    entries:
+      - "Fix keyboard backlight detection for Stellaris Gen5 AMD"
+  - version: "4.1.0"
+    author: "Werner Sembach"
+    date: 2024-01-17 16:40:07
+    entries:
+      - "Add nb04 driver collection (so far used by Sirius 16 Gen1)"
+  - version: "4.0.3"
+    author: "Werner Sembach"
+    date: 2023-12-28 12:36:02
+    entries:
+      - "Fix modprobe conf file not applying"
+  - version: "4.0.2"
+    author: "Werner Sembach"
+    date: 2023-12-21 15:59:26
+    entries:
+      - "nb01: Charging thresholds fixes"
+  - version: "4.0.1"
+    author: "Werner Sembach"
+    date: 2023-12-15 16:35:09
+    entries:
+      - "Fix build on Ubuntu 22.04 5.15 kernel"
+  - version: "4.0.0"
+    author: "Christoffer Sandberg"
+    date: 2020-03-17 15:54:00
+    entries:
+      - "Merge tuxedo-keyboard and tuxedo-keyboard-ite"
+      - "Rename package to tuxedo-drivers"
+      - "Rework packaging process"
+      - "Fn-lock sysfs interface for nb02 and nb01 (newer models with CCC from v4.0)"
+      - "Flexicharger sysfs interface for nb01 (new plus legacy which works on some"
+      - "Various backlight bugfixes and rework"
+      - "nb05 driver collection (so far used by Pulse Gen3)"
+      - "Add color scaling for Stellaris Gen5 AMD devices"
+      - "Tweak IBPG8 TDP limits"
+      - "Add missing IBPG8 TDP definitions"
+      - "Polaris/Stellaris AMD Gen5 support"
+      - "Aura Gen3 support"
+      - "Fix build on certain systems"
+      - "Adjusted lightbar USB product exclusion (prevents driver binding to unused"
+      - "Lightbar color scaling for Stellaris 17 Gen5"
+      - "Quirks for setting missing IBP16Gen8 keyboard layouts"
+      - "Fix IBP 16 Gen8 mk1 layout set to 14inch variant layout"
+      - "Keyboard backlight support for IBS17Gen8 (white-only)"
+      - "Fn backlight key support for IBS17Gen8"
+      - "Fix for certain white kbd bl identification on boot (XA15)"
+      - "General white-only kbd bl rework to use firmware set on Fn+brightness"
+      - "Kernel 6.4 build compatibility fix"
+      - "Fallback ROM ID set quirk support"
+      - "IBP Gen8 keyboard backlight support"
+      - "IBP Gen8 TDP support"
+      - "Color scaling for certain one-zone RGB keyboards"
+      - "Fix for certain white kbd bl devices (like Pulse) not setting brightness"
+      - "Four zone backlight support for Stellaris Gen5"
+      - "Experimental buffered writes for Stellaris/Fusion per-key variants"
+      - "Fix missing state write on resume for some devices which woke up with"
+      - "Add TDP device definitions for Stellaris Intel Gen5"
+      - "Add device check on newer cpu gens"
+      - "Color scaling for Stellaris Intel Gen5"
+      - "Lightbar impl. for Stellaris Gen4/5"
+      - Fix "lost fan control" in some circumstances (on eg. IBPGen7)
+      - "KBD BL: Interface rewrite, now generally exported through"
+      - "KBD BL: New interface impl. for white backlight keyboards (also"
+      - "Note: Old interface is hereby deprecated (and removed)"
+      - "Leds interface support (/sys/class/leds)"
+      - "Fix upcoming 6.2 kernel build issue (from github Buddy-Matt)"
+      - "Re-write last set charging priority on barrel plug connect"
+      - "UW interface performance tweaks (should help with lagging keyboard issues"
+      - "Fix IBP14Gen6 second fan not spinning (alternative fan ctl approach)"
+      - "Fix some error-lookalike messages in kernel log (aka prevent uw feature"
+      - "Enables dynamic boost (max offset) for certain devices needing sw ctl"
+      - "Adds charging profile interface for devices supporting charging profiles"
+      - "Adds charging priority interface for devices supporting USB-C PD charging"
+      - "Add per-device color scaling to ite_8291 driver"
+      - "Add additional scaling setting for Stellaris 17 AMD Gen 4"
+      - "Add USB ID for Stellaris 17 Gen 4 keyboard backlight"
+      - "Reenable fans-off for some devices that got it turned of as a temporary"
+      - "Fix default fan curve not being reenabled when tccd is stopped"
+      - "Add power profiles and tdp functionality (uw)"
+      - "Introduce alternative fan control (uw)"
+      - Fan control parameters from driver "has fan off" and "min fan speed"
+      - "Fixes missing/broken fan control on newer devices"
+      - "Add Stellaris Intel gen 4 lightbar support"
+      - "Default lightbar to off"
+      - "Add IBS15v6 & IBS17v6 new module name to perf. prof workaround"
+      - "Interface modularization (uw)"
+      - "Fix Pulse14/15 gen 1 keyboard backlight ctrl dissapearing"
+      - "Add IBS14v6 to perf. prof workaround"
+      - "Add new Polaris devices gen 2 & gen 3 keyb bl support"
+      - "Add Stellaris (gen3) lightbar support"
+      - "Fix kernel 5.13 build issue (from github BlackIkeEagle)"
+      - "Add another Fusion lightbar ID (from github ArlindoFNeto)"
+      - "Add tuxedo-io perf. prof. set (cl)"
+      - "Add NS50MU to perf. profile workaround"
+      - "Add EDUBOOK1502 to perf. profile workaround"
+      - "Add XP gen 11 & 12 to perf. profile workaround"
+      - "Clean-up cl driver state init (should fix some init color issues)"
+      - "Fixed various possible race conditions on driver init"
+      - "Added IBS14v5 to perf. profile workaround"
+      - "Added new Aura board name to perf. profile workaround"
+      - "Fixed non-initialized firmware fan curve for silent mode (UW)"
+      - "Changed default perf. profile to balanced (UW)"
+      - "Added XP14 to perf. profile workaround"
+      - "Fix broken brightness key reaction for ite_829x"
+      - "Attempt to fix ite_829x instability sometimes locking up kernel on"
+      - "Fixed clevo keyboard init order"
+      - "Added Aura perf. profile workaround"
+      - "Added device 048d:6004 to ite_8291"
+      - "Added device support (Trinity)"
+      - "Fixed uw fan ramp up issues to some extent (workaround)"
+      - "Changed structure of clevo interfaces"
+      - "Added separate clevo-wmi module with existing functionality"
+      - Added clevo-acpi module with implementation of the "new" clevo ACPI
+      - "Added tuxedo-io module (former tuxedo-cc-wmi) into package"
+      - "Added initial support for ITE Device(8291) ->  048d:ce00"
+      - "Added device support (XMG Fusion)"
+      - "Added uniwill lightbar driver (with led_classdev interface)"
+      - "Added uniwill keymapping brightness up/down"
+      - "Fixed uniwill touchpad toggle (some platforms)"
+      - "Fixed module cleanup crash"
+      - "Added initial (very basic) support for 048d:8297 LED controller"
+      - "Fixed key mapping toggle <=> switch mode"
+      - "Default color to white"
+      - "Initial experimental release"
+      - "Added uw kbd color backlight support"
+      - "Restructure to allow for more devices"
+      - "Added device support"
+      - "Added rudimentary device detection"
+      - "Added rfkill key event"
+      - "Fix volume button events, ignore"
+      - "General key event mapping support"
+      - "Events added for backlight and touchpad"
+      - "Fix not restoring state on resume"
+      - "Fix module autoload issues"
+      - "Add standard config tuxedo_keyboard.conf to package"
+      - "First version of the ITE keyboard backlight driver"
+      - "Has support for ITE Device(829x) ->  0x048d:0x8910"
+      - "New packaging"
