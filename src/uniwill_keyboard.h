@@ -286,12 +286,13 @@ void uniwill_event_callb(u32 code)
 			input_sync(uniwill_keyboard_driver.input_device);
 			break;
 		case UNIWILL_OSD_DC_ADAPTER_CHANGE:
-			// Refresh keyboard state and charging prio on cable switch event and make sure that the custom
+			// Refresh keyboard state and charging settings on cable switch event and make sure that the custom
 			// profile mode is still applied in case it's needed.
 			uniwill_set_custom_profile_mode(false);
 			uniwill_leds_restore_state_extern();
 			msleep(50);
 			uw_charging_priority_write_state();
+			uw_charging_profile_write_state();
 			break;
 		case UNIWILL_KEY_KBDILLUMTOGGLE:
 		case UNIWILL_OSD_KB_LED_LEVEL0:
@@ -650,7 +651,7 @@ static void uw_charging_priority_init(struct platform_device *dev)
 }
 
 static bool uw_charging_profile_loaded = false;
-static bool uw_charging_profile_last_written_value;
+static u8 uw_charging_profile_last_written_value;
 
 static ssize_t uw_charging_profiles_available_show(struct device *child,
 						   struct device_attribute *attr,
@@ -688,16 +689,18 @@ static struct attribute_group uw_charging_profile_attr_group = {
  */
 static int uw_set_charging_profile(u8 charging_profile)
 {
-	u8 previous_data, next_data;
+	u8 previous_data, next_data, shifted_profile;
 	int result;
 
-	charging_profile = (charging_profile & 0x03) << 4;
+	/* Store unshifted value (0-2) for later restoration */
+	charging_profile = charging_profile & 0x03;
+	shifted_profile = charging_profile << 4;
 
 	result = uniwill_read_ec_ram(0x07a6, &previous_data);
 	if (result != 0)
 		return result;
 
-	next_data = (previous_data & ~(0x03 << 4)) | charging_profile;
+	next_data = (previous_data & ~(0x03 << 4)) | shifted_profile;
 	result = uniwill_write_ec_ram(0x07a6, next_data);
 
 	if (result == 0)
@@ -743,7 +746,7 @@ static int uw_has_charging_profile(bool *status)
 	return 0;
 }
 
-static void __attribute__ ((unused)) uw_charging_profile_write_state(void)
+static void uw_charging_profile_write_state(void)
 {
 	if (uw_charging_profile_loaded)
 		uw_set_charging_profile(uw_charging_profile_last_written_value);
@@ -1803,6 +1806,9 @@ static int uniwill_keyboard_resume(struct platform_device *dev)
 	}
 	uniwill_leds_restore_state_extern();
 	uniwill_write_kbd_bl_enable(1);
+	// Restore charging settings on resume
+	uw_charging_priority_write_state();
+	uw_charging_profile_write_state();
 	return 0;
 }
 
