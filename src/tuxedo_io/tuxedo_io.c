@@ -544,13 +544,16 @@ static u32 uw_set_fan(u32 fan_index, u8 fan_speed)
 				fan_speed = FAN_ON_MIN_SPEED_PERCENT * NB02_FAN_SPEED_MAX / 100;
 
 			if (fan_speed == 0 &&
-			!dmi_match(DMI_BOARD_NAME, "GXxMRXx")) {
+			!dmi_match(DMI_BOARD_NAME, "GXxMRXx") &&
+			!dmi_match(DMI_BOARD_NAME, "XxAR4NAx")) {
 				// Avoid hard coded EC behaviour: Setting fan speed = 0x00 spins the fan up
 				// to 0x3c (30%) for 3 minutes before going to 0x00. Setting fan speed = 1
 				// also causes the fan to stop since on 2020 or later TF devices the
 				// microcontroller in the fan itself is intelligent enough to not try to
 				// start up the motor when the speed is to slow. Older devices don't use
 				// this fan controll anyway, but the else case below.
+				// On some devices, however, this fix leads to pulsating fans as the EC seems to not
+				// allow values < 25 % other than 0.
 				fan_speed = 1;
 			}
 
