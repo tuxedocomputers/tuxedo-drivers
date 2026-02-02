@@ -592,12 +592,12 @@ static int uw_has_charging_priority(bool *status)
 	u8 data;
 	int result;
 
-	/* 
+	/*
 	 * The ODM dropped this feature for certain reasons by just disabling the feature within their Control Center.
 	 * Therefore every device using the control center until version 5.9.49.16 at least theoretically supports the
 	 * feature. However, due to the support identification bit, being listed among the following devices does not
 	 * automatically mean that this device supports the feature.
-	 * After 5.9.50.3 devices may still have the support identification bit set but don't officially support the 
+	 * After 5.9.50.3 devices may still have the support identification bit set but don't officially support the
 	 * feature anymore.
 	*/
 	bool device_before_feature_drop = false
@@ -607,22 +607,22 @@ static int uw_has_charging_priority(bool *status)
 		|| dmi_match(DMI_BOARD_NAME, "PHxARX1_PHxAQF1") // IBP Gen7
 		|| dmi_match(DMI_BOARD_NAME, "PH6AG01_PH6AQ71_PH6AQI1")
 		|| dmi_match(DMI_BOARD_NAME, "PHxTxX1") // IBP Gen6
-		|| dmi_match(DMI_BOARD_NAME, "GMxXGxx") // Polaris Gen5 
-		|| dmi_match(DMI_BOARD_NAME, "GMxNGxx") // Polaris Gen3 
-		|| dmi_match(DMI_BOARD_NAME, "GMxTGxx") // Stellaris/Polaris Gen3 
+		|| dmi_match(DMI_BOARD_NAME, "GMxXGxx") // Polaris Gen5
+		|| dmi_match(DMI_BOARD_NAME, "GMxNGxx") // Polaris Gen3
+		|| dmi_match(DMI_BOARD_NAME, "GMxTGxx") // Stellaris/Polaris Gen3
 		|| dmi_match(DMI_BOARD_NAME, "GMxZGxx") // Stellaris Gen3
-		|| dmi_match(DMI_BOARD_NAME, "GMxMGxx") // Polaris Gen2 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501I1650TI") // Polaris Gen1 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501A1650TI") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701A1650TI") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701I1650TI") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501I2060") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501A2060") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701I2060") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701A2060") 
+		|| dmi_match(DMI_BOARD_NAME, "GMxMGxx") // Polaris Gen2
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501I1650TI") // Polaris Gen1
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501A1650TI")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701A1650TI")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701I1650TI")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501I2060")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501A2060")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701I2060")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701A2060")
 		|| dmi_match(DMI_BOARD_NAME, "PF5LUXG") // Pulse Gen2
 		|| dmi_match(DMI_BOARD_NAME, "PULSE1401") // Pulse Gen1
-		|| dmi_match(DMI_BOARD_NAME, "PULSE1501") 
+		|| dmi_match(DMI_BOARD_NAME, "PULSE1501")
 		;
 
 	if (!device_before_feature_drop) {
@@ -1053,7 +1053,7 @@ static void uw_ac_auto_boot_init(struct platform_device *dev)
 }
 
 static ssize_t uw_ac_auto_boot_show(struct device *child,
-				    struct device_attribute *attr, 
+				    struct device_attribute *attr,
 				    char *buffer)
 {
 	u8 ac_auto_boot_value;
@@ -1331,7 +1331,7 @@ static int uw_set_mini_led_local_dimming(u8 mini_led_local_dimming)
 					    uw_data);
 	} else {
 		result = uniwill_wmi_evaluate(UNIWILL_WMI_FUNCTION_FEATURE_TOGGLE,
-					    UNIWILL_WMI_LOCAL_DIMMING_OFF, 
+					    UNIWILL_WMI_LOCAL_DIMMING_OFF,
 					    uw_data);
 	}
 	if (result != 0)
@@ -1344,21 +1344,21 @@ static int uw_set_mini_led_local_dimming(u8 mini_led_local_dimming)
 
 static int uw_get_mini_led_local_dimming(u8 *mini_led_local_dimming)
 {
-	/* 
-	 * As of now, we do not have any possibility to read out the current state of local dimming. However, 
-	 * as this feature is set to disabled on boot per default by calling uw_set_mini_led_local_dimming, 
+	/*
+	 * As of now, we do not have any possibility to read out the current state of local dimming. However,
+	 * as this feature is set to disabled on boot per default by calling uw_set_mini_led_local_dimming,
 	 * uw_mini_led_local_dimming_last_written_value is always initialized and thereby should not cause
 	 * any harm.
 	 *
 	 * A rather hacky solution could be the following, as uniwill_wmi_evaluate writes the current state
 	 * into the return buffer before overwriting it:
-	 
+
 	 * u32 return_buffer;
 	 * bool initial_status;
 	 * uniwill_wmi_evaluate(local_dimming, off, return_buffer);
 	 * if (return_buffer == UNIWILL_WMI_LOCAL_DIMMING_ON)
 	 * 	initial_status = true;
-	 * else 
+	 * else
 	 * 	initial_status = false;
 	 * uniwill_wmi_evaluate(local_dimming, initial_status, return_buffer);
 	 * *mini_led_local_dimming = initial_status;
@@ -1371,7 +1371,7 @@ static int uw_has_mini_led_local_dimming(bool *status)
 {
 	u8 data;
 	int result;
-	
+
 	result = uniwill_read_ec_ram(UW_EC_REG_MINI_LED_LOCAL_DIMMING_SUPPORT,
 				     &data);
 	if (result)
@@ -1866,7 +1866,7 @@ static void uniwill_keyboard_remove(struct platform_device *dev)
 
 	if (uw_charging_profile_loaded)
 		sysfs_remove_group(&dev->dev.kobj, &uw_charging_profile_attr_group);
-	
+
 	uw_battery_uninit();
 
 	uniwill_leds_remove(dev);
