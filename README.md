@@ -50,13 +50,9 @@ Drivers for several platform devices for TUXEDO notebooks meant for DKMS.
 All:
 - make
 
-`make package-deb`:
-- devscripts
-- debhelper
-- dh-dkms
-
-`make package-rpm`:
-- rpm
+`make package-*`:
+- [simple-package-creator](https://gitlab.com/tuxedocomputers/development/packages/simple-package-creator)
+- [simple-package-tools](https://gitlab.com/tuxedocomputers/development/packages/simple-package-tools)
 
 # Troubleshooting
 

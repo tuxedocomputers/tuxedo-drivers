@@ -22,9 +22,6 @@
 
 KDIR := /lib/modules/$(shell uname -r)/build
 
-PACKAGE_NAME := $(shell grep -Pom1 '.*(?= \(.*\) .*; urgency=.*)' debian/changelog)
-PACKAGE_VERSION := $(shell grep -Pom1 '.* \(\K.*(?=\) .*; urgency=.*)' debian/changelog)
-
 all:
 	make -C $(KDIR) M=$(PWD) $(MAKEFLAGS) modules
 
@@ -34,19 +31,17 @@ install: all
 
 clean:
 	make -C $(KDIR) M=$(PWD) $(MAKEFLAGS) clean
-	rm -f debian/*.debhelper
-	rm -f debian/*.debhelper.log
-	rm -f debian/*.substvars
-	rm -f debian/debhelper-build-stamp
-	rm -f debian/files
-	rm -rf debian/tuxedo-drivers
-	rm -f src/dkms.conf
-	rm -f tuxedo-drivers.spec
+	rm -rf build/
 
-package: package-deb package-rpm
+package:
+	simple-package-creator
+	simple-package-tools build deb -d build -n
+	simple-package-tools build rpm -d build -n
 
 package-deb:
-	simple-package-creator && simple-package-tools build deb -d build -n
+	simple-package-creator
+	simple-package-tools build deb -d build -n
 
 package-rpm:
-	simple-package-creator && simple-package-tools build rpm -d build -n
+	simple-package-creator
+	simple-package-tools build rpm -d build -n
