@@ -22,9 +22,6 @@
 
 KDIR := /lib/modules/$(shell uname -r)/build
 
-PACKAGE_NAME := $(shell grep -Pom1 '.*(?= \(.*\) .*; urgency=.*)' debian/changelog)
-PACKAGE_VERSION := $(shell grep -Pom1 '.* \(\K.*(?=\) .*; urgency=.*)' debian/changelog)
-
 all:
 	make -C $(KDIR) M=$(PWD) $(MAKEFLAGS) modules
 
@@ -34,36 +31,17 @@ install: all
 
 clean:
 	make -C $(KDIR) M=$(PWD) $(MAKEFLAGS) clean
-	rm -f debian/*.debhelper
-	rm -f debian/*.debhelper.log
-	rm -f debian/*.substvars
-	rm -f debian/debhelper-build-stamp
-	rm -f debian/files
-	rm -rf debian/tuxedo-drivers
-	rm -f src/dkms.conf
-	rm -f tuxedo-drivers.spec
+	rm -rf build/
 
-package: package-deb package-rpm
+package:
+	simple-package-creator
+	simple-package-tools build deb -d build -n
+	simple-package-tools build rpm -d build -n
 
 package-deb:
-	debuild --no-tgz-check --no-sign
+	simple-package-creator
+	simple-package-tools build deb -d build -n
 
 package-rpm:
-	sed 's/#MODULE_VERSION#/$(PACKAGE_VERSION)/' debian/tuxedo-drivers.dkms > src/dkms.conf
-	sed 's/#MODULE_VERSION#/$(PACKAGE_VERSION)/' tuxedo-drivers.spec.in > tuxedo-drivers.spec
-	echo >> tuxedo-drivers.spec
-	./debian-changelog-to-rpm-changelog.awk debian/changelog >> tuxedo-drivers.spec
-	mkdir -p $(shell rpm --eval "%{_sourcedir}")
-	tar --create --file $(shell rpm --eval "%{_sourcedir}")/$(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.xz \
-		--transform="s/debian\/copyright/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/LICENSE/" \
-		--transform="s/usr/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr/" \
-		--transform="s/src/$(PACKAGE_NAME)-$(PACKAGE_VERSION)\/usr\/src\/$(PACKAGE_NAME)-$(PACKAGE_VERSION)/" \
-		--exclude=*.cmd \
-		--exclude=*.ko \
-		--exclude=*.mod \
-		--exclude=*.mod.c \
-		--exclude=*.o \
-		--exclude=*.o.d \
-		--exclude=modules.order \
-		debian/copyright src usr
-	rpmbuild -ba tuxedo-drivers.spec
+	simple-package-creator
+	simple-package-tools build rpm -d build -n
