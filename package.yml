@@ -45,7 +45,7 @@ dependencies:
 recommends:
   - udev-hid-bpf
 
-conflicts:
+replaces:
   - tuxedo-keyboard-dkms
   - tuxedo-keyboard-ite-dkms
 
