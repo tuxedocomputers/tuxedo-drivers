@@ -168,6 +168,7 @@ struct uniwill_device_features_t {
 	bool uniwill_has_ac_auto_boot;
 	bool uniwill_has_usb_powershare;
 	bool uniwill_has_mini_led_local_dimming;
+	bool uniwill_has_hidden_bios_options;
 };
 
 struct uniwill_device_features_t *uniwill_get_device_features(void);
