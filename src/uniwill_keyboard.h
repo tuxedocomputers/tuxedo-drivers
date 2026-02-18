@@ -32,31 +32,38 @@
 #include <linux/led-class-multicolor.h>
 #include <linux/string.h>
 #include <linux/version.h>
+#include <linux/efi.h>
+#include <linux/slab.h>
 #include <linux/i8042.h>
 #include <linux/serio.h>
 #include <acpi/battery.h>
 #include "uniwill_interfaces.h"
 #include "uniwill_leds.h"
 
-#define UNIWILL_OSD_RADIOON			0x01A
-#define UNIWILL_OSD_RADIOOFF			0x01B
-#define UNIWILL_OSD_KB_LED_LEVEL0		0x03B
-#define UNIWILL_OSD_KB_LED_LEVEL1		0x03C
-#define UNIWILL_OSD_KB_LED_LEVEL2		0x03D
-#define UNIWILL_OSD_KB_LED_LEVEL3		0x03E
-#define UNIWILL_OSD_KB_LED_LEVEL4		0x03F
-#define UNIWILL_OSD_DC_ADAPTER_CHANGE		0x0AB
-#define UNIWILL_OSD_MODE_CHANGE_KEY_EVENT	0x0B0
+#define UNIWILL_OSD_RADIOON				0x01A
+#define UNIWILL_OSD_RADIOOFF				0x01B
+#define UNIWILL_OSD_KB_LED_LEVEL0			0x03B
+#define UNIWILL_OSD_KB_LED_LEVEL1			0x03C
+#define UNIWILL_OSD_KB_LED_LEVEL2			0x03D
+#define UNIWILL_OSD_KB_LED_LEVEL3			0x03E
+#define UNIWILL_OSD_KB_LED_LEVEL4			0x03F
+#define UNIWILL_OSD_DC_ADAPTER_CHANGE			0x0AB
+#define UNIWILL_OSD_MODE_CHANGE_KEY_EVENT		0x0B0
 
-#define UNIWILL_KEY_RFKILL			0x0A4
-#define UNIWILL_KEY_KBDILLUMDOWN		0x0B1
-#define UNIWILL_KEY_KBDILLUMUP			0x0B2
-#define UNIWILL_KEY_FN_LOCK			0x0B8
-#define UNIWILL_KEY_KBDILLUMTOGGLE		0x0B9
+#define UNIWILL_KEY_RFKILL				0x0A4
+#define UNIWILL_KEY_KBDILLUMDOWN			0x0B1
+#define UNIWILL_KEY_KBDILLUMUP				0x0B2
+#define UNIWILL_KEY_FN_LOCK				0x0B8
+#define UNIWILL_KEY_KBDILLUMTOGGLE			0x0B9
 
-#define UNIWILL_OSD_TOUCHPADWORKAROUND		0xFFF
+#define UNIWILL_OSD_TOUCHPADWORKAROUND			0xFFF
 
-#define UNIWILL_FN_LOCK_MASK			0x10
+#define UNIWILL_FN_LOCK_MASK				0x10
+
+#define UW_MEMORY_OVERCLOCKING_SWITCH			0x33
+#define UW_MEMORY_OVERCLOCKING_SUPPORT			0x60
+#define UW_CPU_PERFORMANCE_AND_OVERCLOCKING_SUPPORT	0x6E
+#define UW_CPU_PERFORMANCE_AND_OVERCLOCKING_SWITCH	0x6f
 
 static void uw_charging_priority_write_state(void);
 static void uw_charging_profile_write_state(void);
@@ -592,12 +599,12 @@ static int uw_has_charging_priority(bool *status)
 	u8 data;
 	int result;
 
-	/* 
+	/*
 	 * The ODM dropped this feature for certain reasons by just disabling the feature within their Control Center.
 	 * Therefore every device using the control center until version 5.9.49.16 at least theoretically supports the
 	 * feature. However, due to the support identification bit, being listed among the following devices does not
 	 * automatically mean that this device supports the feature.
-	 * After 5.9.50.3 devices may still have the support identification bit set but don't officially support the 
+	 * After 5.9.50.3 devices may still have the support identification bit set but don't officially support the
 	 * feature anymore.
 	*/
 	bool device_before_feature_drop = false
@@ -607,22 +614,22 @@ static int uw_has_charging_priority(bool *status)
 		|| dmi_match(DMI_BOARD_NAME, "PHxARX1_PHxAQF1") // IBP Gen7
 		|| dmi_match(DMI_BOARD_NAME, "PH6AG01_PH6AQ71_PH6AQI1")
 		|| dmi_match(DMI_BOARD_NAME, "PHxTxX1") // IBP Gen6
-		|| dmi_match(DMI_BOARD_NAME, "GMxXGxx") // Polaris Gen5 
-		|| dmi_match(DMI_BOARD_NAME, "GMxNGxx") // Polaris Gen3 
-		|| dmi_match(DMI_BOARD_NAME, "GMxTGxx") // Stellaris/Polaris Gen3 
+		|| dmi_match(DMI_BOARD_NAME, "GMxXGxx") // Polaris Gen5
+		|| dmi_match(DMI_BOARD_NAME, "GMxNGxx") // Polaris Gen3
+		|| dmi_match(DMI_BOARD_NAME, "GMxTGxx") // Stellaris/Polaris Gen3
 		|| dmi_match(DMI_BOARD_NAME, "GMxZGxx") // Stellaris Gen3
-		|| dmi_match(DMI_BOARD_NAME, "GMxMGxx") // Polaris Gen2 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501I1650TI") // Polaris Gen1 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501A1650TI") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701A1650TI") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701I1650TI") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501I2060") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501A2060") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701I2060") 
-		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701A2060") 
+		|| dmi_match(DMI_BOARD_NAME, "GMxMGxx") // Polaris Gen2
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501I1650TI") // Polaris Gen1
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501A1650TI")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701A1650TI")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701I1650TI")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501I2060")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1501A2060")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701I2060")
+		|| dmi_match(DMI_BOARD_NAME, "POLARIS1701A2060")
 		|| dmi_match(DMI_BOARD_NAME, "PF5LUXG") // Pulse Gen2
 		|| dmi_match(DMI_BOARD_NAME, "PULSE1401") // Pulse Gen1
-		|| dmi_match(DMI_BOARD_NAME, "PULSE1501") 
+		|| dmi_match(DMI_BOARD_NAME, "PULSE1501")
 		;
 
 	if (!device_before_feature_drop) {
@@ -1053,7 +1060,7 @@ static void uw_ac_auto_boot_init(struct platform_device *dev)
 }
 
 static ssize_t uw_ac_auto_boot_show(struct device *child,
-				    struct device_attribute *attr, 
+				    struct device_attribute *attr,
 				    char *buffer)
 {
 	u8 ac_auto_boot_value;
@@ -1331,7 +1338,7 @@ static int uw_set_mini_led_local_dimming(u8 mini_led_local_dimming)
 					    uw_data);
 	} else {
 		result = uniwill_wmi_evaluate(UNIWILL_WMI_FUNCTION_FEATURE_TOGGLE,
-					    UNIWILL_WMI_LOCAL_DIMMING_OFF, 
+					    UNIWILL_WMI_LOCAL_DIMMING_OFF,
 					    uw_data);
 	}
 	if (result != 0)
@@ -1344,21 +1351,21 @@ static int uw_set_mini_led_local_dimming(u8 mini_led_local_dimming)
 
 static int uw_get_mini_led_local_dimming(u8 *mini_led_local_dimming)
 {
-	/* 
-	 * As of now, we do not have any possibility to read out the current state of local dimming. However, 
-	 * as this feature is set to disabled on boot per default by calling uw_set_mini_led_local_dimming, 
+	/*
+	 * As of now, we do not have any possibility to read out the current state of local dimming. However,
+	 * as this feature is set to disabled on boot per default by calling uw_set_mini_led_local_dimming,
 	 * uw_mini_led_local_dimming_last_written_value is always initialized and thereby should not cause
 	 * any harm.
 	 *
 	 * A rather hacky solution could be the following, as uniwill_wmi_evaluate writes the current state
 	 * into the return buffer before overwriting it:
-	 
+
 	 * u32 return_buffer;
 	 * bool initial_status;
 	 * uniwill_wmi_evaluate(local_dimming, off, return_buffer);
 	 * if (return_buffer == UNIWILL_WMI_LOCAL_DIMMING_ON)
 	 * 	initial_status = true;
-	 * else 
+	 * else
 	 * 	initial_status = false;
 	 * uniwill_wmi_evaluate(local_dimming, initial_status, return_buffer);
 	 * *mini_led_local_dimming = initial_status;
@@ -1371,7 +1378,7 @@ static int uw_has_mini_led_local_dimming(bool *status)
 {
 	u8 data;
 	int result;
-	
+
 	result = uniwill_read_ec_ram(UW_EC_REG_MINI_LED_LOCAL_DIMMING_SUPPORT,
 				     &data);
 	if (result)
@@ -1422,6 +1429,124 @@ static ssize_t uw_mini_led_local_dimming_store(struct device *child,
 		return size;
 	else
 		return -EIO;
+}
+
+static efi_guid_t uw_oem_magic_guid =
+	EFI_GUID(0x9f33f85c, 0x13ca, 0x4fd1,
+	         0x9c, 0x4a, 0x96, 0x21, 0x77, 0x22, 0xc5, 0x93);
+
+static int uw_has_hidden_bios_options(bool *status)
+{
+	*status = false
+		// Stellaris 16 G7
+		|| dmi_match(DMI_BOARD_NAME, "X6AR5xxY")
+		|| dmi_match(DMI_BOARD_NAME, "X6AR5xxY_mLED")
+		// Stellaris 16 G6
+		|| dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB1")
+		|| dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB2")
+		// IBM 16 G10
+		|| dmi_match(DMI_BOARD_NAME, "X6AR55xU");
+	return 0;
+}
+
+static void uw_show_hidden_bios_options(void)
+{
+	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
+	efi_status_t st;
+	u32 attr = 0;
+	unsigned long size = 0;
+	u8 *buf = NULL;
+	bool changed = false;
+	efi_char16_t name[] = L"OemMagicVariable";
+	u8 b1, b2;
+
+	if (!uw_feats->uniwill_has_hidden_bios_options) {
+		pr_debug("hidden_bios_options: not supported on this device\n");
+		return;
+	}
+
+	if (!efi_enabled(EFI_RUNTIME_SERVICES)) {
+		pr_warn(
+			"hidden_bios_options: EFI runtime services not available\n");
+		return;
+	}
+
+	st = efi.get_variable(name, &uw_oem_magic_guid, &attr, &size, NULL);
+	if (st != EFI_BUFFER_TOO_SMALL) {
+		pr_err(
+			"hidden_bios_options: get_variable probe failed: st=0x%lx\n",
+			(unsigned long)st);
+		return;
+	}
+
+	if (size <= UW_CPU_PERFORMANCE_AND_OVERCLOCKING_SWITCH) {
+		pr_err(
+			"hidden_bios_options: EFI variable too small (%lu bytes)\n",
+			size);
+		return;
+	}
+
+	buf = kmalloc(size, GFP_KERNEL);
+	if (!buf) {
+		pr_err("hidden_bios_options: something went wrong during allocating read buffer\n");
+		return;
+	}
+
+	st = efi.get_variable(name, &uw_oem_magic_guid, &attr, &size, buf);
+	if (st != EFI_SUCCESS) {
+		pr_err(
+			"hidden_bios_options: get_variable read failed: st=0x%lx\n",
+			(unsigned long)st);
+		kfree(buf);
+		return;
+	}
+
+	if (buf[UW_MEMORY_OVERCLOCKING_SUPPORT] != 0x01 ||
+	    buf[UW_CPU_PERFORMANCE_AND_OVERCLOCKING_SUPPORT] != 0x01) {
+		pr_warn(
+			"hidden_bios_options: support bits not set (mem=0x%02x cpu=0x%02x) -> skip\n",
+			buf[UW_MEMORY_OVERCLOCKING_SUPPORT],
+			buf[UW_CPU_PERFORMANCE_AND_OVERCLOCKING_SUPPORT]);
+		kfree(buf);
+		return;
+	}
+
+	b1 = buf[UW_MEMORY_OVERCLOCKING_SWITCH];
+	b2 = buf[UW_CPU_PERFORMANCE_AND_OVERCLOCKING_SWITCH];
+
+	if (!((b1 == 0x00 || b1 == 0x01) && (b2 == 0x00 || b2 == 0x01))) {
+		pr_err("hidden_bios_options: unexpected byte values off1=0x%02x off2=0x%02x -> skip\n",
+			b1, b2);
+		kfree(buf);
+		return;
+	}
+
+	if (b1 == 0x00) {
+		buf[UW_MEMORY_OVERCLOCKING_SWITCH] = 0x01;
+		changed = true;
+	}
+	if (b2 == 0x00) {
+		buf[UW_CPU_PERFORMANCE_AND_OVERCLOCKING_SWITCH] = 0x01;
+		changed = true;
+	}
+
+	if (!changed) {
+		pr_debug("hidden_bios_options: already enabled\n");
+		kfree(buf);
+		return;
+	}
+
+	st = efi.set_variable(name, &uw_oem_magic_guid, attr, size, buf);
+	if (st != EFI_SUCCESS) {
+		pr_warn("hidden_bios_options: set_variable failed: st=0x%lx\n",
+			(unsigned long)st);
+		kfree(buf);
+		return;
+	}
+
+	pr_info("hidden_bios_options: enabled hidden BIOS options\n");
+
+	kfree(buf);
 }
 
 static const u8 uw_romid_PH4PxX[14] = {0x0C, 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -1643,6 +1768,8 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 		feats_loaded = false;
 	if (uw_has_mini_led_local_dimming(&uw_feats->uniwill_has_mini_led_local_dimming) != 0)
 		feats_loaded = false;
+	if (uw_has_hidden_bios_options(&uw_feats->uniwill_has_hidden_bios_options) != 0)
+		feats_loaded = false;
 
 	result = has_universal_ec_fan_control();
 	if (result < 0) {
@@ -1840,6 +1967,7 @@ static int uniwill_keyboard_probe(struct platform_device *dev)
 	uw_ac_auto_boot_init(dev);
 	uw_usb_powershare_init(dev);
 	uw_mini_led_local_dimming_init(dev);
+	uw_show_hidden_bios_options();
 	uw_battery_init();
 
 	// Ignore return value, it just means there is already a filter active
@@ -1866,7 +1994,7 @@ static void uniwill_keyboard_remove(struct platform_device *dev)
 
 	if (uw_charging_profile_loaded)
 		sysfs_remove_group(&dev->dev.kobj, &uw_charging_profile_attr_group);
-	
+
 	uw_battery_uninit();
 
 	uniwill_leds_remove(dev);
