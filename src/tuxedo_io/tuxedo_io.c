@@ -448,10 +448,10 @@ static int uw_init_fan(void) {
 		//   with increasing ranges and max fan (same or increasing)
 		uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_end_temp, 115, 3);
 		uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_start_temp, 0, 3);
-		uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_fan_speed, 0x00, 3);
+		uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_fan_speed, 0x01, 3);
 		uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_end_temp, 120, 3);
 		uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_start_temp, 0, 3);
-		uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_fan_speed, 0x00, 3);
+		uniwill_write_ec_ram_with_retry(addr_gpu_custom_fan_table_fan_speed, 0x01, 3);
 		temp_offset = 115;
 		for (i = 0x1; i <= 0xf; ++i) {
 			uniwill_write_ec_ram_with_retry(addr_cpu_custom_fan_table_end_temp + i, temp_offset + i + 1, 3);
