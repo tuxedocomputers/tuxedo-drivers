@@ -49,6 +49,14 @@ replaces:
   - tuxedo-keyboard-ite-dkms
 
 changelog:
+  - version: "4.21.0"
+    author: "Werner Sembach"
+    date: 2026-02-24 16:27:00
+    entries:
+      - "Use Simple Package Creator"
+      - "Fix pulsating fans for InfinityBook Pro 15 Gen10"
+      - "Fix keyboard color scaling on InfinityBook Max 15 Gen10"
+      - "Enable hidden overclocking bios menu"
   - version: "4.20.1"
     author: "Werner Sembach"
     date: 2026-01-22 20:35:37
