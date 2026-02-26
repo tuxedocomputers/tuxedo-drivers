@@ -71,6 +71,11 @@ static int uw_get_tdp(u8 tdp_index);
 static int uw_set_tdp(u8 tdp_index, int tdp_value);
 static u32 uw_set_performance_profile_v1(enum uw_perf_profiles_v1 profile);
 
+static u8 direct_fan_control_current_value_fan0 = 0;
+static u8 direct_fan_control_current_value_fan1 = 0;
+
+static void restart_direct_fan_control_work_handler(struct work_struct *work);
+
 /**
  * strstr version of dmi_match
  */
@@ -473,40 +478,54 @@ static int uw_init_fan(void) {
 	return 0;
 }
 
-static int direct_fan_control(u32 fan_index, u8 fan_speed, bool prevent_rampup)
+static DECLARE_DELAYED_WORK(direct_fan_control_restart_delayed_work, restart_direct_fan_control_work_handler);
+
+static void restart_direct_fan_control_work_handler(struct work_struct *work)
 {
 	int i;
-	u8 mode_data;
+	u16 addr_fan0 = 0x1804;
+	u16 addr_fan1 = 0x1809;
+
+	pr_debug("restart fan control\n");
+
+	set_full_fan_mode(false);
+	msleep(10);
+	set_full_fan_mode(true);
+
+	// Attempt to write both fans as quick as possible before complete ramp-up
+	pr_debug("prevent ramp-up start\n");
+	for (i = 0; i < 10; ++i) {
+		uniwill_write_ec_ram(addr_fan0, direct_fan_control_current_value_fan0 & 0xff);
+		uniwill_write_ec_ram(addr_fan1, direct_fan_control_current_value_fan1 & 0xff);
+		msleep(10);
+	}
+	pr_debug("prevent ramp-up done\n");
+
+	schedule_delayed_work(&direct_fan_control_restart_delayed_work, msecs_to_jiffies(50 * 60 * 1000));
+}
+
+static bool direct_fan_control_started = false;
+
+static int direct_fan_control(u32 fan_index, u8 fan_speed, bool prevent_rampup)
+{
 	u16 addr_for_fan;
 	u16 addr_fan0 = 0x1804;
 	u16 addr_fan1 = 0x1809;
 
-	if (fan_index == 0)
+	if (fan_index == 0) {
 		addr_for_fan = addr_fan0;
-	else if (fan_index == 1)
+		direct_fan_control_current_value_fan0 = fan_speed;
+	} else if (fan_index == 1) {
 		addr_for_fan = addr_fan1;
-	else
+		direct_fan_control_current_value_fan1 = fan_speed;
+	} else {
 		return -EINVAL;
-
-	if (prevent_rampup) {
-		// Check current mode
-		uniwill_read_ec_ram(0x0751, &mode_data);
-		prevent_rampup = !(mode_data & 0x40);
 	}
 
-	if (prevent_rampup) {
-		// If not "full fan mode" (i.e. 0x40 bit set) switch to it (required for fancontrol)
-		set_full_fan_mode(true);
-		// Attempt to write both fans as quick as possible before complete ramp-up
-		pr_debug("prevent ramp-up start\n");
-		for (i = 0; i < 10; ++i) {
-			uniwill_write_ec_ram(addr_fan0, fan_speed & 0xff);
-			uniwill_write_ec_ram(addr_fan1, fan_speed & 0xff);
-			msleep(10);
-		}
-		pr_debug("prevent ramp-up done\n");
+	if (prevent_rampup && !direct_fan_control_started) {
+		direct_fan_control_started = true;
+		schedule_delayed_work(&direct_fan_control_restart_delayed_work, 0);
 	} else {
-		// Otherwise just set the chosen fan
 		uniwill_write_ec_ram(addr_for_fan, fan_speed & 0xff);
 	}
 
@@ -589,11 +608,16 @@ static u32 uw_set_fan_auto(void)
 		fans_initialized = false;
 	}
 	else {
+		cancel_delayed_work_sync(&direct_fan_control_restart_delayed_work);
+		direct_fan_control_started = false;
 		// Get current mode
 		uniwill_read_ec_ram(0x0751, &mode_data);
 		// Switch off "full fan mode" (i.e. unset 0x40 bit)
 		uniwill_write_ec_ram(0x0751, mode_data & 0xbf);
 	}
+
+	direct_fan_control_current_value_fan0 = 0;
+	direct_fan_control_current_value_fan1 = 0;
 
 	return 0;
 }
@@ -1022,6 +1046,7 @@ static void __exit tuxedo_io_exit(void)
 	class_destroy(tuxedo_io_device_class);
 	cdev_del(&tuxedo_io_cdev);
 	unregister_chrdev_region(tuxedo_io_device_handle, 1);
+	cancel_delayed_work_sync(&direct_fan_control_restart_delayed_work);
 	pr_debug("Module exit\n");
 }
 
