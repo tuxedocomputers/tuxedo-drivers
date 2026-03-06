@@ -1441,9 +1441,6 @@ static int uw_has_hidden_bios_options(bool *status)
 		// Stellaris 16 G7
 		|| dmi_match(DMI_BOARD_NAME, "X6AR5xxY")
 		|| dmi_match(DMI_BOARD_NAME, "X6AR5xxY_mLED")
-		// Stellaris 16 G6
-		|| dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB1")
-		|| dmi_match(DMI_BOARD_NAME, "GM6IXxB_MB2")
 		// IBM 16 G10
 		|| dmi_match(DMI_BOARD_NAME, "X6AR55xU");
 	return 0;
