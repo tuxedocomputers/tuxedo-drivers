@@ -50,6 +50,11 @@ replaces:
   - tuxedo-keyboard-ite-dkms
 
 changelog:
+  - version: "4.21.2"
+    author: "Werner Sembach"
+    date: 2026-03-13 16:26:00
+    entries:
+      - "Fix charging profile not persisting across power events"
   - version: "4.21.1"
     author: "Werner Sembach"
     date: 2026-03-05 19:23:00
