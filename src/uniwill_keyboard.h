@@ -1645,9 +1645,13 @@ static int has_universal_ec_fan_control(void) {
 		// "GPU" fan curve when the bit to separate both fancurves is set, but the old fan
 		// control works just fine.
 		|| uw_feats->model == UW_MODEL_PH4TRX
-		// For IBP Gen9 Intel the "universal fan control" doesn't work for turning the fans
+		// For some devices the "universal fan control" doesn't work for turning the fans
 		// off reliably, however, the old fan control works.
-		|| dmi_match(DMI_BOARD_NAME, "GXxMRXx");
+		|| dmi_match(DMI_BOARD_NAME, "GXxMRXx")
+		|| dmi_match(DMI_BOARD_NAME, "XxAR4NAx")
+		|| dmi_match(DMI_BOARD_NAME, "X6FR5xxY")
+		|| dmi_match(DMI_BOARD_NAME, "X5AR45xS")
+	;
 
 	if (universal_fan_control_exception) {
 		return 0;
