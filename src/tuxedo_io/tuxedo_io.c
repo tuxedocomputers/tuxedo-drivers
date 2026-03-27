@@ -669,9 +669,9 @@ static int uw_set_tdp(u8 tdp_index, int tdp_value)
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
 
 	if (uw_feats->uniwill_custom_profile_mode_needed) {
-		// Ensure that "enthusiast" profile is chosen when using TDP set
+		// Ensure that "overboost" profile is chosen when using TDP set
 		// for devices that require this
-		uw_set_performance_profile_v1(PROFILE_ENTHUSIAST);
+		uw_set_performance_profile_v1(PROFILE_OVERBOOST);
 	}
 
 	// Use min tdp to detect support for chosen tdp parameter
