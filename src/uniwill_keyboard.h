@@ -1892,8 +1892,11 @@ static bool uniwill_fn_lock_available(void){
 
 static u8 direct_fan_control_current_value_fan0 = 0;
 static u8 direct_fan_control_current_value_fan1 = 0;
+static u8 direct_fan_control_current_value_fan0_suspend_save = 0;
+static u8 direct_fan_control_current_value_fan1_suspend_save = 0;
 static bool fans_initialized = false;
 static bool direct_fan_control_started = false;
+static bool direct_fan_control_suspend = false;
 static void restart_direct_fan_control_work_handler(struct work_struct *work);
 static DECLARE_DELAYED_WORK(direct_fan_control_restart_delayed_work, restart_direct_fan_control_work_handler);
 
@@ -2269,6 +2272,12 @@ static int uniwill_keyboard_suspend(struct platform_device *dev, pm_message_t st
 		uniwill_write_ec_ram(0x0727, data);
 	}
 	uniwill_write_kbd_bl_enable(0);
+	if (direct_fan_control_started) {
+		direct_fan_control_suspend = true;
+		direct_fan_control_current_value_fan0_suspend_save = direct_fan_control_current_value_fan0;
+		direct_fan_control_current_value_fan1_suspend_save = direct_fan_control_current_value_fan1;
+		uw_set_fan_auto();
+	}
 	return 0;
 }
 
@@ -2276,6 +2285,12 @@ static int uniwill_keyboard_resume(struct platform_device *dev)
 {
 	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
 	u8 data;
+
+	if (direct_fan_control_suspend) {
+		direct_fan_control_suspend = false;
+		uw_set_fan(0, direct_fan_control_current_value_fan0_suspend_save);
+		uw_set_fan(1, direct_fan_control_current_value_fan1_suspend_save);
+	}
 
 	if (uw_feats->uniwill_custom_profile_mode_needed) {
 		// Re-set "customer mode light" on resume
