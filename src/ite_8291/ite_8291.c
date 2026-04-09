@@ -226,6 +226,9 @@ static void color_scaling(struct hid_device *hdev, u8 *red, u8 *green, u8 *blue,
 		*red = (180 * *red) / 255;
 	} else if (dmi_match(DMI_BOARD_NAME, "X5AR45xS")) {
 		// No scaling
+	} else if (dmi_match(DMI_BOARD_NAME, "X6KK45xU_X6SP45xU")) {
+		*red = (187 * *red) / 255;
+		*blue = (153 * *blue) / 255;
 	} else {
 		*green = (126 * *green) / 255;
 		*blue = (120 * *blue) / 255;

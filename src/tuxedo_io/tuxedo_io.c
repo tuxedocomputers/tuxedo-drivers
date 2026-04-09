@@ -168,6 +168,9 @@ static int tdp_max_x6ar55xu[] = { 0x91, 0x9b, 0x122 };
 static int tdp_min_x5ar45xs[] = { 0x0a, 0x0a, 0x0a };
 static int tdp_max_x5ar45xs[] = { 0x5a, 0x5a, 0xe6 };
 
+static int tdp_min_x6xx45xu[] = { 0x0a, 0x0a, 0x0a };
+static int tdp_max_x6xx45xu[] = { 0x64, 0x64, 0x69 };
+
 static int *tdp_min_defs = NULL;
 static int *tdp_max_defs = NULL;
 
@@ -260,6 +263,9 @@ static void uw_id_tdp(void)
 	} else if (dmi_match(DMI_BOARD_NAME, "X5AR45xS")) {
 		tdp_min_defs = tdp_min_x5ar45xs;
 		tdp_max_defs = tdp_max_x5ar45xs;
+	} else if (dmi_match(DMI_BOARD_NAME, "X6KK45xU_X6SP45xU")) {
+		tdp_min_defs = tdp_min_x6xx45xu;
+		tdp_max_defs = tdp_max_x6xx45xu;
 #endif
 	} else {
 		tdp_min_defs = NULL;
@@ -663,9 +669,9 @@ static int uw_set_tdp(u8 tdp_index, int tdp_value)
 	u16 tdp_current_addr = tdp_base_addr + tdp_index;
 
 	if (uw_feats->uniwill_custom_profile_mode_needed) {
-		// Ensure that "enthusiast" profile is chosen when using TDP set
+		// Ensure that "overboost" profile is chosen when using TDP set
 		// for devices that require this
-		uw_set_performance_profile_v1(PROFILE_ENTHUSIAST);
+		uw_set_performance_profile_v1(PROFILE_OVERBOOST);
 	}
 
 	// Use min tdp to detect support for chosen tdp parameter
