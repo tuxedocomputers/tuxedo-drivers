@@ -51,6 +51,14 @@ replaces:
   - tuxedo-keyboard-ite-dkms
 
 changelog:
+  - version: "4.22.0"
+    author: "Werner Sembach"
+    date: 2026-04-09 21:37:00
+    entries:
+      - Add support for InfinityBook Max 16 Gen10 AMD
+      - Fix pulsating fan on several devices
+      - Fix CI tests
+      - Fix Makefile package target
   - version: "4.21.3"
     author: "Werner Sembach"
     date: 2026-03-23 21:13:00
