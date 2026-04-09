@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-.PHONY: all install clean package package-deb package-rpm
+.PHONY: all install clean package package-deb package-rpm package-alpm
 
 KDIR := /lib/modules/$(shell uname -r)/build
 
@@ -33,15 +33,16 @@ clean:
 	make -C $(KDIR) M=$(PWD) $(MAKEFLAGS) clean
 	rm -rf build/
 
-package:
-	simple-package-creator
-	simple-package-tools build deb -d build -n
-	simple-package-tools build rpm -d build -n
+package: package-deb package-rpm package-alpm
 
 package-deb:
-	simple-package-creator
-	simple-package-tools build deb -d build -n
+	simple-package-creator --output-dir build-deb --formats DEB DKMS --config deb.yml
+	simple-package-tools build deb --dir build-deb --no-build-deps
 
 package-rpm:
-	simple-package-creator
-	simple-package-tools build rpm -d build -n
+	simple-package-creator --output-dir build-rpm --formats RPM DKMS --config rpm.yml
+	simple-package-tools build rpm --dir build-rpm --no-build-deps
+
+package-alpm:
+	simple-package-creator --output-dir build-alpm --formats ALPM DKMS --config alpm.yml
+	simple-package-tools build alpm --dir build-alpm --no-build-deps

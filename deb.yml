@@ -1,5 +1,3 @@
-name: tuxedo-drivers
-
 custom_post_install: |
     DKMS_CONF=$(printf '%s\n' \
         'PACKAGE_NAME="tuxedo-drivers"' \
