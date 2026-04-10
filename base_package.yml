@@ -51,6 +51,11 @@ replaces:
   - tuxedo-keyboard-ite-dkms
 
 changelog:
+  - version: "4.22.1"
+    author: "Werner Sembach"
+    date: 2026-04-10 13:38:00
+    entries:
+      - Fix alpm dkms package folder name
   - version: "4.22.0"
     author: "Werner Sembach"
     date: 2026-04-09 21:37:00
