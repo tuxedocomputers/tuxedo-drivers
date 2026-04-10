@@ -40,9 +40,9 @@ package-deb:
 	simple-package-tools build deb --dir build-deb --no-build-deps
 
 package-rpm:
-	simple-package-creator --output-dir build-rpm --formats RPM DKMS --config rpm.yml
+	simple-package-creator --output-dir build-rpm --formats RPM DKMS
 	simple-package-tools build rpm --dir build-rpm --no-build-deps
 
 package-alpm:
-	simple-package-creator --output-dir build-alpm --formats ALPM DKMS --config alpm.yml
+	simple-package-creator --output-dir build-alpm --formats ALPM DKMS
 	simple-package-tools build alpm --dir build-alpm --no-build-deps

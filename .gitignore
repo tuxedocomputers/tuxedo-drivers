@@ -9,7 +9,10 @@ modules.order
 Module.symvers
 
 # build artifacts
-/build
+/build/
+/build-alpm/
+/build-deb/
+/build-rpm/
 
 # IDE artifacts
 *.kate-swp
