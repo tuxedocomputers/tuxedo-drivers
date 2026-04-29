@@ -51,6 +51,11 @@ replaces:
   - tuxedo-keyboard-ite-dkms
 
 changelog:
+  - version: "4.22.2"
+    author: "Maximilian Arnold"
+    date: 2026-04-29 18:11:00
+    entries:
+      - Fix debian postinst dkms errors in chroot
   - version: "4.22.1"
     author: "Werner Sembach"
     date: 2026-04-10 13:38:00
