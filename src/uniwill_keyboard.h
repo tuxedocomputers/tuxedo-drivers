@@ -1242,14 +1242,59 @@ static ssize_t raw_xif2_show(struct device *device,
 	return snprintf(buf, PAGE_SIZE, "%d\n", xif2);
 }
 
+static ssize_t uw_charge_control_end_threshold_show(struct device *device,
+				struct device_attribute *attr,
+				char *buf)
+{
+	int result;
+	u8 value;
+	result = uniwill_read_ec_ram(UW_EC_REG_CHARGE_CONTROL, &value);
+	if (result)
+		return result;
+	return snprintf(buf, PAGE_SIZE, "%u\n",
+			(unsigned int)(value & UW_EC_REG_CHARGE_CONTROL_THRESHOLD_MASK));
+}
+
+static ssize_t uw_charge_control_end_threshold_store(struct device *device,
+				struct device_attribute *attr,
+				const char *buf, size_t count)
+{
+	int result;
+	u8 cur;
+	unsigned int val;
+
+	result = kstrtouint(buf, 10, &val);
+	if (result)
+		return result;
+	if (val < 1 || val > 100)
+		return -EINVAL;
+
+	result = uniwill_read_ec_ram(UW_EC_REG_CHARGE_CONTROL, &cur);
+	if (result)
+		return result;
+
+	cur = (cur & ~UW_EC_REG_CHARGE_CONTROL_THRESHOLD_MASK) |
+		(val & UW_EC_REG_CHARGE_CONTROL_THRESHOLD_MASK);
+	result = uniwill_write_ec_ram(UW_EC_REG_CHARGE_CONTROL, cur);
+	if (result)
+		return result;
+
+	return count;
+}
+
 static DEVICE_ATTR_RO(raw_cycle_count);
 static DEVICE_ATTR_RO(raw_xif1);
 static DEVICE_ATTR_RO(raw_xif2);
+static struct device_attribute dev_attr_uw_charge_control_end_threshold =
+	__ATTR(charge_control_end_threshold, 0644,
+		uw_charge_control_end_threshold_show,
+		uw_charge_control_end_threshold_store);
 
 static struct attribute *uw_battery_attrs[] = {
 	&dev_attr_raw_cycle_count.attr,
 	&dev_attr_raw_xif1.attr,
 	&dev_attr_raw_xif2.attr,
+	&dev_attr_uw_charge_control_end_threshold.attr,
 	NULL,
 };
 
