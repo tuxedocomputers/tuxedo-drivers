@@ -36,13 +36,13 @@ clean:
 package: package-deb package-rpm package-alpm
 
 package-deb:
-	simple-package-creator --output-dir build-deb --formats DEB DKMS --config deb.yml
+	simple-package-creator --output-dir build-deb --formats DEB
 	simple-package-tools build deb --dir build-deb --no-build-deps
 
 package-rpm:
-	simple-package-creator --output-dir build-rpm --formats RPM DKMS
+	simple-package-creator --output-dir build-rpm --formats RPM
 	simple-package-tools build rpm --dir build-rpm --no-build-deps
 
 package-alpm:
-	simple-package-creator --output-dir build-alpm --formats ALPM DKMS
+	simple-package-creator --output-dir build-alpm --formats ALPM
 	simple-package-tools build alpm --dir build-alpm --no-build-deps
