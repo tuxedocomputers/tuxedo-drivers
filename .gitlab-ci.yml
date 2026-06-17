@@ -1,9 +1,12 @@
 # SPDX-License-Identifier: GPL-2.0+
 include:
   - project: "tuxedocomputers/development/installation-testing/package-build-gitlab-ci-yaml"
-    ref: "experimental"
-    file: "includes/multi_distro.yml"
+    ref: "staging"
+    file: "includes/multi-distro/template.yml"
     inputs:
       spc_args: ""
       server_user: "deploy-deb-fixes"
       deploy_base_dir: "deb/tuxedo-fixes"
+      test_mode: "tag"
+      test_issue_project_path: "tuxedocomputers/development/packages/tuxedo-drivers"
+      release_tag_ignore_pattern: "rc"
