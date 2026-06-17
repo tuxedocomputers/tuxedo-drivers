@@ -186,6 +186,13 @@ pkg_scripts:
 
 
 changelog:
+  - version: "4.22.3"
+    author: "Werner Sembach"
+    date: 2026-06-17 16:37:00
+    entries:
+      - Fix fedora-44 test
+      - Adjust for current SPC and fix various problems with generated files
+      - Switch to new tag workflow in CI
   - version: "4.22.2"
     author: "Maximilian Arnold"
     date: 2026-04-29 18:11:00
