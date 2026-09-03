@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*!
- * Copyright (c) 2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2024-2026 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-drivers.
  *
@@ -18,58 +18,102 @@
  * with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 #include <linux/kernel.h>
+#include <linux/platform_device.h>
 #include <linux/module.h>
 #include <linux/acpi.h>
-#include <linux/version.h>
 
 #define DRIVER_NAME "gxtp7380"
 
-static int gxtp7380_add(struct acpi_device *device)
+static void gxtp7380_notify(acpi_handle handle, u32 event, void *data)
 {
-	kobject_uevent(&device->dev.kobj, KOBJ_ADD);
+	struct acpi_device *acpi = data;
+	kobject_uevent(&acpi->dev.kobj, KOBJ_CHANGE);
+}
+
+static int gxtp7380_probe(struct platform_device *pdev)
+{
+	struct acpi_device *acpi;
+	int error;
+
+	acpi = ACPI_COMPANION(&pdev->dev);
+	if (!acpi)
+		return -ENODEV;
+
+	error = acpi_dev_install_notify_handler(acpi, ACPI_ALL_NOTIFY, gxtp7380_notify, acpi);
+	if (error)
+		return error;
+
+	kobject_uevent(&pdev->dev.kobj, KOBJ_ADD);
 	return 0;
 }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
-static int gxtp7380_remove(struct acpi_device *device)
-#else
-static void gxtp7380_remove(struct acpi_device *device)
-#endif
+static void gxtp7380_remove(struct platform_device *pdev)
 {
-	kobject_uevent(&device->dev.kobj, KOBJ_REMOVE);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
-	return 0;
-#endif
-}
+	struct acpi_device *acpi;
 
-static void gxtp7380_notify(struct acpi_device *device, u32 event)
-{
-	kobject_uevent(&device->dev.kobj, KOBJ_CHANGE);
+	acpi = ACPI_COMPANION(&pdev->dev);
+	acpi_dev_remove_notify_handler(acpi, ACPI_ALL_NOTIFY, gxtp7380_notify);
+
+	kobject_uevent(&pdev->dev.kobj, KOBJ_REMOVE);
 }
 
 static const struct acpi_device_id gxtp7380_device_ids[] = {
 	{ "GXTP7380", 0 },
 	{ "", 0 }
 };
+MODULE_DEVICE_TABLE(acpi, gxtp7380_device_ids);
 
-static struct acpi_driver gxtp7380_driver = {
-	.name = DRIVER_NAME,
-	.class = DRIVER_NAME,
-	.ids = gxtp7380_device_ids,
-	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
-	.ops = {
-		.add = gxtp7380_add,
-		.remove = gxtp7380_remove,
-		.notify = gxtp7380_notify,
+static struct platform_driver gxtp7380_driver = {
+	.driver = {
+		.name = DRIVER_NAME,
+		.acpi_match_table = gxtp7380_device_ids,
 	},
+	.probe = gxtp7380_probe,
+	.remove = gxtp7380_remove,
 };
 
-module_acpi_driver(gxtp7380_driver);
+static int __init gxtp7380_driver_init(void)
+{
+	struct acpi_device *acpi;
+	struct platform_device_info pdevinfo = {0};
+	int ret;
+
+	acpi = acpi_dev_get_first_match_dev("GXTP7380", NULL, -1);
+	if (!acpi)
+		return -ENODEV;
+
+	pdevinfo.name   = DRIVER_NAME;
+        pdevinfo.id     = PLATFORM_DEVID_NONE;
+        pdevinfo.fwnode = acpi_fwnode_handle(acpi);
+
+	pdev = platform_device_register_full(&pdevinfo);
+	if (IS_ERR(pdev))
+		return PTR_ERR(pdev);
+
+	ret = platform_driver_register(&gxtp7380_driver);
+	if (ret) {
+		platform_device_unregister(pdev);
+		pdev = NULL;
+		return ret;
+	}
+
+	return 0;
+}
+
+static void __exit gxtp7380_driver_exit(void)
+{
+	platform_driver_unregister(&gxtp7380_driver);
+
+	if (pdev)
+		platform_device_unregister(pdev);
+
+	pdev = NULL;
+}
+
+module_init(gxtp7380_driver_init);
+module_exit(gxtp7380_driver_exit);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Touch panel disable, notify driver");
 MODULE_LICENSE("GPL");
-
-MODULE_DEVICE_TABLE(acpi, gxtp7380_device_ids);
