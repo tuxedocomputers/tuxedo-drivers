@@ -261,7 +261,7 @@ static struct platform_driver clevo_platform_driver = {
 	.driver = {
 		.name = DRIVER_NAME,
 		.acpi_match_table = clevo_acpi_device_ids,
-		.pm = &clevo_driver_pm_ops
+		.pm = pm_ptr(&clevo_driver_pm_ops),
 	},
 	.probe = clevo_platform_probe,
 	.remove = clevo_acpi_remove,
