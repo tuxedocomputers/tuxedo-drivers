@@ -347,7 +347,7 @@ static struct platform_driver tuxi_platform_driver = {
 	.driver = {
 		.name = DRIVER_NAME,
 		.acpi_match_table = tuxi_acpi_device_ids,
-		.pm = &tuxi_driver_pm_ops
+		.pm = pm_ptr(&tuxi_driver_pm_ops),
 	},
 	.probe = tuxi_platform_probe,
 	.remove = tuxi_platform_remove,
