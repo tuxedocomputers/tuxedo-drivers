@@ -82,6 +82,8 @@ static struct platform_driver gxtp7380_driver = {
 	.remove = gxtp7380_remove,
 };
 
+static struct platform_device *pdev;
+
 static int __init gxtp7380_driver_init(void)
 {
 	struct acpi_device *acpi;
