@@ -9,4 +9,4 @@ fi
 
 status="$(dkms status)"
 
-echo $status | grep "tuxedo-drivers" # Make sure dkms module is installed
+echo "$status" | grep -e "tuxedo-drivers.* installed" # Make sure dkms module is installed
