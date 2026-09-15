@@ -226,7 +226,11 @@ static int clevo_platform_probe(struct platform_device *pdev)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
+static int clevo_acpi_remove(struct platform_device *pdev)
+#else
 static void clevo_acpi_remove(struct platform_device *pdev)
+#endif
 {
 	struct acpi_device *acpi;
 
@@ -236,6 +240,10 @@ static void clevo_acpi_remove(struct platform_device *pdev)
 	pr_debug("clevo_acpi driver remove\n");
 	clevo_keyboard_remove_interface(&clevo_acpi_interface);
 	active_driver_data = NULL;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
+	return 0;
+#endif
 }
 
 static int driver_suspend_callb(struct device *dev)

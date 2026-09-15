@@ -318,10 +318,18 @@ static int tuxi_platform_probe(struct platform_device *pdev)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
+static int tuxi_platform_remove(struct platform_device *pdev)
+#else
 static void tuxi_platform_remove(struct platform_device *pdev)
+#endif
 {
 	tuxi_driver_data = NULL;
 	pr_debug("driver remove\n");
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
+	return 0;
+#endif
 }
 
 static int driver_suspend_callb(struct device *dev)
