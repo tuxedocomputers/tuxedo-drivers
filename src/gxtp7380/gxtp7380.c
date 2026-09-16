@@ -21,6 +21,7 @@
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
 #include <linux/module.h>
+#include <linux/version.h>
 #include <linux/acpi.h>
 
 #define DRIVER_NAME "gxtp7380"
@@ -48,7 +49,11 @@ static int gxtp7380_probe(struct platform_device *pdev)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
+static int gxtp7380_remove(struct platform_device *pdev)
+#else
 static void gxtp7380_remove(struct platform_device *pdev)
+#endif
 {
 	struct acpi_device *acpi;
 
@@ -56,6 +61,10 @@ static void gxtp7380_remove(struct platform_device *pdev)
 	acpi_dev_remove_notify_handler(acpi, ACPI_ALL_NOTIFY, gxtp7380_notify);
 
 	kobject_uevent(&pdev->dev.kobj, KOBJ_REMOVE);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
+	return 0;
+#endif
 }
 
 static const struct acpi_device_id gxtp7380_device_ids[] = {
@@ -72,6 +81,8 @@ static struct platform_driver gxtp7380_driver = {
 	.probe = gxtp7380_probe,
 	.remove = gxtp7380_remove,
 };
+
+static struct platform_device *pdev;
 
 static int __init gxtp7380_driver_init(void)
 {
