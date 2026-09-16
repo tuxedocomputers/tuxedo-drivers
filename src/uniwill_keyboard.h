@@ -1767,6 +1767,8 @@ struct uniwill_device_features_t *uniwill_get_device_features(void)
 		|| dmi_match(DMI_BOARD_NAME, "X6KK45xU_X6SP45xU")
 		|| dmi_match(DMI_BOARD_NAME, "X6AR55xU")
 		|| dmi_match(DMI_BOARD_NAME, "X5AR45xS")
+		|| dmi_match(DMI_BOARD_NAME, "XxAF5xxx")
+		|| dmi_match(DMI_BOARD_NAME, "XxAF5xxx_mLED")
 #endif
 	;
 
