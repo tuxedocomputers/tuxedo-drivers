@@ -982,7 +982,14 @@ static int is_auto_boot_and_powershare_supported(bool *status)
 		  dmi_match(DMI_BOARD_NAME, "GM5IXxA") ||
 
 		  // InfinityBook Max Gen10
-		  dmi_match(DMI_BOARD_NAME, "X5KK45xS_X5SP45xS");
+		  dmi_match(DMI_BOARD_NAME, "X5KK45xS_X5SP45xS") ||
+		  dmi_match(DMI_BOARD_NAME, "X6KK45xU_X6SP45xU") ||
+		  dmi_match(DMI_BOARD_NAME, "X5AR45xS") ||
+		  dmi_match(DMI_BOARD_NAME, "X6AR55xU") ||
+
+		  // Stellaris Gen8
+		  dmi_match(DMI_BOARD_NAME, "XxAF5xxx") ||
+		  dmi_match(DMI_BOARD_NAME, "XxAF5xxx_mLED");
 
 	return 0;
 }

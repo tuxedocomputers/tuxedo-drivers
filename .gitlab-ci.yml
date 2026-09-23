@@ -4,7 +4,7 @@ include:
     ref: "staging"
     file: "includes/multi-distro/template.yml"
     inputs:
-      spc_args: ""
+      docker_size: "tiny"
       server_user: "deploy-deb-fixes"
       deploy_base_dir: "deb/tuxedo-fixes"
       test_mode: "tag"

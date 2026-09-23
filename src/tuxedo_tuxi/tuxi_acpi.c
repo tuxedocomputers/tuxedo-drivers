@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*!
- * Copyright (c) 2024 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ * Copyright (c) 2024-2026 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This file is part of tuxedo-drivers.
  *
@@ -21,18 +21,19 @@
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/platform_device.h>
 #include <linux/acpi.h>
 #include <linux/version.h>
 #include "tuxi_acpi.h"
 
 #define DRIVER_NAME "tuxi_acpi"
 
-struct tuxi_acpi_driver_data_t {
+struct tuxi_platform_driver_data_t {
 	struct acpi_device *tuxi_adev;
 	acpi_handle tfan_handle;
 };
 
-static struct tuxi_acpi_driver_data_t *tuxi_driver_data = NULL;
+static struct tuxi_platform_driver_data_t *tuxi_driver_data = NULL;
 
 static
 int evaluate_intparams(acpi_handle handle,
@@ -285,20 +286,25 @@ static int get_tfan(struct acpi_device *tuxi_dev, acpi_handle *tfan_handle)
 	return 0;
 }
 
-static int tuxi_acpi_add(struct acpi_device *device)
+static int tuxi_platform_probe(struct platform_device *pdev)
 {
-	struct tuxi_acpi_driver_data_t *driver_data;
+	struct tuxi_platform_driver_data_t *driver_data;
+	struct acpi_device *acpi;
 	int err;
 
-	driver_data = devm_kzalloc(&device->dev, sizeof(*driver_data), GFP_KERNEL);
+	acpi = ACPI_COMPANION(&pdev->dev);
+	if (!acpi)
+		return -ENODEV;
+
+	driver_data = devm_kzalloc(&pdev->dev, sizeof(*driver_data), GFP_KERNEL);
 	if (!driver_data)
 		return -ENOMEM;
 
-	driver_data->tuxi_adev = device;
-	device->driver_data = driver_data;
+	driver_data->tuxi_adev = acpi;
+	acpi->driver_data = driver_data;
 
 	// Find subdevices
-	err = get_tfan(device, &driver_data->tfan_handle);
+	err = get_tfan(acpi, &driver_data->tfan_handle);
 	if (err)
 		driver_data->tfan_handle = NULL;
 
@@ -312,25 +318,20 @@ static int tuxi_acpi_add(struct acpi_device *device)
 	return 0;
 }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
-static int tuxi_acpi_remove(struct acpi_device *device)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
+static int tuxi_platform_remove(struct platform_device *pdev)
 #else
-static void tuxi_acpi_remove(struct acpi_device *device)
+static void tuxi_platform_remove(struct platform_device *pdev)
 #endif
 {
 	tuxi_driver_data = NULL;
 	pr_debug("driver remove\n");
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
 #endif
 }
 
-static void tuxi_acpi_notify(struct acpi_device *device, u32 event)
-{
-	pr_debug("event: %d\n", event);
-}
-
-#ifdef CONFIG_PM
 static int driver_suspend_callb(struct device *dev)
 {
 	pr_debug("driver suspend\n");
@@ -343,33 +344,24 @@ static int driver_resume_callb(struct device *dev)
 	return 0;
 }
 
-static SIMPLE_DEV_PM_OPS(tuxi_driver_pm_ops, driver_suspend_callb, driver_resume_callb);
-#endif
+static DEFINE_SIMPLE_DEV_PM_OPS(tuxi_driver_pm_ops, driver_suspend_callb, driver_resume_callb);
 
 static const struct acpi_device_id tuxi_acpi_device_ids[] = {
 	{ TUXI_ACPI_RESOURCE_HID, 0 },
 	{ "", 0 }
 };
 
-static struct acpi_driver tuxi_acpi_driver = {
-	.name = DRIVER_NAME,
-	.class = DRIVER_NAME,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0)
-	.owner = THIS_MODULE,
-#endif
-	.ids = tuxi_acpi_device_ids,
-	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
-	.ops = {
-		.add = tuxi_acpi_add,
-		.remove = tuxi_acpi_remove,
-		.notify = tuxi_acpi_notify,
+static struct platform_driver tuxi_platform_driver = {
+	.driver = {
+		.name = DRIVER_NAME,
+		.acpi_match_table = tuxi_acpi_device_ids,
+		.pm = pm_ptr(&tuxi_driver_pm_ops),
 	},
-#ifdef CONFIG_PM
-	.drv.pm = &tuxi_driver_pm_ops
-#endif
+	.probe = tuxi_platform_probe,
+	.remove = tuxi_platform_remove,
 };
 
-module_acpi_driver(tuxi_acpi_driver);
+module_platform_driver(tuxi_platform_driver);
 
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_DESCRIPTION("Driver for TUXEDO ACPI interface");
