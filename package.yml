@@ -184,6 +184,12 @@ pkg_scripts:
         rm -rf /usr/src/tuxedo-drivers-4.21.2
 
 changelog:
+  - version: "4.25.0"
+    author: "Werner Sembach"
+    date: 2026-10-06 16:27:00
+    entries:
+      - Fix Stellaris Gen5 and Gen6 lightbar behaviour on suspend
+      - Add Stellaris Gen8 Intel support
   - version: "4.24.0"
     author: "Werner Sembach"
     date: 2026-09-23 23:35:00
