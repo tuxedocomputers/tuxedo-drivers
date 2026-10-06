@@ -160,6 +160,9 @@ static int tdp_max_x5ar45xs[] = { 0x5a, 0x5a, 0xe6 };
 static int tdp_min_x6xx45xu[] = { 0x0a, 0x0a, 0x0a };
 static int tdp_max_x6xx45xu[] = { 0x64, 0x64, 0x69 };
 
+static int tdp_min_xxaf5xxx[] = { 0x0a, 0x0a, 0x0a };
+static int tdp_max_xxaf5xxx[] = { 0xd2, 0xd2, 0x1a4 };
+
 static int *tdp_min_defs = NULL;
 static int *tdp_max_defs = NULL;
 
@@ -255,6 +258,10 @@ static void uw_id_tdp(void)
 	} else if (dmi_match(DMI_BOARD_NAME, "X6KK45xU_X6SP45xU")) {
 		tdp_min_defs = tdp_min_x6xx45xu;
 		tdp_max_defs = tdp_max_x6xx45xu;
+	} else if (dmi_match(DMI_BOARD_NAME, "XxAF5xxx") ||
+		   dmi_match(DMI_BOARD_NAME, "XxAF5xxx_mLED")) {
+		tdp_min_defs = tdp_min_xxaf5xxx;
+		tdp_max_defs = tdp_max_xxaf5xxx;
 #endif
 	} else {
 		tdp_min_defs = NULL;
@@ -808,7 +815,7 @@ static int __init tuxedo_io_init(void)
 
 	device_create(tuxedo_io_device_class, NULL, tuxedo_io_device_handle, NULL, "tuxedo_io");
 	pr_debug("Module init successful\n");
-	
+
 	return 0;
 }
 
