@@ -2296,6 +2296,9 @@ static int uniwill_keyboard_resume(struct platform_device *dev)
 	struct uniwill_device_features_t *uw_feats = &uniwill_device_features;
 	u8 data;
 
+	// Manual mode might be gone after hibernate, make sure manual mode is set
+	uniwill_write_ec_ram(0x0741, 0x01);
+
 	if (direct_fan_control_suspend) {
 		direct_fan_control_suspend = false;
 		uw_set_fan(0, direct_fan_control_current_value_fan0_suspend_save);
