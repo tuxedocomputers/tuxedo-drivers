@@ -35,8 +35,11 @@
 #define LIGHTBAR_MAX_BRIGHTNESS		0x64
 #define LIGHTBAR_DEFAULT_BRIGHTNESS	0x00
 #define LIGHTBAR_DEFAULT_COLOR_RED	0xff
+#define LIGHTBAR_MAX_COLOR_RED		0xff
 #define LIGHTBAR_DEFAULT_COLOR_GREEN	0xff
+#define LIGHTBAR_MAX_COLOR_GREEN	0xff
 #define LIGHTBAR_DEFAULT_COLOR_BLUE	0xff
+#define LIGHTBAR_MAX_COLOR_BLUE		0xff
 
 struct color_u8 {
 	u8 red;
@@ -491,12 +494,21 @@ static int ite8291_init_leds(struct hid_device *hdev)
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info = ite8291_driver_data->mcled_cdev_subleds_lightbar;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[0].color_index = LED_COLOR_ID_RED;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[0].intensity = LIGHTBAR_DEFAULT_COLOR_RED;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+	ite8291_driver_data->mcled_cdev_lightbar.subled_info[0].max_intensity = LIGHTBAR_MAX_COLOR_RED;
+#endif
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[0].channel = 0;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[1].color_index = LED_COLOR_ID_GREEN;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[1].intensity = LIGHTBAR_DEFAULT_COLOR_GREEN;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+	ite8291_driver_data->mcled_cdev_lightbar.subled_info[1].max_intensity = LIGHTBAR_MAX_COLOR_GREEN;
+#endif
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[1].channel = 0;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[2].color_index = LED_COLOR_ID_BLUE;
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[2].intensity = LIGHTBAR_DEFAULT_COLOR_BLUE;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+	ite8291_driver_data->mcled_cdev_lightbar.subled_info[2].max_intensity = LIGHTBAR_MAX_COLOR_BLUE;
+#endif
 	ite8291_driver_data->mcled_cdev_lightbar.subled_info[2].channel = 0;
 
 	retval = devm_led_classdev_multicolor_register(&hdev->dev, &ite8291_driver_data->mcled_cdev_lightbar);

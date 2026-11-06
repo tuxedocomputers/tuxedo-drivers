@@ -24,6 +24,7 @@
 #include <linux/types.h>
 #include <linux/platform_device.h>
 #include <linux/leds.h>
+#include <linux/version.h>
 
 enum clevo_kb_backlight_types {
 	CLEVO_KB_BACKLIGHT_TYPE_NONE = 0x00,
@@ -64,8 +65,11 @@ static bool dmi_string_in(enum dmi_field f, const char *str);
 #define CLEVO_KBD_BRIGHTNESS_WHITE_MAX_5_DEFAULT	0x00
 
 #define CLEVO_KB_COLOR_DEFAULT_RED			0xff
+#define CLEVO_KB_COLOR_MAX_RED				0xff
 #define CLEVO_KB_COLOR_DEFAULT_GREEN			0xff
+#define CLEVO_KB_COLOR_MAX_GREEN			0xff
 #define CLEVO_KB_COLOR_DEFAULT_BLUE			0xff
+#define CLEVO_KB_COLOR_MAX_BLUE				0xff
 #define CLEVO_KB_COLOR_DEFAULT				((CLEVO_KB_COLOR_DEFAULT_RED << 16) + (CLEVO_KB_COLOR_DEFAULT_GREEN << 8) + CLEVO_KB_COLOR_DEFAULT_BLUE)
 
 static enum clevo_kb_backlight_types clevo_kb_backlight_type = CLEVO_KB_BACKLIGHT_TYPE_NONE;
@@ -210,18 +214,27 @@ static struct mc_subled clevo_mcled_cdevs_subleds[3][3] = {
 			.color_index = LED_COLOR_ID_RED,
 			.brightness = CLEVO_KBD_BRIGHTNESS_DEFAULT,
 			.intensity = CLEVO_KB_COLOR_DEFAULT_RED,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			.max_intensity = CLEVO_KB_COLOR_MAX_RED,
+#endif
 			.channel = CLEVO_CMD_SET_KB_LEDS_SUB_RGB_ZONE_0
 		},
 		{
 			.color_index = LED_COLOR_ID_GREEN,
 			.brightness = CLEVO_KBD_BRIGHTNESS_DEFAULT,
 			.intensity = CLEVO_KB_COLOR_DEFAULT_GREEN,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			.max_intensity = CLEVO_KB_COLOR_MAX_GREEN,
+#endif
 			.channel = CLEVO_CMD_SET_KB_LEDS_SUB_RGB_ZONE_0
 		},
 		{
 			.color_index = LED_COLOR_ID_BLUE,
 			.brightness = CLEVO_KBD_BRIGHTNESS_DEFAULT,
 			.intensity = CLEVO_KB_COLOR_DEFAULT_BLUE,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			.max_intensity = CLEVO_KB_COLOR_MAX_BLUE,
+#endif
 			.channel = CLEVO_CMD_SET_KB_LEDS_SUB_RGB_ZONE_0
 		}
 	},
@@ -230,18 +243,27 @@ static struct mc_subled clevo_mcled_cdevs_subleds[3][3] = {
 			.color_index = LED_COLOR_ID_RED,
 			.brightness = CLEVO_KBD_BRIGHTNESS_DEFAULT,
 			.intensity = CLEVO_KB_COLOR_DEFAULT_RED,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			.max_intensity = CLEVO_KB_COLOR_MAX_RED,
+#endif
 			.channel = CLEVO_CMD_SET_KB_LEDS_SUB_RGB_ZONE_1
 		},
 		{
 			.color_index = LED_COLOR_ID_GREEN,
 			.brightness = CLEVO_KBD_BRIGHTNESS_DEFAULT,
 			.intensity = CLEVO_KB_COLOR_DEFAULT_GREEN,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			.max_intensity = CLEVO_KB_COLOR_MAX_GREEN,
+#endif
 			.channel = CLEVO_CMD_SET_KB_LEDS_SUB_RGB_ZONE_1
 		},
 		{
 			.color_index = LED_COLOR_ID_BLUE,
 			.brightness = CLEVO_KBD_BRIGHTNESS_DEFAULT,
 			.intensity = CLEVO_KB_COLOR_DEFAULT_BLUE,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			.max_intensity = CLEVO_KB_COLOR_MAX_BLUE,
+#endif
 			.channel = CLEVO_CMD_SET_KB_LEDS_SUB_RGB_ZONE_1
 		}
 	},
@@ -250,18 +272,27 @@ static struct mc_subled clevo_mcled_cdevs_subleds[3][3] = {
 			.color_index = LED_COLOR_ID_RED,
 			.brightness = CLEVO_KBD_BRIGHTNESS_DEFAULT,
 			.intensity = CLEVO_KB_COLOR_DEFAULT_RED,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			.max_intensity = CLEVO_KB_COLOR_MAX_RED,
+#endif
 			.channel = CLEVO_CMD_SET_KB_LEDS_SUB_RGB_ZONE_2
 		},
 		{
 			.color_index = LED_COLOR_ID_GREEN,
 			.brightness = CLEVO_KBD_BRIGHTNESS_DEFAULT,
 			.intensity = CLEVO_KB_COLOR_DEFAULT_GREEN,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			.max_intensity = CLEVO_KB_COLOR_MAX_GREEN,
+#endif
 			.channel = CLEVO_CMD_SET_KB_LEDS_SUB_RGB_ZONE_2
 		},
 		{
 			.color_index = LED_COLOR_ID_BLUE,
 			.brightness = CLEVO_KBD_BRIGHTNESS_DEFAULT,
 			.intensity = CLEVO_KB_COLOR_DEFAULT_BLUE,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			.max_intensity = CLEVO_KB_COLOR_MAX_BLUE,
+#endif
 			.channel = CLEVO_CMD_SET_KB_LEDS_SUB_RGB_ZONE_2
 		}
 	}

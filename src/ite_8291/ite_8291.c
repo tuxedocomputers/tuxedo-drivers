@@ -108,8 +108,11 @@
 #define ITE8291_KBD_BRIGHTNESS_DEFAULT	0x00
 
 #define ITE8291_KB_COLOR_DEFAULT_RED	0xff
+#define ITE8291_KB_COLOR_MAX_RED	0xff
 #define ITE8291_KB_COLOR_DEFAULT_GREEN	0xff
+#define ITE8291_KB_COLOR_MAX_GREEN	0xff
 #define ITE8291_KB_COLOR_DEFAULT_BLUE	0xff
+#define ITE8291_KB_COLOR_MAX_BLUE	0xff
 #define ITE8291_KB_COLOR_DEFAULT	((UNIWILL_KB_COLOR_DEFAULT_RED << 16) + (UNIWILL_KB_COLOR_DEFAULT_GREEN << 8) + UNIWILL_KB_COLOR_DEFAULT_BLUE)
 
 #define ITE8291_LEDS_PER_ROW_MAX	21
@@ -510,12 +513,21 @@ static int register_leds(struct hid_device *hdev)
 			device_data->mcled_cdevs[i][j].subled_info = device_data->mcled_cdevs_subleds[i][j];
 			device_data->mcled_cdevs[i][j].subled_info[0].color_index = LED_COLOR_ID_RED;
 			device_data->mcled_cdevs[i][j].subled_info[0].intensity = ITE8291_KB_COLOR_DEFAULT_RED;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			device_data->mcled_cdevs[i][j].subled_info[0].max_intensity = ITE8291_KB_COLOR_MAX_RED;
+#endif
 			device_data->mcled_cdevs[i][j].subled_info[0].channel = ITE8291_LEDS_PER_ROW_MAX * i + j;
 			device_data->mcled_cdevs[i][j].subled_info[1].color_index = LED_COLOR_ID_GREEN;
 			device_data->mcled_cdevs[i][j].subled_info[1].intensity = ITE8291_KB_COLOR_DEFAULT_GREEN;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			device_data->mcled_cdevs[i][j].subled_info[1].max_intensity = ITE8291_KB_COLOR_MAX_GREEN;
+#endif
 			device_data->mcled_cdevs[i][j].subled_info[1].channel = ITE8291_LEDS_PER_ROW_MAX * i + j;
 			device_data->mcled_cdevs[i][j].subled_info[2].color_index = LED_COLOR_ID_BLUE;
 			device_data->mcled_cdevs[i][j].subled_info[2].intensity = ITE8291_KB_COLOR_DEFAULT_BLUE;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			device_data->mcled_cdevs[i][j].subled_info[2].max_intensity = ITE8291_KB_COLOR_MAX_BLUE;
+#endif
 			device_data->mcled_cdevs[i][j].subled_info[2].channel = ITE8291_LEDS_PER_ROW_MAX * i + j;
 
 			res = devm_led_classdev_multicolor_register(&hdev->dev, &device_data->mcled_cdevs[i][j]);

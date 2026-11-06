@@ -28,8 +28,11 @@
 #define KEYBOARD_MAX_BRIGHTNESS		0x0a
 #define KEYBOARD_DEFAULT_BRIGHTNESS	0x00
 #define KEYBOARD_DEFAULT_COLOR_RED	0xff
+#define KEYBOARD_MAX_COLOR_RED		0xff
 #define KEYBOARD_DEFAULT_COLOR_GREEN	0xff
+#define KEYBOARD_MAX_COLOR_GREEN	0xff
 #define KEYBOARD_DEFAULT_COLOR_BLUE	0xff
+#define KEYBOARD_MAX_COLOR_BLUE		0xff
 
 struct driver_data_t {
 	struct led_classdev_mc mcled_cdev_keyboard;
@@ -62,12 +65,21 @@ static int init_leds(struct platform_device *pdev)
 	driver_data->mcled_cdev_keyboard.subled_info = driver_data->mcled_cdev_subleds_keyboard;
 	driver_data->mcled_cdev_keyboard.subled_info[0].color_index = LED_COLOR_ID_RED;
 	driver_data->mcled_cdev_keyboard.subled_info[0].intensity = KEYBOARD_DEFAULT_COLOR_RED;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+	driver_data->mcled_cdev_keyboard.subled_info[0].max_intensity = KEYBOARD_MAX_COLOR_RED;
+#endif
 	driver_data->mcled_cdev_keyboard.subled_info[0].channel = 0;
 	driver_data->mcled_cdev_keyboard.subled_info[1].color_index = LED_COLOR_ID_GREEN;
 	driver_data->mcled_cdev_keyboard.subled_info[1].intensity = KEYBOARD_DEFAULT_COLOR_GREEN;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+	driver_data->mcled_cdev_keyboard.subled_info[1].max_intensity = KEYBOARD_MAX_COLOR_GREEN;
+#endif
 	driver_data->mcled_cdev_keyboard.subled_info[1].channel = 0;
 	driver_data->mcled_cdev_keyboard.subled_info[2].color_index = LED_COLOR_ID_BLUE;
 	driver_data->mcled_cdev_keyboard.subled_info[2].intensity = KEYBOARD_DEFAULT_COLOR_BLUE;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+	driver_data->mcled_cdev_keyboard.subled_info[2].max_intensity = KEYBOARD_MAX_COLOR_BLUE;
+#endif
 	driver_data->mcled_cdev_keyboard.subled_info[2].channel = 0;
 
 	retval = devm_led_classdev_multicolor_register(&pdev->dev, &driver_data->mcled_cdev_keyboard);
