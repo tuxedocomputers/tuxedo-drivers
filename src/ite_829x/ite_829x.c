@@ -33,6 +33,7 @@
 #include <linux/keyboard.h>
 #include <linux/dmi.h>
 #include <linux/led-class-multicolor.h>
+#include <linux/version.h>
 
 MODULE_DESCRIPTION("TUXEDO Computers, ITE backlight driver");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
@@ -311,12 +312,21 @@ static int probe_callb(struct hid_device *dev, const struct hid_device_id *id)
 			clevo_mcled_cdevs[i][j].subled_info = clevo_mcled_cdevs_subleds[i][j];
 			clevo_mcled_cdevs[i][j].subled_info[0].color_index = LED_COLOR_ID_RED;
 			clevo_mcled_cdevs[i][j].subled_info[0].intensity = 255;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			clevo_mcled_cdevs[i][j].subled_info[0].max_intensity = 255;
+#endif
 			clevo_mcled_cdevs[i][j].subled_info[0].channel = get_led_id(i, j);
 			clevo_mcled_cdevs[i][j].subled_info[1].color_index = LED_COLOR_ID_GREEN;
 			clevo_mcled_cdevs[i][j].subled_info[1].intensity = 255;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			clevo_mcled_cdevs[i][j].subled_info[1].max_intensity = 255;
+#endif
 			clevo_mcled_cdevs[i][j].subled_info[1].channel = get_led_id(i, j);
 			clevo_mcled_cdevs[i][j].subled_info[2].color_index = LED_COLOR_ID_BLUE;
 			clevo_mcled_cdevs[i][j].subled_info[2].intensity = 255;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+			clevo_mcled_cdevs[i][j].subled_info[2].max_intensity = 255;
+#endif
 			clevo_mcled_cdevs[i][j].subled_info[2].channel = get_led_id(i, j);
 
 			devm_led_classdev_multicolor_register(&dev->dev, &clevo_mcled_cdevs[i][j]);
