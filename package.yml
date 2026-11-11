@@ -184,6 +184,11 @@ pkg_scripts:
         rm -rf /usr/src/tuxedo-drivers-4.21.2
 
 changelog:
+  - version: "4.25.1"
+    author: "Werner Sembach"
+    date: 2026-11-11 11:37:00
+    entries:
+      - Fix more keyboard backlight for kernel >= 7.2
   - version: "4.25.0"
     author: "Werner Sembach"
     date: 2026-10-06 16:27:00
