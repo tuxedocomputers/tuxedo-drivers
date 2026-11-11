@@ -10,13 +10,3 @@ include:
       test_mode: "tag"
       test_issue_project_path: "tuxedocomputers/development/packages/tuxedo-drivers"
       release_tag_ignore_pattern: "rc"
-      test_distros:
-        - alpm-archlinux
-        - deb-ubuntu-noble
-        - deb-ubuntu-resolute
-        - deb-debian-trixie
-        - deb-debian-testing
-        - rpm-fedora-43
-        - rpm-fedora-44
-        - rpm-fedora-45
-        - suse_rpm-opensuse-leap
