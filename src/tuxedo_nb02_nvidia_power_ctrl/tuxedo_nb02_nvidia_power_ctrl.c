@@ -268,9 +268,9 @@ static int __init init_sysfs_attrs(struct platform_device *pdev)
 {
 	int result = 0;
 
-	// Blacklist IBP (non Max) devices as the cTGP setting doesn't do
+	// Unsupported IBP (non Max) devices as the cTGP setting doesn't do
 	// anything there.
-	bool ctgp_blacklist = dmi_match(DMI_BOARD_NAME, "PHxTxX1") // IBP Gen6
+	bool ctgp_unsupported = dmi_match(DMI_BOARD_NAME, "PHxTxX1") // IBP Gen6
 		|| dmi_match(DMI_BOARD_NAME, "PHxTQx1") // IBP Gen6
 		|| dmi_match(DMI_BOARD_NAME, "PHxARX1_PHxAQF1") // IBP Gen7
 		|| dmi_match(DMI_BOARD_NAME, "PH6AG01_PH6AQ71_PH6AQI1") // IBP Gen7
@@ -283,7 +283,7 @@ static int __init init_sysfs_attrs(struct platform_device *pdev)
 		|| dmi_match(DMI_BOARD_NAME, "XxKK4NAx_XxSP4NAx") // IBP Gen10
 		|| dmi_match(DMI_BOARD_NAME, "XxAR4NAx"); // IBP Gen10
 
-	if (!ctgp_blacklist) {
+	if (!ctgp_unsupported) {
 		result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_ctgp_offset.attr);
 		if (result)
 			return result;
@@ -294,7 +294,7 @@ static int __init init_sysfs_attrs(struct platform_device *pdev)
 	if (result)
 		return result;
 
-	if (!ctgp_blacklist) {
+	if (!ctgp_unsupported) {
 		result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_ctgp_enable.attr);
 		if (result)
 			return result;
