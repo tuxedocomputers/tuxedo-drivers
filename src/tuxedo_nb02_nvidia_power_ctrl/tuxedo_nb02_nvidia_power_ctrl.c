@@ -18,6 +18,7 @@
  * with this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <linux/dmi.h>
 #include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/delay.h>
@@ -267,18 +268,37 @@ static int __init init_sysfs_attrs(struct platform_device *pdev)
 {
 	int result = 0;
 
-	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_ctgp_offset.attr);
-	if (result)
-		return result;
+	// Unsupported IBP (non Max) devices as the cTGP setting doesn't do
+	// anything there.
+	bool ctgp_unsupported = dmi_match(DMI_BOARD_NAME, "PHxTxX1") // IBP Gen6
+		|| dmi_match(DMI_BOARD_NAME, "PHxTQx1") // IBP Gen6
+		|| dmi_match(DMI_BOARD_NAME, "PHxARX1_PHxAQF1") // IBP Gen7
+		|| dmi_match(DMI_BOARD_NAME, "PH6AG01_PH6AQ71_PH6AQI1") // IBP Gen7
+		|| dmi_match(DMI_BOARD_NAME, "PH4PRX1_PH6PRX1") // IBP Gen8
+		|| dmi_match(DMI_BOARD_NAME, "PH4PG31") // IBP Gen8
+		|| dmi_match(DMI_BOARD_NAME, "PH6PG01_PH6PG71") // IBP Gen8
+		|| dmi_match(DMI_BOARD_NAME, "GXxHRXx") // IBP Gen9
+		|| dmi_match(DMI_BOARD_NAME, "GXxMRXx") // IBP Gen9
+		|| dmi_match(DMI_BOARD_NAME, "XxHP4NAx") // IBP Gen10
+		|| dmi_match(DMI_BOARD_NAME, "XxKK4NAx_XxSP4NAx") // IBP Gen10
+		|| dmi_match(DMI_BOARD_NAME, "XxAR4NAx"); // IBP Gen10
+
+	if (!ctgp_unsupported) {
+		result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_ctgp_offset.attr);
+		if (result)
+			return result;
+	}
 
 #ifdef DEBUG
 	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_db_offset.attr);
 	if (result)
 		return result;
 
-	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_ctgp_enable.attr);
-	if (result)
-		return result;
+	if (!ctgp_unsupported) {
+		result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_ctgp_enable.attr);
+		if (result)
+			return result;
+	}
 
 	result = sysfs_create_file(&pdev->dev.kobj, &dev_attr_db_enable.attr);
 	if (result)
